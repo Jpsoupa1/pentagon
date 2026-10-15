@@ -4,6 +4,7 @@ import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { DIAS_CURTOS, duracaoTexto, hojeLocal, horaLocal, partesLocais } from "@/lib/tempo";
+import { alvoDeEdicao } from "@/lib/alvo";
 import { exigirUsuario } from "@/server/sessao";
 import { agenda, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
@@ -31,6 +32,7 @@ export default async function Estagio() {
                   area="estagio"
                   titulo={o.titulo}
                   meta={`${horaLocal(o.inicio, fuso)} – ${horaLocal(o.fim, fuso)}${o.local ? ` · ${o.local}` : ""}`}
+                  editar={alvoDeEdicao(o)}
                 />
               ))}
             </ul>

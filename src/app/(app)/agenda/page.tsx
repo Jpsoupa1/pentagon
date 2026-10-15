@@ -31,6 +31,10 @@ export default async function PaginaAgenda({ searchParams }: PageProps<"/agenda"
         fuso={dados.fuso}
         ocorrencias={dados.ocorrencias.map((o) => ({
           chave: o.chave,
+          origem: o.origem,
+          eventId: o.eventId,
+          dataOriginal: o.dataOriginal,
+          recorrente: o.recorrente,
           titulo: o.titulo,
           areaId: o.areaId,
           local: o.local,

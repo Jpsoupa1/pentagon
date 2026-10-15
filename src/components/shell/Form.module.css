@@ -145,3 +145,22 @@ textarea.entrada {
   color: var(--provas-text);
   font-size: var(--fs-small);
 }
+.conflito {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--provas-bg);
+  color: var(--provas-text);
+  font-size: var(--fs-small);
+}
+.conflito ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+.conflito strong {
+  color: var(--ink);
+}

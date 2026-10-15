@@ -13,7 +13,7 @@ import { useNovoItem } from "../shell/NovoItemProvider";
 import s from "./CartaoAgora.module.css";
 
 export type OcorrenciaCliente = {
-  origem: "evento" | "sessao" | "marco";
+  origem: "evento" | "sessao" | "marco" | "feriado";
   eventId: string;
   dataOriginal: string;
   titulo: string;

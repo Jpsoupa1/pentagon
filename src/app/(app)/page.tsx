@@ -12,6 +12,7 @@ import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { dataCurta, dataLonga, duracaoTexto, horaLocal, partesLocais } from "@/lib/tempo";
 import type { Ocorrencia } from "@/server/agenda/recorrencia";
+import { alvoDeEdicao } from "@/lib/alvo";
 import { exigirUsuario } from "@/server/sessao";
 import { painelHoje } from "@/server/servicos/agenda";
 
@@ -78,6 +79,7 @@ export default async function Hoje() {
                         : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}${o.feita ? " · feita" : ""}`
                     }
                     passada={o.fim < agora || o.feita}
+                    editar={alvoDeEdicao(o)}
                   />
                 ))}
               </ul>
