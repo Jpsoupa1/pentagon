@@ -1,0 +1,290 @@
+/* ---------- Botão */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 18px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+}
+.botao:active {
+  transform: scale(0.98);
+}
+.botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.primario {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.primario:hover {
+  background: var(--ink-2);
+}
+.secundario {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.secundario:hover {
+  background: var(--sidebar);
+}
+.fantasma {
+  background: transparent;
+  color: var(--text-2);
+}
+.fantasma:hover {
+  background: var(--active);
+}
+.claro {
+  background: rgb(255 255 255 / 0.12);
+  color: var(--on-ink);
+  border-color: rgb(255 255 255 / 0.18);
+}
+.claro:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.pequeno {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: var(--fs-small);
+}
+.largo {
+  width: 100%;
+}
+
+/* ---------- Chip de área */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  background: var(--area-bg);
+  color: var(--area-text);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ponto {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--area);
+}
+
+/* ---------- Cartão */
+.cartao {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  min-width: 0;
+}
+.cartaoCabeca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.cartaoTitulo {
+  font-size: var(--fs-card);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.cartaoAcao {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+
+/* ---------- Rótulo em caixa alta */
+.rotulo {
+  font-family: var(--font-mono);
+  font-size: var(--fs-tiny);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Linha de agenda */
+.linha {
+  display: grid;
+  grid-template-columns: 52px 10px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.linha:first-child {
+  border-top: 0;
+}
+.linhaHora {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.linhaTexto {
+  display: grid;
+  min-width: 0;
+}
+.linhaTitulo {
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.linhaMeta {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.linhaPassada .linhaTitulo,
+.linhaPassada .linhaHora {
+  color: var(--muted);
+}
+
+/* ---------- Caixa de seleção */
+.caixa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+.caixa input {
+  appearance: none;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.caixa input::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--on-ink);
+  border-bottom: 2px solid var(--on-ink);
+  transform: rotate(-45deg) translate(1px, -1px);
+  opacity: 0;
+}
+.caixa input:checked {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.caixa input:checked::after {
+  opacity: 1;
+}
+.caixa input:checked + .caixaTexto {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.caixaTexto {
+  min-width: 0;
+}
+
+/* ---------- Contagem regressiva */
+.contagem {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.urgente {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.proximo {
+  background: var(--provas-bg);
+  color: var(--provas-text);
+}
+.distante,
+.passou {
+  background: var(--active);
+  color: var(--text-2);
+}
+
+/* ---------- Barra de progresso */
+.barra {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--line-soft);
+  overflow: hidden;
+}
+.barra > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--area, var(--ink));
+}
+.barraEscura {
+  background: rgb(255 255 255 / 0.16);
+}
+.barraEscura > span {
+  background: var(--area, var(--on-ink));
+}
+
+/* ---------- Controle segmentado */
+.segmentado {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--r-sm);
+  background: var(--active);
+}
+.segmento {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+.segmento[aria-checked="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(21 23 28 / 0.08);
+}
+
+/* ---------- Estado vazio */
+.vazio {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 8px 0;
+  color: var(--text-2);
+}
+.vazioCentro {
+  justify-items: center;
+  text-align: center;
+  padding: 28px 12px;
+}
