@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Checklist, ConcluirAvaliacao } from "@/components/telas/Acoes";
+import { EditarAvaliacao } from "@/components/telas/EditarAvaliacao";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
 import { ChipArea } from "@/components/ui/ChipArea";
 import { Contagem } from "@/components/ui/Contagem";
@@ -9,6 +10,7 @@ import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { contagemRegressiva } from "@/lib/contagem";
 import { TIPO_AVALIACAO_NOME } from "@/lib/dominio";
 import { dataCurta, dataLonga, duracaoTexto, horaLocal, partesLocais } from "@/lib/tempo";
+import { mediaParcial } from "@/server/agenda/media";
 import { idSchema } from "@/server/api";
 import { exigirUsuario } from "@/server/sessao";
 import { obterAjustes } from "@/server/servicos/ajustes";
@@ -17,13 +19,17 @@ import {
   obterAvaliacao,
   type AvaliacaoLista,
 } from "@/server/servicos/avaliacoes";
+import { listarDisciplinas } from "@/server/servicos/disciplinas";
 
 export const metadata: Metadata = { title: "Provas e entregas" };
 
 export default async function Provas({ searchParams }: PageProps<"/provas">) {
   const usuario = await exigirUsuario();
   const { fuso } = await obterAjustes(usuario.id);
-  const todas = await listarAvaliacoes(usuario.id);
+  const [todas, disciplinas] = await Promise.all([
+    listarAvaliacoes(usuario.id),
+    listarDisciplinas(usuario.id),
+  ]);
   const { item } = await searchParams;
   const agora = new Date();
   // Mesmo critério da contagem regressiva: dias de calendário no fuso do usuário (atrasadas entram aqui).
@@ -107,6 +113,19 @@ export default async function Provas({ searchParams }: PageProps<"/provas">) {
                     <span className={layout.meta}>Nota</span>
                     <strong>{selecionada.nota ?? "—"}</strong>
                   </div>
+                  {selecionada.sigla && (
+                    <div className={layout.numero}>
+                      <span className={layout.meta}>Média parcial em {selecionada.sigla}</span>
+                      <strong>
+                        {(() => {
+                          const m = mediaParcial(
+                            todas.filter((a) => a.subjectId === selecionada.subjectId),
+                          );
+                          return m === null ? "—" : m.toFixed(1).replace(".", ",");
+                        })()}
+                      </strong>
+                    </div>
+                  )}
                 </div>
                 <Rotulo>Preparação</Rotulo>
                 <Checklist avaliacaoId={selecionada.id} itens={selecionada.checklist} />
@@ -120,8 +139,23 @@ export default async function Provas({ searchParams }: PageProps<"/provas">) {
                 <p style={{ whiteSpace: "pre-wrap", color: "var(--text-2)" }}>
                   {selecionada.anotacoes || "Sem anotações."}
                 </p>
-                <div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <ConcluirAvaliacao id={selecionada.id} concluida={!!selecionada.concluidaEm} />
+                  <EditarAvaliacao
+                    id={selecionada.id}
+                    disciplinas={disciplinas.map(({ id, nome, sigla }) => ({ id, nome, sigla }))}
+                    valores={{
+                      tipo: selecionada.tipo,
+                      titulo: selecionada.titulo,
+                      subjectId: selecionada.subjectId,
+                      data: partesLocais(selecionada.entregaEm, fuso).data,
+                      hora: horaLocal(selecionada.entregaEm, fuso),
+                      peso: selecionada.peso,
+                      nota: selecionada.nota,
+                      anotacoes: selecionada.anotacoes,
+                      lembrarMin: selecionada.lembrarMin,
+                    }}
+                  />
                 </div>
               </div>
             </Cartao>

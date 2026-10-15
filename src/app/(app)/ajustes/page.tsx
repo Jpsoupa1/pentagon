@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Icone } from "@/components/shell/icones";
 import { AtivarAvisos } from "@/components/telas/AtivarAvisos";
 import { FeedCalendario } from "@/components/telas/FeedCalendario";
+import { AreasNoFeed, Feriados } from "@/components/telas/Feriados";
 import { FormAjustes } from "@/components/telas/FormAjustes";
 import { HorariosEstudo } from "@/components/telas/HorariosEstudo";
 import { Botao } from "@/components/ui/Botao";
@@ -15,16 +16,19 @@ import { horariosComPadrao } from "@/lib/estudos";
 import { chavePublicaVapid } from "@/server/avisos/push";
 import { obterAjustes } from "@/server/servicos/ajustes";
 import { tokenAtivo } from "@/server/servicos/calendario";
+import { listarFeriados } from "@/server/servicos/feriados";
 
 export const metadata: Metadata = { title: "Ajustes" };
 
 export default async function Ajustes() {
   const usuario = await exigirUsuario();
-  const [ajustes, token, cabecalhos] = await Promise.all([
+  const [ajustes, token, cabecalhos, feriados] = await Promise.all([
     obterAjustes(usuario.id),
     tokenAtivo(usuario.id),
     headers(),
+    listarFeriados(usuario.id),
   ]);
+  const ano = new Date().getFullYear();
   const host = cabecalhos.get("x-forwarded-host") ?? cabecalhos.get("host") ?? "localhost:3000";
 
   return (
@@ -46,8 +50,15 @@ export default async function Ajustes() {
           <HorariosEstudo inicial={horariosComPadrao(ajustes.horariosEstudo)} />
         </Cartao>
         <Cartao>
+          <CartaoCabeca titulo="Feriados" />
+          <Feriados feriados={feriados} anos={[ano, ano + 1]} />
+        </Cartao>
+        <Cartao>
           <CartaoCabeca titulo="Avisos" />
-          <AtivarAvisos chavePublica={chavePublicaVapid()} />
+          <div className={layout.pilha}>
+            <AtivarAvisos chavePublica={chavePublicaVapid()} />
+            <AreasNoFeed inicial={ajustes.areasNoFeed} />
+          </div>
         </Cartao>
         <Cartao>
           <CartaoCabeca titulo="Calendário do iPhone" />

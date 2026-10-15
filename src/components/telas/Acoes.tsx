@@ -87,12 +87,23 @@ function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 
 const txt = (d: FormData, k: string) => String(d.get(k) ?? "").trim();
 
-export function NovaDisciplina() {
+type ValoresDisciplina = {
+  id: string;
+  nome: string;
+  sigla: string;
+  professor: string | null;
+  sala: string | null;
+  limiteFaltas: number;
+};
+
+export function NovaDisciplina({ editar }: { editar?: ValoresDisciplina } = {}) {
   return (
     <FolhaComForm
-      rotuloBotao="Nova disciplina"
-      titulo="Nova disciplina"
-      url="/api/disciplinas"
+      rotuloBotao={editar ? "Editar disciplina" : "Nova disciplina"}
+      titulo={editar ? "Editar disciplina" : "Nova disciplina"}
+      url={editar ? `/api/disciplinas/${editar.id}` : "/api/disciplinas"}
+      metodo={editar ? "PUT" : "POST"}
+      variante={editar ? "secundario" : "primario"}
       textoSalvar="Salvar disciplina"
       montar={(d) => ({
         nome: txt(d, "nome"),
@@ -103,11 +114,25 @@ export function NovaDisciplina() {
       })}
     >
       <Campo rotulo="Nome">
-        <input name="nome" required maxLength={120} className={f.entrada} autoComplete="off" />
+        <input
+          name="nome"
+          required
+          maxLength={120}
+          className={f.entrada}
+          autoComplete="off"
+          defaultValue={editar?.nome}
+        />
       </Campo>
       <div className={f.linha}>
         <Campo rotulo="Sigla">
-          <input name="sigla" required maxLength={12} className={f.entrada} autoComplete="off" />
+          <input
+            name="sigla"
+            required
+            maxLength={12}
+            className={f.entrada}
+            autoComplete="off"
+            defaultValue={editar?.sigla}
+          />
         </Campo>
         <Campo rotulo="Limite de faltas">
           <input
@@ -115,16 +140,28 @@ export function NovaDisciplina() {
             type="number"
             min={0}
             max={200}
-            defaultValue={0}
+            defaultValue={editar?.limiteFaltas ?? 0}
             className={`${f.entrada} mono`}
           />
         </Campo>
       </div>
       <Campo rotulo="Professor (opcional)">
-        <input name="professor" maxLength={120} className={f.entrada} autoComplete="off" />
+        <input
+          name="professor"
+          maxLength={120}
+          className={f.entrada}
+          autoComplete="off"
+          defaultValue={editar?.professor ?? ""}
+        />
       </Campo>
       <Campo rotulo="Sala (opcional)">
-        <input name="sala" maxLength={60} className={f.entrada} autoComplete="off" />
+        <input
+          name="sala"
+          maxLength={60}
+          className={f.entrada}
+          autoComplete="off"
+          defaultValue={editar?.sala ?? ""}
+        />
       </Campo>
     </FolhaComForm>
   );
@@ -293,6 +330,28 @@ export function ConcluirAvaliacao({ id, concluida }: { id: string; concluida: bo
       }}
     >
       {concluida ? "Reabrir" : "Concluir"}
+    </Botao>
+  );
+}
+
+/** Botão pequeno que apaga um item pela API (falta, feriado, lembrete...). */
+export function BotaoApagar({ url, rotulo }: { url: string; rotulo: string }) {
+  const router = useRouter();
+  const [ocupado, setOcupado] = useState(false);
+  return (
+    <Botao
+      variante="fantasma"
+      pequeno
+      aria-label={rotulo}
+      disabled={ocupado}
+      onClick={async () => {
+        setOcupado(true);
+        await enviar("DELETE", url);
+        setOcupado(false);
+        router.refresh();
+      }}
+    >
+      Apagar
     </Botao>
   );
 }

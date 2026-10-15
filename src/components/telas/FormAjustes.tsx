@@ -61,8 +61,11 @@ export function FormAjustes({
           />
         </label>
       </div>
+      <p style={{ fontSize: 13, color: "var(--text-2)" }}>
+        As aulas só aparecem entre o início e o fim do semestre. Sem datas, elas repetem sem fim.
+      </p>
       <label className={f.campo}>
-        <span className={f.rotulo}>Avisar quantos minutos antes</span>
+        <span className={f.rotulo}>Avisar quantos minutos antes das sessões de estudo</span>
         <input
           type="number"
           name="aviso"
