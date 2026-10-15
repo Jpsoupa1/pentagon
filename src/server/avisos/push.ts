@@ -33,11 +33,9 @@ export async function enviarPush(
     await webpush.sendNotification(
       { endpoint: i.endpoint, keys: { p256dh: i.p256dh, auth: i.auth } },
       JSON.stringify(m),
-      {
-        TTL: 60 * 60,
-        urgency: "high",
-        topic: m.tag?.slice(0, 32).replace(/[^A-Za-z0-9_-]/g, "") || undefined,
-      },
+      // Sem o cabeçalho Topic: o push da Apple recusa com "BadWebPushTopic".
+      // O agrupamento no aparelho fica por conta do `tag` da notificação.
+      { TTL: 60 * 60, urgency: "high" },
     );
     return "ok";
   } catch (erro) {
