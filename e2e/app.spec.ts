@@ -159,14 +159,16 @@ test("abre offline na primeira abertura e sincroniza a fila", async ({
   await expect(page.getByText("Comprar café")).toBeVisible();
 });
 
-test("cria lembrete online", async ({ page }) => {
+test("cria lembrete online", async ({ page }, info) => {
+  // Texto único por rodada: Chromium e WebKit usam o mesmo banco.
+  const texto = `Ligar para o banco (${info.project.name} ${Date.now()})`;
   await page.goto("/lembretes");
   await page.getByRole("button", { name: "Novo lembrete" }).click();
   const folha = page.getByRole("dialog", { name: "Novo lembrete" });
-  await folha.getByLabel("Lembrar de").fill("Ligar para o banco");
+  await folha.getByLabel("Lembrar de").fill(texto);
   await folha.getByRole("button", { name: "Salvar lembrete" }).click();
   await expect(folha).toBeHidden();
-  await expect(page.getByText("Ligar para o banco")).toBeVisible();
+  await expect(page.getByText(texto)).toBeVisible();
 });
 
 test.describe("etapa 2: trilha, avisos e calendário", () => {
