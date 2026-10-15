@@ -1,0 +1,48 @@
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dia {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 116px) minmax(84px, 104px);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.dia:first-child {
+  border-top: 0;
+}
+.liga {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch);
+  min-width: 0;
+  cursor: pointer;
+}
+.liga input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--estudos-text);
+  flex: none;
+}
+.liga > span {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+.liga strong,
+.tipo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tipo {
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+.campo .mono {
+  padding: 8px;
+}

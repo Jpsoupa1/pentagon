@@ -26,6 +26,7 @@
 }
 .entrada {
   width: 100%;
+  min-width: 0;
   min-height: var(--touch);
   padding: 10px 12px;
   border: 1px solid var(--line-strong);
@@ -38,12 +39,19 @@
   outline-offset: 0;
   border-color: var(--focus);
 }
+/* iOS dá largura mínima própria aos campos de data e hora */
+input[type="date"].entrada,
+input[type="time"].entrada {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+}
 textarea.entrada {
   resize: vertical;
 }
 .linha {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
   gap: 12px;
 }
 .linhaBotao {

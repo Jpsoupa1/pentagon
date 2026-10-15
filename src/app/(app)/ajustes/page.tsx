@@ -1,19 +1,31 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Icone } from "@/components/shell/icones";
+import { AtivarAvisos } from "@/components/telas/AtivarAvisos";
+import { FeedCalendario } from "@/components/telas/FeedCalendario";
 import { FormAjustes } from "@/components/telas/FormAjustes";
+import { HorariosEstudo } from "@/components/telas/HorariosEstudo";
 import { Botao } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import uiS from "@/components/ui/ui.module.css";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { signOut } from "@/server/auth";
 import { exigirUsuario } from "@/server/sessao";
+import { horariosComPadrao } from "@/lib/estudos";
+import { chavePublicaVapid } from "@/server/avisos/push";
 import { obterAjustes } from "@/server/servicos/ajustes";
+import { tokenAtivo } from "@/server/servicos/calendario";
 
 export const metadata: Metadata = { title: "Ajustes" };
 
 export default async function Ajustes() {
   const usuario = await exigirUsuario();
-  const ajustes = await obterAjustes(usuario.id);
+  const [ajustes, token, cabecalhos] = await Promise.all([
+    obterAjustes(usuario.id),
+    tokenAtivo(usuario.id),
+    headers(),
+  ]);
+  const host = cabecalhos.get("x-forwarded-host") ?? cabecalhos.get("host") ?? "localhost:3000";
 
   return (
     <>
@@ -28,6 +40,18 @@ export default async function Ajustes() {
               periodoFim: ajustes.periodoFim,
             }}
           />
+        </Cartao>
+        <Cartao>
+          <CartaoCabeca titulo="Horários de estudo" />
+          <HorariosEstudo inicial={horariosComPadrao(ajustes.horariosEstudo)} />
+        </Cartao>
+        <Cartao>
+          <CartaoCabeca titulo="Avisos" />
+          <AtivarAvisos chavePublica={chavePublicaVapid()} />
+        </Cartao>
+        <Cartao>
+          <CartaoCabeca titulo="Calendário do iPhone" />
+          <FeedCalendario token={token?.token ?? null} host={host} />
         </Cartao>
         <div className={layout.pilha}>
           <Cartao>
