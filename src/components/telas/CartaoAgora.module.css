@@ -1,0 +1,66 @@
+.cartao {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+  border-radius: var(--r-lg);
+  background: var(--ink);
+  color: var(--on-ink);
+  min-width: 0;
+}
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rotulo {
+  font-family: var(--font-mono);
+  font-size: var(--fs-tiny);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-ink-2);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.1);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+.ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--area);
+}
+.horario {
+  font-size: var(--fs-small);
+  color: var(--on-ink-2);
+}
+.titulo {
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.meta {
+  font-size: var(--fs-small);
+  color: var(--on-ink-2);
+}
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.concluir {
+  background: var(--on-ink);
+  color: var(--ink);
+}
+.concluir:hover {
+  background: #e9eaee;
+}
