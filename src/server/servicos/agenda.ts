@@ -2,28 +2,53 @@ import "server-only";
 import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { addDias, hojeLocal, paraUtc, segundaDe } from "@/lib/tempo";
 import { agoraEProximo } from "../agenda/agora";
-import {
-  expandirOcorrencias,
-  minutosPorArea,
-  type Intervalo,
-  type Ocorrencia,
-} from "../agenda/recorrencia";
+import { minutosPorArea, type Intervalo, type Ocorrencia } from "../agenda/recorrencia";
+import { expandirComRegras, ocorrenciasDeFeriados } from "../agenda/regras";
 import { db } from "../db";
 import { assessments, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
 import { eventosNoIntervalo } from "./eventos";
+import { feriadosEntre } from "./feriados";
 import { ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
 import { lembretesDeHoje } from "./lembretes";
 import { proximosPrazos } from "./prazos";
 
-/** Tudo o que ocupa a agenda no intervalo: compromissos, sessões e marcos da trilha. */
-export async function ocorrencias(userId: string, intervalo: Intervalo): Promise<Ocorrencia[]> {
-  const [{ eventos, excecoes }, estudo] = await Promise.all([
+/**
+ * Compromissos do usuário expandidos no intervalo, com período letivo, feriados e exceções aplicados.
+ * `excluirEvento` deixa um compromisso de fora (para comparar a versão nova dele com o resto).
+ */
+export async function compromissos(userId: string, intervalo: Intervalo, excluirEvento?: string) {
+  const [{ eventos, excecoes }, feriados, ajustes] = await Promise.all([
     eventosNoIntervalo(userId, intervalo.de, intervalo.ate),
-    ocorrenciasDeEstudo(userId, intervalo),
+    feriadosEntre(userId, intervalo.de, intervalo.ate),
+    obterAjustes(userId),
   ]);
-  return [...expandirOcorrencias(eventos, excecoes, intervalo), ...estudo].sort(
-    (a, b) => a.inicio.getTime() - b.inicio.getTime() || a.titulo.localeCompare(b.titulo),
+  const lista = excluirEvento ? eventos.filter((e) => e.id !== excluirEvento) : eventos;
+  const periodo = { inicio: ajustes.periodoInicio, fim: ajustes.periodoFim };
+  return {
+    eventos: lista,
+    feriados,
+    periodo,
+    ocorrencias: expandirComRegras(lista, excecoes, feriados, periodo, intervalo),
+  };
+}
+
+const porHorario = (a: Ocorrencia, b: Ocorrencia) =>
+  a.inicio.getTime() - b.inicio.getTime() || a.titulo.localeCompare(b.titulo);
+
+/** Tudo o que ocupa a agenda no intervalo: compromissos, feriados, sessões e marcos da trilha. */
+export async function ocorrencias(
+  userId: string,
+  intervalo: Intervalo,
+  excluirEvento?: string,
+): Promise<Ocorrencia[]> {
+  const [c, estudo, { fuso }] = await Promise.all([
+    compromissos(userId, intervalo, excluirEvento),
+    ocorrenciasDeEstudo(userId, intervalo),
+    obterAjustes(userId),
+  ]);
+  return [...c.ocorrencias, ...ocorrenciasDeFeriados(c.feriados, intervalo, fuso), ...estudo].sort(
+    porHorario,
   );
 }
 

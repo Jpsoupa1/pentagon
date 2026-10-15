@@ -10,7 +10,8 @@ import { obterAjustes } from "./ajustes";
 
 type EventoValido = z.output<typeof eventoSchema>;
 
-async function paraLinha(userId: string, e: EventoValido) {
+/** Converte a entrada do formulário na linha do banco (data e hora locais viram instante UTC). */
+export async function linhaDoEvento(userId: string, e: EventoValido) {
   const { fuso } = await obterAjustes(userId);
   if (e.subjectId) await garantirDisciplina(userId, e.subjectId);
   return {
@@ -54,7 +55,7 @@ export async function obterEvento(userId: string, id: string) {
 export async function criarEvento(userId: string, entrada: EventoValido) {
   const [criado] = await db()
     .insert(events)
-    .values({ userId, ...(await paraLinha(userId, entrada)) })
+    .values({ userId, ...(await linhaDoEvento(userId, entrada)) })
     .returning();
   return criado;
 }
@@ -63,7 +64,7 @@ export async function atualizarEvento(userId: string, id: string, entrada: Event
   await obterEvento(userId, id);
   const [salvo] = await db()
     .update(events)
-    .set(await paraLinha(userId, entrada))
+    .set(await linhaDoEvento(userId, entrada))
     .where(and(eq(events.id, id), eq(events.userId, userId)))
     .returning();
   return salvo;
