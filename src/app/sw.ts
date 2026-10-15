@@ -11,6 +11,8 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+const CACHE_PAGINAS = "paginas";
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
@@ -33,7 +35,7 @@ const serwist = new Serwist({
     {
       matcher: ({ request, sameOrigin }) => sameOrigin && request.mode === "navigate",
       handler: new NetworkFirst({
-        cacheName: "paginas",
+        cacheName: CACHE_PAGINAS,
         networkTimeoutSeconds: 4,
         matchOptions: { ignoreVary: true },
       }),
@@ -46,3 +48,33 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+/**
+ * Guarda as telas do app de uma vez, já na primeira abertura. Sem isso, o app instalado no
+ * iPhone (que não compartilha o cache do Safari) abria offline direto na página "Sem conexão".
+ * Só guarda respostas da própria tela: se a sessão caiu e houve redirecionamento ao login, ignora.
+ */
+async function aquecer(urls: string[]) {
+  const cache = await caches.open(CACHE_PAGINAS);
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const r = await fetch(url, { credentials: "same-origin" });
+        if (r.ok && !r.redirected) await cache.put(url, r);
+      } catch {
+        // Sem conexão: fica com a versão já guardada.
+      }
+    }),
+  );
+}
+
+self.addEventListener("message", (evento) => {
+  const dados = evento.data as { tipo?: string; urls?: unknown } | null;
+  if (dados?.tipo !== "aquecer" || !Array.isArray(dados.urls)) return;
+  const urls = dados.urls.filter(
+    (u): u is string => typeof u === "string" && u.startsWith("/") && !u.startsWith("//"),
+  );
+  evento.waitUntil(
+    aquecer(urls).then(() => (evento.source as Client | null)?.postMessage({ tipo: "aquecido" })),
+  );
+});

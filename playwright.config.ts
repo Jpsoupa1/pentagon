@@ -16,7 +16,15 @@ export default defineConfig({
     timezoneId: "America/Sao_Paulo",
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // Motor do Safari com tela e toque de iPhone (só os fluxos de interface).
+    {
+      name: "iphone",
+      use: { ...devices["iPhone 15"] },
+      grep: /Novo item|lembrete|disciplina/,
+    },
+  ],
   webServer: {
     command: `npm run start -- -p ${porta}`,
     url: `http://localhost:${porta}/login`,

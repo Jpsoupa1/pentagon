@@ -1,4 +1,5 @@
 import { AbasFlutuantes, AbasIphone, BarraLateral, Trilho } from "@/components/shell/Navegacao";
+import { AquecerCache } from "@/components/shell/AquecerCache";
 import { FilaOffline } from "@/components/shell/FilaOffline";
 import { NovoItemProvider } from "@/components/shell/NovoItemProvider";
 import s from "@/components/shell/Shell.module.css";
@@ -28,6 +29,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <AbasFlutuantes />
         <AbasIphone />
         <FilaOffline />
+        <AquecerCache />
       </div>
     </NovoItemProvider>
   );
