@@ -10,7 +10,7 @@ Funciona no notebook, iPad e iPhone (instalável na Tela de Início), com dados 
 | ---------------------------------------------------------------- | -------- |
 | 1. Estrutura do site (frontend, API, banco, login, PWA, CI)      | Pronta   |
 | 2. Rotina de estudos (trilha DevOps, avisos, feed de calendário) | Pronta   |
-| 3. Rotina pessoal (estágio, academia, aulas, provas, lembretes)  | A fazer  |
+| 3. Rotina pessoal (estágio, academia, aulas, provas, lembretes)  | Pronta   |
 
 ## Arquitetura
 
@@ -84,6 +84,17 @@ cron diário 03:00 (GET /api/cron/reconciliar) ─┘ agenda no QStash os que fa
 - Os eventos da trilha saem idênticos aos do gerador original (`src/server/calendario/ics.test.ts` compara evento por evento).
 - Em Ajustes: endereço `webcal://` com botão de copiar, gerar novo (revoga o anterior), revogar e o passo a passo do iPhone.
 
+## Rotina pessoal (etapa 3)
+
+- **Seed** (`npm run seed:rotina [email]`, também no build e no primeiro login): estágio na Codevasf (seg a sex, 07:30 às 12:00), academia (seg a sex, 16:00 às 17:30, sugestão) e as 5 aulas às 19:10 com as disciplinas (sala, professor e limite de faltas em branco). Roda **uma vez por usuário** (`settings.rotina_semeada_em`): o que você editar ou apagar não volta.
+- **Editar pela agenda:** tocar num compromisso (Agenda, Hoje, Estágio, Aulas) abre a folha com mudar horário **só neste dia** (exceção) ou **todos os dias**, cancelar só neste dia, voltar ao horário normal, editar e apagar.
+- **Período letivo** (Ajustes): aulas recorrentes só acontecem entre o início e o fim do semestre.
+- **Feriados** (Ajustes): cancelam as ocorrências das áreas marcadas naquele dia (padrão: aulas e estágio). Há atalho para os feriados nacionais do ano.
+- **Conflitos:** ao salvar um compromisso ou mudar um dia, o servidor compara com a agenda (8 semanas à frente para o que repete) e responde `409` com os choques; a interface mostra e oferece "Salvar mesmo assim".
+- **Provas e entregas:** criar, editar (nota, peso), apagar, checklist e média parcial por disciplina. Avisos na véspera (24 h antes) e no "avisar também" (padrão 2 h antes).
+- **Lembretes:** repetem (todo dia, semana ou mês); concluir um que repete o leva para a próxima vez. Aviso na hora marcada.
+- **Feed e avisos** cobrem todas as áreas escolhidas em Ajustes. Regras puras em `src/server/agenda/regras.ts` e `src/server/avisos/planejar.ts`.
+
 ## API
 
 Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `campos`.
@@ -103,6 +114,7 @@ Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `
 | `/api/push/inscricoes`, `/api/push/teste`                                                                                | POST, DELETE                                         |
 | `/api/push/disparar`                                                                                                     | POST, só com assinatura do QStash                    |
 | `/api/calendario/token`, `/api/calendario/[token].ics`                                                                   | POST, DELETE / GET público com token                 |
+| `/api/feriados`, `/api/feriados/[id]`, `/api/feriados/nacionais` (POST `{ano}`)                                          | GET, POST, DELETE                                    |
 | `/api/cron/reconciliar`                                                                                                  | GET com `Authorization: Bearer $CRON_SECRET`         |
 
 ## Rodar localmente
@@ -122,15 +134,16 @@ Para o login local, crie um OAuth App no GitHub com callback `http://localhost:3
 
 ### Scripts
 
-| Script                                | O que faz                                                                 |
-| ------------------------------------- | ------------------------------------------------------------------------- |
-| `npm run dev` / `build` / `start`     | Next.js                                                                   |
-| `npm run lint`, `typecheck`, `format` | Qualidade                                                                 |
-| `npm test`                            | Vitest (recorrência, exceções, contagem, cartão Agora, validação, acesso) |
-| `npm run test:e2e`                    | Playwright contra `next start` (rode `npm run build` antes)               |
-| `npm run db:generate`                 | Gera migração a partir de `src/server/db/schema.ts`                       |
-| `npm run db:migrate`                  | Aplica migrações e o seed das áreas                                       |
-| `npm run icons`                       | Regera os ícones do PWA a partir do logo                                  |
+| Script                                       | O que faz                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| `npm run dev` / `build` / `start`            | Next.js                                                                   |
+| `npm run lint`, `typecheck`, `format`        | Qualidade                                                                 |
+| `npm test`                                   | Vitest (recorrência, exceções, contagem, cartão Agora, validação, acesso) |
+| `npm run seed:trilha`, `npm run seed:rotina` | Seeds idempotentes (trilha DevOps; rotina pessoal uma vez por usuário)    |
+| `npm run test:e2e`                           | Playwright contra `next start` (rode `npm run build` antes)               |
+| `npm run db:generate`                        | Gera migração a partir de `src/server/db/schema.ts`                       |
+| `npm run db:migrate`                         | Aplica migrações e o seed das áreas                                       |
+| `npm run icons`                              | Regera os ícones do PWA a partir do logo                                  |
 
 Os testes e2e criam um usuário e uma sessão direto no banco local (`e2e/sessao.ts`), sem passar pelo GitHub. O script se recusa a rodar contra um banco da Neon.
 
