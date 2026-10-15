@@ -15,3 +15,7 @@ export const TIPO_AVALIACAO_NOME: Record<TipoAvaliacao, string> = {
 
 export const repeticoes = ["nunca", "diario", "semanal", "mensal"] as const;
 export type Repeticao = (typeof repeticoes)[number];
+
+export type HorarioEstudo = { ativo: boolean; inicio: string; minutos: number };
+/** Chave = dia da semana (0 = domingo). */
+export type HorariosEstudo = Record<string, HorarioEstudo>;
