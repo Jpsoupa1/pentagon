@@ -3,6 +3,7 @@ import "./env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { urlDoBanco } from "../src/server/db/url";
 import { users } from "../src/server/db/schema";
 import { semearRotina } from "../src/server/rotina/seed";
 
@@ -20,7 +21,7 @@ export async function semearRotinaParaTodos(db: ReturnType<typeof drizzle>, emai
 }
 
 if (process.argv[1]?.endsWith("seed-rotina.ts")) {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
+  const pool = new Pool({ connectionString: urlDoBanco(process.env.DATABASE_URL ?? ""), max: 1 });
   semearRotinaParaTodos(drizzle(pool), process.argv[2])
     .catch((e) => {
       console.error(e);
