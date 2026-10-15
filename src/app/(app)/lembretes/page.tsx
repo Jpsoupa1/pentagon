@@ -46,8 +46,12 @@ export default async function Lembretes() {
       <div className={layout.duas}>
         <Cartao>
           <CartaoCabeca titulo="Abertos" />
+          <p className={layout.meta} style={{ marginBottom: 8 }}>
+            Concluir um lembrete que repete o leva para a próxima vez. O aviso chega no horário
+            marcado.
+          </p>
           {abertos.length ? (
-            <ListaLembretes lembretes={abertos.map(formatar)} />
+            <ListaLembretes lembretes={abertos.map(formatar)} apagavel />
           ) : (
             <EstadoVazio>Nenhum lembrete aberto. Crie o primeiro.</EstadoVazio>
           )}
@@ -55,7 +59,7 @@ export default async function Lembretes() {
         <Cartao>
           <CartaoCabeca titulo="Concluídos" />
           {feitos.length ? (
-            <ListaLembretes lembretes={feitos.map(formatar)} />
+            <ListaLembretes lembretes={feitos.map(formatar)} apagavel />
           ) : (
             <EstadoVazio>Nada concluído ainda.</EstadoVazio>
           )}
