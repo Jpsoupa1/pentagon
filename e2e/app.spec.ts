@@ -116,17 +116,32 @@ test("PWA: manifest e service worker publicados", async ({ request }) => {
   expect(sw.ok()).toBe(true);
 });
 
-test("abre offline e sincroniza a fila quando a conexão volta", async ({ page, context }) => {
+test("abre offline na primeira abertura e sincroniza a fila", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Service worker com offline só é confiável no Chromium do Playwright",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
+  // Primeira abertura: nenhuma outra tela visitada, sem recarregar.
   await page.goto("/");
   await page.evaluate(() => navigator.serviceWorker.ready);
-  // Segunda visita já passa pelo service worker e fica salva no aparelho.
-  await page.reload();
-  await page.goto("/lembretes");
-  await page.goto("/");
+  await expect
+    .poll(
+      () => page.evaluate(async () => !!(await (await caches.open("paginas")).match("/lembretes"))),
+      {
+        timeout: 15_000,
+      },
+    )
+    .toBe(true);
 
   await context.setOffline(true);
-  await page.reload();
+  await page.goto("/agenda");
+  await expect(page.locator("h1")).toHaveText("Agenda");
+  await page.goto("/");
   await expect(page.locator("h1")).toContainText(/Bom dia|Boa tarde|Boa noite/);
   await expect(page.getByText("Sem conexão. Mostrando a última versão salva.")).toBeVisible();
 
@@ -141,4 +156,14 @@ test("abre offline e sincroniza a fila quando a conexão volta", async ({ page, 
   await expect(page.getByText("1 alteração aguardando conexão")).toBeHidden({ timeout: 10_000 });
   await page.goto("/lembretes");
   await expect(page.getByText("Comprar café")).toBeVisible();
+});
+
+test("cria lembrete online", async ({ page }) => {
+  await page.goto("/lembretes");
+  await page.getByRole("button", { name: "Novo lembrete" }).click();
+  const folha = page.getByRole("dialog", { name: "Novo lembrete" });
+  await folha.getByLabel("Lembrar de").fill("Ligar para o banco");
+  await folha.getByRole("button", { name: "Salvar lembrete" }).click();
+  await expect(folha).toBeHidden();
+  await expect(page.getByText("Ligar para o banco")).toBeVisible();
 });

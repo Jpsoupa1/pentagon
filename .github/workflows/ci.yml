@@ -59,8 +59,8 @@ jobs:
         run: npm run db:migrate
       - name: Build
         run: npm run build
-      - name: Instalar Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Instalar Chromium e WebKit
+        run: npx playwright install --with-deps chromium webkit
       - name: Testes de ponta a ponta (Playwright)
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
