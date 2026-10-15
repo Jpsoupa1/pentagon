@@ -3,7 +3,9 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { db } from "./db";
 import { accounts, sessions, users } from "./db/schema";
+import { semearTrilha } from "./estudos/seed";
 import { emailPermitido } from "./permissao";
+import { semearRotina } from "./rotina/seed";
 
 declare module "next-auth" {
   interface Session {
@@ -22,6 +24,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   session: { strategy: "database", maxAge: 60 * 60 * 24 * 90 },
   pages: { signIn: "/login", error: "/login" },
   trustHost: true,
+  events: {
+    // Primeiro login: grava a trilha DevOps e a rotina pessoal.
+    async createUser({ user }) {
+      if (!user.id) return;
+      await semearTrilha(db(), user.id);
+      await semearRotina(db(), user.id);
+    },
+  },
   callbacks: {
     signIn({ user, profile }) {
       return emailPermitido(user.email ?? profile?.email);

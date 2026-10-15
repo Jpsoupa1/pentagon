@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import { semearAreas } from "./seed-areas";
+import { semearRotinaParaTodos } from "./seed-rotina";
 import { semearTrilhaParaTodos } from "./seed-trilha";
 
 export async function migrar() {
@@ -14,7 +15,8 @@ export async function migrar() {
     await migrate(db, { migrationsFolder: "drizzle" });
     await semearAreas(db);
     await semearTrilhaParaTodos(db);
-    console.log("Migrações aplicadas, áreas e trilha conferidas.");
+    await semearRotinaParaTodos(db);
+    console.log("Migrações aplicadas; áreas, trilha e rotina conferidas.");
   } finally {
     await pool.end();
   }
