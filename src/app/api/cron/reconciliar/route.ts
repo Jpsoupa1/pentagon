@@ -1,5 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
+import { NextResponse, type NextRequest } from "next/server";
+import { reconciliarTodos } from "@/server/servicos/avisos";
+
+export const maxDuration = 60;
 
 function autorizado(req: NextRequest) {
   const segredo = process.env.CRON_SECRET;
@@ -11,10 +14,10 @@ function autorizado(req: NextRequest) {
 }
 
 /**
- * Cron diário (03:00 em São Paulo). Na etapa 2 passa a agendar no QStash os avisos
- * das próximas 48 h que faltarem e a limpar os órfãos. Por enquanto só confere o segredo.
+ * Cron diário (03:00 em São Paulo): agenda no QStash os avisos das próximas 48 h
+ * que faltarem e marca como falhos os que ficaram órfãos.
  */
 export async function GET(req: NextRequest) {
   if (!autorizado(req)) return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
-  return NextResponse.json({ ok: true, agendados: 0, removidos: 0 });
+  return NextResponse.json({ ok: true, ...(await reconciliarTodos()) });
 }

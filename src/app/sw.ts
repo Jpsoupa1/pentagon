@@ -78,3 +78,43 @@ self.addEventListener("message", (evento) => {
     aquecer(urls).then(() => (evento.source as Client | null)?.postMessage({ tipo: "aquecido" })),
   );
 });
+
+// ---------------------------------------------------------------- Avisos (Web Push)
+
+type DadosPush = { titulo?: string; corpo?: string; url?: string; tag?: string };
+
+self.addEventListener("push", (evento) => {
+  let d: DadosPush = {};
+  try {
+    d = (evento.data?.json() as DadosPush) ?? {};
+  } catch {
+    d = { corpo: evento.data?.text() };
+  }
+  evento.waitUntil(
+    self.registration.showNotification(d.titulo ?? "Pentagon", {
+      body: d.corpo ?? "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: d.tag,
+      data: { url: d.url ?? "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (evento) => {
+  evento.notification.close();
+  const destino = new URL(
+    (evento.notification.data as { url?: string })?.url ?? "/",
+    self.location.origin,
+  ).href;
+  evento.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((janelas) => {
+      for (const j of janelas) {
+        if (new URL(j.url).origin === self.location.origin) {
+          return j.focus().then((f) => (f as WindowClient).navigate(destino));
+        }
+      }
+      return self.clients.openWindow(destino);
+    }),
+  );
+});
