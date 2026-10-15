@@ -345,12 +345,31 @@ export const settings = pgTable("settings", {
   periodoInicio: date("periodo_inicio"),
   periodoFim: date("periodo_fim"),
   horariosEstudo: jsonb("horarios_estudo").$type<HorariosEstudo>(),
+  /** Quando o seed da rotina pessoal rodou: evita recriar o que o usuário apagou. */
+  rotinaSemeadaEm: timestamp("rotina_semeada_em", tz),
   areasNoFeed: areaEnum("areas_no_feed")
     .array()
     .notNull()
     .default(sql`ARRAY['aulas','provas','estudos','estagio','pessoal']::area_id[]`),
   updatedAt: atualizadoEm(),
 });
+
+/** Feriado: cancela as ocorrências das áreas escolhidas naquele dia (por padrão, aulas e estágio). */
+export const holidays = pgTable(
+  "holidays",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    data: date("data").notNull(),
+    nome: text("nome").notNull(),
+    areasCanceladas: areaEnum("areas_canceladas")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['aulas','estagio']::area_id[]`),
+    createdAt: criadoEm(),
+  },
+  (t) => [uniqueIndex("holidays_user_data_uq").on(t.userId, t.data)],
+);
 
 export const calendarTokens = pgTable("calendar_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),
