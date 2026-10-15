@@ -1,0 +1,50 @@
+.pagina {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: calc(24px + var(--safe-top)) 16px calc(24px + var(--safe-bottom));
+}
+.cartao {
+  width: min(100%, 380px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 36px 28px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.titulo {
+  font-size: var(--fs-page);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.texto {
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+.erro {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--provas-bg);
+  color: var(--provas-text);
+  font-size: var(--fs-small);
+}
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--touch);
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+}
+.botao:hover {
+  background: var(--ink-2);
+}

@@ -1,0 +1,294 @@
+.agenda {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.navBotao,
+.navHoje {
+  display: grid;
+  place-items: center;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 18px;
+}
+.navHoje {
+  font-size: var(--fs-small);
+}
+.filtro {
+  margin-left: auto;
+}
+.filtro select {
+  min-height: var(--touch);
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+.vazio {
+  padding: 4px 4px 0;
+}
+.linkBotao {
+  min-height: var(--touch);
+  padding: 0 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-weight: 600;
+}
+
+/* ---------- Semana */
+.semana {
+  --col-hora: 52px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  min-width: 0;
+}
+.cabecaSemana,
+.faixaInteira,
+.grade {
+  display: grid;
+  grid-template-columns: var(--col-hora) repeat(7, minmax(0, 1fr));
+}
+.cabecaSemana {
+  border-bottom: 1px solid var(--line-soft);
+}
+.cabecaDia {
+  display: grid;
+  justify-items: center;
+  padding: 10px 0 8px;
+}
+.diaNome {
+  font-size: var(--fs-label);
+  color: var(--muted);
+  font-weight: 500;
+}
+.diaNum {
+  font-size: 17px;
+  font-weight: 500;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+[data-hoje] .diaNum {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.faixaInteira {
+  min-height: 34px;
+  border-bottom: 1px solid var(--line);
+}
+.faixaRotulo {
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-tiny);
+  color: var(--muted);
+}
+.faixaDia {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  padding: 4px 2px;
+  border-left: 1px solid var(--line-soft);
+  min-width: 0;
+}
+.pilula {
+  display: block;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--area-bg);
+  color: var(--area-text);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.grade {
+  position: relative;
+  margin: 8px 0 12px;
+}
+.horas {
+  position: relative;
+}
+.horas span {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: var(--fs-tiny);
+  color: var(--muted);
+}
+.horas span:first-child {
+  transform: none;
+}
+.coluna {
+  position: relative;
+  border-left: 1px solid var(--line-soft);
+  min-width: 0;
+}
+.linhaHora {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--line-soft);
+}
+.bloco {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  padding: 5px 6px;
+  border-radius: 8px;
+  background: var(--area-bg);
+  border-left: 3px solid var(--area);
+  color: var(--area-text);
+  overflow: hidden;
+  font-size: var(--fs-label);
+  line-height: 1.25;
+}
+.blocoTitulo {
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.blocoHora {
+  font-size: 10.5px;
+  opacity: 0.9;
+}
+.agora {
+  position: absolute;
+  left: -4px;
+  right: 0;
+  height: 2px;
+  background: var(--now-line);
+  z-index: 2;
+}
+.agora::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--now-line);
+}
+
+@media (max-width: 767px) {
+  .semana {
+    --col-hora: 40px;
+  }
+  .bloco {
+    padding: 4px 3px;
+    font-size: 10.5px;
+  }
+  .blocoHora {
+    display: none;
+  }
+}
+
+/* ---------- Dia */
+.diaVisao {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.faixaDias {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.botaoDia {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+}
+.botaoDia[aria-selected="true"] {
+  background: var(--active);
+}
+.pontos {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+}
+.pontos span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--area);
+}
+.tempo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.tempoItem {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.tempoItem[data-passado] {
+  opacity: 0.6;
+}
+.tempoHora {
+  padding-top: 12px;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.tempoCartao {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--area-bg);
+  border-left: 3px solid var(--area);
+  color: var(--area-text);
+  text-decoration: none;
+  min-width: 0;
+}
+.tempoCartao strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tempoCartao span {
+  font-size: var(--fs-small);
+}

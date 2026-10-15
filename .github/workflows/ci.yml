@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pentagon
+          POSTGRES_PASSWORD: pentagon
+          POSTGRES_DB: pentagon
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pentagon"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://pentagon:pentagon@localhost:5432/pentagon
+      AUTH_SECRET: segredo-de-teste-do-ci-com-32-caracteres!!
+      AUTH_GITHUB_ID: ci
+      AUTH_GITHUB_SECRET: ci
+      ALLOWED_EMAILS: teste@pentagon.local
+      CRON_SECRET: ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Formatação
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+      - name: Tipos
+        run: npm run typecheck
+      - name: Testes (Vitest)
+        run: npm test
+      - name: Migrações em dia com o esquema
+        run: |
+          npx drizzle-kit check
+          npx drizzle-kit generate --name verificacao-ci
+          if [ -n "$(git status --porcelain drizzle)" ]; then
+            echo "::error::O esquema mudou sem migração. Rode 'npm run db:generate' e faça commit."
+            git status --porcelain drizzle
+            exit 1
+          fi
+      - name: Aplicar migrações num banco limpo
+        run: npm run db:migrate
+      - name: Build
+        run: npm run build
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Testes de ponta a ponta (Playwright)
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright
+          path: test-results/
+          retention-days: 7

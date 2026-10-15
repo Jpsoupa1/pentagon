@@ -1,0 +1,139 @@
+.form {
+  display: grid;
+  gap: 16px;
+}
+.campo {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.grupo {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.rotulo {
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-tiny);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.entrada {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: 16px; /* 16 px evita o zoom automático do iOS */
+}
+.entrada:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+  border-color: var(--focus);
+}
+textarea.entrada {
+  resize: vertical;
+}
+.linha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+.linhaBotao {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chipOpcao input,
+.dia input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chipOpcao > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chipOpcao input:checked + span {
+  background: var(--area-bg);
+  border-color: var(--area);
+  color: var(--area-text);
+}
+.chipOpcao input:focus-visible + span,
+.dia input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--area);
+}
+.dias {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.dia > span {
+  display: grid;
+  place-items: center;
+  min-height: var(--touch);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.dia input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+.marcar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch);
+  font-size: var(--fs-body);
+}
+.marcar input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--ink);
+}
+.erro {
+  font-size: var(--fs-small);
+  color: var(--danger);
+}
+.erroGeral {
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--provas-bg);
+  color: var(--provas-text);
+  font-size: var(--fs-small);
+}
