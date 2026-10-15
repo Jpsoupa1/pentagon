@@ -1,7 +1,6 @@
-import { after } from "next/server";
 import { z } from "zod";
 import { corpo, rota } from "@/server/api";
-import { reconciliarAvisos, removerInscricao, salvarInscricao } from "@/server/servicos/avisos";
+import { removerInscricao, salvarInscricao } from "@/server/servicos/avisos";
 
 const inscricaoSchema = z.object({
   endpoint: z.url().max(2000),
@@ -19,14 +18,15 @@ export const POST = rota(
       auth: i.keys.auth,
       aparelho: i.aparelho ?? null,
     });
-    after(() => reconciliarAvisos(userId));
     return { ok: true };
   },
-  { status: 201 },
+  { status: 201, reconciliar: true },
 );
 
-export const DELETE = rota(async ({ userId, req }) => {
-  const { endpoint } = await corpo(req, z.object({ endpoint: z.url() }));
-  await removerInscricao(userId, endpoint);
-  after(() => reconciliarAvisos(userId));
-});
+export const DELETE = rota(
+  async ({ userId, req }) => {
+    const { endpoint } = await corpo(req, z.object({ endpoint: z.url() }));
+    await removerInscricao(userId, endpoint);
+  },
+  { reconciliar: true },
+);

@@ -13,6 +13,8 @@ export type EventoIcs =
       descricao?: string;
       categoria?: string;
       alarmeMin: number;
+      /** Alertas extras, no formato de TRIGGER (ex.: "-P1D"). */
+      alarmesExtras?: string[];
     }
   | { tipo: "dia"; uid: string; data: string; titulo: string; alarme: string; alarmeTexto: string };
 
@@ -87,11 +89,15 @@ export function linhasDoEvento(e: EventoIcs, fuso: string, dtstamp: string): str
     ...(e.descricao ? [`DESCRIPTION:${esc(e.descricao)}`] : []),
     ...(e.categoria ? [`CATEGORIES:${esc(e.categoria)}`] : []),
     "TRANSP:OPAQUE",
-    "BEGIN:VALARM",
-    "ACTION:DISPLAY",
-    `DESCRIPTION:${esc(e.titulo)}`,
-    `TRIGGER:${e.alarmeMin > 0 ? `-PT${e.alarmeMin}M` : "PT0M"}`,
-    "END:VALARM",
+    ...[...(e.alarmesExtras ?? []), e.alarmeMin > 0 ? `-PT${e.alarmeMin}M` : "PT0M"].flatMap(
+      (gatilho) => [
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:${esc(e.titulo)}`,
+        `TRIGGER:${gatilho}`,
+        "END:VALARM",
+      ],
+    ),
     "END:VEVENT",
   ];
 }

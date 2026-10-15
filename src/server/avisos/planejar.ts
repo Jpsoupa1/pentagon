@@ -72,3 +72,94 @@ export function diferencaAvisos(existentes: AvisoExistente[], desejados: AvisoDe
     cancelar: existentes.filter((e) => !desejadosPorChave.has(chaveAviso(e))),
   };
 }
+
+function naJanela(enviarEm: Date, agora: Date) {
+  return enviarEm.getTime() > agora.getTime() && enviarEm.getTime() <= agora.getTime() + JANELA_MS;
+}
+
+/** Compromissos com "lembrar antes": um aviso por ocorrência. */
+export function avisosDeCompromissos(
+  ocorrencias: Ocorrencia[],
+  lembrarPorEvento: Map<string, number | null>,
+  agora: Date,
+  horaLocal: (d: Date) => string,
+): AvisoDesejado[] {
+  const saida: AvisoDesejado[] = [];
+  for (const o of ocorrencias) {
+    if (o.origem !== "evento" || o.diaInteiro) continue;
+    const min = lembrarPorEvento.get(o.eventId);
+    if (min === null || min === undefined) continue;
+    const enviarEm = new Date(o.inicio.getTime() - min * 60_000);
+    if (!naJanela(enviarEm, agora)) continue;
+    saida.push({
+      alvoTipo: "evento",
+      alvoId: o.eventId,
+      ocorrencia: o.dataOriginal,
+      enviarEm,
+      titulo: `${o.titulo} ${minutosTexto(min)} · ${horaLocal(o.inicio)}`,
+      corpo: o.local ? `Local: ${o.local}` : "Toque para abrir a agenda.",
+      url: "/agenda",
+    });
+  }
+  return saida;
+}
+
+export type AvaliacaoParaAviso = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  sigla: string | null;
+  entregaEm: Date;
+  lembrarMin: number | null;
+};
+
+/** Provas e entregas: na véspera (24 h antes) e horas antes (o "lembrar antes" da avaliação). */
+export function avisosDeAvaliacoes(
+  avaliacoes: AvaliacaoParaAviso[],
+  agora: Date,
+  horaLocal: (d: Date) => string,
+): AvisoDesejado[] {
+  const saida: AvisoDesejado[] = [];
+  for (const a of avaliacoes) {
+    const nome = `${a.tipo}${a.sigla ? ` de ${a.sigla}` : ""}`;
+    const vespera = new Date(a.entregaEm.getTime() - 24 * 60 * 60_000);
+    const momentos = [{ quando: vespera, titulo: `Amanhã: ${nome} às ${horaLocal(a.entregaEm)}` }];
+    if (a.lembrarMin && a.lembrarMin !== 24 * 60) {
+      momentos.push({
+        quando: new Date(a.entregaEm.getTime() - a.lembrarMin * 60_000),
+        titulo: `${nome} ${minutosTexto(a.lembrarMin)} · ${horaLocal(a.entregaEm)}`,
+      });
+    }
+    for (const m of momentos) {
+      if (!naJanela(m.quando, agora)) continue;
+      saida.push({
+        alvoTipo: "avaliacao",
+        alvoId: a.id,
+        ocorrencia: null,
+        enviarEm: m.quando,
+        titulo: m.titulo,
+        corpo: a.titulo,
+        url: `/provas?item=${a.id}`,
+      });
+    }
+  }
+  return saida;
+}
+
+/** Lembretes: aviso na hora marcada. */
+export function avisosDeLembretes(
+  lembretes: { id: string; texto: string; quando: Date }[],
+  agora: Date,
+): AvisoDesejado[] {
+  return lembretes
+    .filter((l) => naJanela(l.quando, agora))
+    .map((l) => ({
+      alvoTipo: "lembrete" as const,
+      alvoId: l.id,
+      ocorrencia: null,
+      enviarEm: l.quando,
+      titulo: "Lembrete",
+      corpo: l.texto,
+      url: "/lembretes",
+    }));
+}

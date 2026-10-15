@@ -63,3 +63,44 @@ describe("compromissos no feed", () => {
     expect(e.tipo === "hora" && e.alarmeMin).toBe(10);
   });
 });
+
+describe("provas e feriados no feed", () => {
+  it("prova vira evento de 1 h com alerta na véspera e horas antes", async () => {
+    const { eventosDeAvaliacoes } = await import("./agenda");
+    const eventos = eventosDeAvaliacoes(
+      [
+        {
+          id: "p1",
+          tipo: "prova",
+          titulo: "Prova 1",
+          sigla: "CALC",
+          entregaEm: paraUtc("2026-10-21", "19:10"),
+          lembrarMin: 120,
+        },
+      ],
+      fuso,
+      10,
+    );
+    const ics = gerarCalendario({
+      nome: "Pentagon",
+      fuso,
+      eventos,
+      agora: new Date("2026-10-15T12:00:00Z"),
+    });
+    expect(ics).toContain("SUMMARY:Prova CALC: Prova 1");
+    expect(ics).toContain("DTEND;TZID=America/Sao_Paulo:20261021T201000");
+    expect(ics).toContain("TRIGGER:-P1D");
+    expect(ics).toContain("TRIGGER:-PT120M");
+  });
+
+  it("feriado entra como dia inteiro", async () => {
+    const { eventosDeFeriados } = await import("./agenda");
+    const ics = gerarCalendario({
+      nome: "Pentagon",
+      fuso,
+      eventos: eventosDeFeriados([{ data: "2026-11-02", nome: "Finados" }]),
+    });
+    expect(ics).toContain("DTSTART;VALUE=DATE:20261102");
+    expect(ics).toContain("SUMMARY:Feriado: Finados");
+  });
+});
