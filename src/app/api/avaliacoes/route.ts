@@ -6,5 +6,5 @@ export const GET = rota(async ({ userId }) => listarAvaliacoes(userId));
 
 export const POST = rota(
   async ({ userId, req }) => criarAvaliacao(userId, await corpo(req, avaliacaoSchema)),
-  { status: 201 },
+  { status: 201, reconciliar: true },
 );

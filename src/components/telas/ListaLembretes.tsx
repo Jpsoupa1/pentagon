@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
 import { enviar } from "@/lib/cliente/api";
 import { CaixaSelecao } from "../ui/CaixaSelecao";
+import { BotaoApagar } from "./Acoes";
 import s from "../ui/Pagina.module.css";
 
 export type LembreteCliente = {
@@ -14,7 +15,13 @@ export type LembreteCliente = {
   atrasado?: boolean;
 };
 
-export function ListaLembretes({ lembretes }: { lembretes: LembreteCliente[] }) {
+export function ListaLembretes({
+  lembretes,
+  apagavel,
+}: {
+  lembretes: LembreteCliente[];
+  apagavel?: boolean;
+}) {
   const router = useRouter();
   const [, iniciar] = useTransition();
   const [lista, marcar] = useOptimistic(
@@ -34,7 +41,10 @@ export function ListaLembretes({ lembretes }: { lembretes: LembreteCliente[] }) 
   return (
     <ul className={s.lista}>
       {lista.map((l) => (
-        <li key={l.id}>
+        <li
+          key={l.id}
+          style={apagavel ? { display: "flex", alignItems: "center", gap: 8 } : undefined}
+        >
           <CaixaSelecao checked={l.concluido} onChange={(e) => alternar(l.id, e.target.checked)}>
             {l.texto}{" "}
             <span className={`${s.meta} mono`}>
@@ -42,6 +52,11 @@ export function ListaLembretes({ lembretes }: { lembretes: LembreteCliente[] }) 
               {l.hora}
             </span>
           </CaixaSelecao>
+          {apagavel && (
+            <span style={{ marginLeft: "auto" }}>
+              <BotaoApagar url={`/api/lembretes/${l.id}`} rotulo={`Apagar lembrete ${l.texto}`} />
+            </span>
+          )}
         </li>
       ))}
     </ul>

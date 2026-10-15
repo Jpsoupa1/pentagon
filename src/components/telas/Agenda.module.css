@@ -292,3 +292,20 @@
 .tempoCartao span {
   font-size: var(--fs-small);
 }
+
+button.bloco,
+button.tempoCartao {
+  font-family: inherit;
+  text-align: left;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  cursor: pointer;
+}
+button.bloco:hover,
+button.tempoCartao:hover {
+  filter: brightness(0.97);
+}
+button.tempoCartao {
+  width: 100%;
+}

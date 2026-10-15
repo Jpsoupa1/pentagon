@@ -1,13 +1,23 @@
 import "server-only";
-import { and, eq, gt, inArray, lt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { addDias, hojeLocal, horaLocal } from "@/lib/tempo";
-import { avisosDeSessoes, diferencaAvisos, type AlvoAviso } from "../avisos/planejar";
+import { TIPO_AVALIACAO_NOME } from "@/lib/dominio";
+import {
+  avisosDeAvaliacoes,
+  avisosDeCompromissos,
+  avisosDeLembretes,
+  avisosDeSessoes,
+  diferencaAvisos,
+  JANELA_MS,
+  type AlvoAviso,
+} from "../avisos/planejar";
 import { criarAgendador, type Agendador } from "../avisos/agendador";
 import { enviarPush, type MensagemPush } from "../avisos/push";
 import { db } from "../db";
-import { notifications, pushSubscriptions } from "../db/schema";
+import { assessments, notifications, pushSubscriptions, reminders, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
-import { ocorrencias } from "./agenda";
+import { compromissos } from "./agenda";
+import { ocorrenciasDeEstudo } from "./estudos";
 
 const URL_DO_ALVO: Record<AlvoAviso, string> = {
   sessao: "/estudos",
@@ -20,6 +30,69 @@ export async function listarInscricoes(userId: string) {
   return db().select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
 }
 
+/** Todos os avisos que deveriam existir nas próximas 48 h, respeitando as áreas escolhidas em Ajustes. */
+async function avisosDesejados(userId: string, agora: Date) {
+  const ajustes = await obterAjustes(userId);
+  const areas = new Set(ajustes.areasNoFeed);
+  const hora = (d: Date) => horaLocal(d, ajustes.fuso);
+  const hoje = hojeLocal(agora, ajustes.fuso);
+  const intervalo = { de: hoje, ate: addDias(hoje, 3) };
+  const fimJanela = new Date(agora.getTime() + JANELA_MS);
+
+  const [c, estudo, avaliacoes, lembretes] = await Promise.all([
+    compromissos(userId, intervalo),
+    areas.has("estudos") ? ocorrenciasDeEstudo(userId, intervalo) : Promise.resolve([]),
+    areas.has("provas")
+      ? db()
+          .select({
+            id: assessments.id,
+            titulo: assessments.titulo,
+            tipo: assessments.tipo,
+            sigla: subjects.sigla,
+            entregaEm: assessments.entregaEm,
+            lembrarMin: assessments.lembrarMin,
+          })
+          .from(assessments)
+          .leftJoin(subjects, eq(subjects.id, assessments.subjectId))
+          .where(
+            and(
+              eq(assessments.userId, userId),
+              isNull(assessments.concluidaEm),
+              gt(assessments.entregaEm, agora),
+              lt(assessments.entregaEm, new Date(fimJanela.getTime() + 24 * 60 * 60_000)),
+            ),
+          )
+      : Promise.resolve([]),
+    db()
+      .select({ id: reminders.id, texto: reminders.texto, quando: reminders.quando })
+      .from(reminders)
+      .where(
+        and(
+          eq(reminders.userId, userId),
+          eq(reminders.concluido, false),
+          gt(reminders.quando, agora),
+          lt(reminders.quando, fimJanela),
+        ),
+      ),
+  ]);
+
+  return [
+    ...avisosDeSessoes(estudo, ajustes.avisoMin, agora, hora),
+    ...avisosDeCompromissos(
+      c.ocorrencias.filter((o) => areas.has(o.areaId)),
+      new Map(c.eventos.map((e) => [e.id, e.lembrarMin])),
+      agora,
+      hora,
+    ),
+    ...avisosDeAvaliacoes(
+      avaliacoes.map((a) => ({ ...a, tipo: TIPO_AVALIACAO_NOME[a.tipo] })),
+      agora,
+      hora,
+    ),
+    ...avisosDeLembretes(lembretes, agora),
+  ];
+}
+
 /**
  * Garante que o QStash tenha exatamente os avisos das próximas 48 h:
  * agenda os que faltam e cancela os que não valem mais. Sem aparelho inscrito, cancela tudo.
@@ -29,17 +102,8 @@ export async function reconciliarAvisos(
   agora = new Date(),
   agendador: Agendador = criarAgendador(),
 ) {
-  const ajustes = await obterAjustes(userId);
   const temAparelho = (await listarInscricoes(userId)).length > 0;
-  const hoje = hojeLocal(agora, ajustes.fuso);
-  const desejados = temAparelho
-    ? avisosDeSessoes(
-        await ocorrencias(userId, { de: hoje, ate: addDias(hoje, 3) }),
-        ajustes.avisoMin,
-        agora,
-        (d) => horaLocal(d, ajustes.fuso),
-      )
-    : [];
+  const desejados = temAparelho ? await avisosDesejados(userId, agora) : [];
   const existentes = await db()
     .select()
     .from(notifications)

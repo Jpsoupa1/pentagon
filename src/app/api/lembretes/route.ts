@@ -6,5 +6,5 @@ export const GET = rota(async ({ userId }) => listarLembretes(userId));
 
 export const POST = rota(
   async ({ userId, req }) => criarLembrete(userId, await corpo(req, lembreteSchema)),
-  { status: 201 },
+  { status: 201, reconciliar: true },
 );

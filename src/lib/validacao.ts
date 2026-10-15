@@ -44,6 +44,7 @@ export const eventoSchema = z
       .transform((v) => (v && v.length ? [...new Set(v)].sort() : null)),
     repeteAte: dataSchema.nullish().transform((v) => v ?? null),
     lembrarMin: minutosAntes,
+    ignorarConflito: z.boolean().default(false),
   })
   .refine((e) => !e.repeteAte || e.repeteAte >= e.data, {
     message: "O fim da repetição precisa ser depois do início",
@@ -59,6 +60,7 @@ export const excecaoSchema = z
     novaHora: horaSchema.optional(),
     novaDuracaoMin: z.number().int().min(5).max(1440).optional(),
     motivo: textoOpcional(200),
+    ignorarConflito: z.boolean().default(false),
   })
   .refine((x) => x.tipo === "cancelada" || (x.novaData && x.novaHora), {
     message: "Informe a nova data e hora",
@@ -146,3 +148,11 @@ export const intervaloSchema = z
   .refine((i) => (Date.parse(i.ate) - Date.parse(i.de)) / 86_400_000 <= 92, {
     message: "Intervalo máximo de 3 meses",
   });
+
+export const feriadoSchema = z.object({
+  data: dataSchema,
+  nome: texto(80),
+  areasCanceladas: z.array(areaSchema).max(5).default(["aulas", "estagio"]),
+});
+
+export const feriadosNacionaisSchema = z.object({ ano: z.number().int().min(2024).max(2100) });

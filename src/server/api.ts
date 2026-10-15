@@ -1,5 +1,5 @@
 import "server-only";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { z, ZodError } from "zod";
 import { auth } from "./auth";
 import { Conflito, NaoEncontrado } from "./erros";
@@ -12,7 +12,8 @@ type Contexto<P> = { userId: string; req: NextRequest; params: P };
  */
 export function rota<P = Record<string, never>>(
   fn: (ctx: Contexto<P>) => Promise<unknown>,
-  opcoes: { status?: number } = {},
+  /** reconciliar: depois de responder, reagenda os avisos (a mudança mexeu em horários). */
+  opcoes: { status?: number; reconciliar?: boolean } = {},
 ) {
   return async (req: NextRequest, ctx: { params: Promise<P> }) => {
     const sessao = await auth();
@@ -20,7 +21,14 @@ export function rota<P = Record<string, never>>(
       return NextResponse.json({ erro: "Faça login para continuar." }, { status: 401 });
     }
     try {
-      const resultado = await fn({ userId: sessao.user.id, req, params: await ctx.params });
+      const userId = sessao.user.id;
+      const resultado = await fn({ userId, req, params: await ctx.params });
+      if (opcoes.reconciliar) {
+        after(async () => {
+          const { reconciliarAvisos } = await import("./servicos/avisos");
+          await reconciliarAvisos(userId).catch((e) => console.error("Reagendar avisos falhou", e));
+        });
+      }
       if (resultado instanceof Response) return resultado;
       if (resultado === undefined) return new NextResponse(null, { status: 204 });
       return NextResponse.json(resultado, { status: opcoes.status ?? 200 });

@@ -8,11 +8,16 @@ import { TIPO_AVALIACAO_NOME, type AreaId, type TipoAvaliacao } from "@/lib/domi
 import { addDias, DIAS_CURTOS, hojeLocal, partesLocais } from "@/lib/tempo";
 import { ControleSegmentado } from "../ui/ControleSegmentado";
 import { EstadoVazio } from "../ui/EstadoVazio";
+import { useEditarOcorrencia } from "../shell/EditarOcorrencia";
 import { useNovoItem } from "../shell/NovoItemProvider";
 import s from "./Agenda.module.css";
 
 export type OcorrenciaAgenda = {
   chave: string;
+  origem: "evento" | "sessao" | "marco" | "feriado";
+  eventId: string;
+  dataOriginal: string;
+  recorrente: boolean;
   titulo: string;
   areaId: AreaId;
   local: string | null;
@@ -81,6 +86,21 @@ export function Agenda({
   fuso: string;
 }) {
   const { abrir } = useNovoItem();
+  const { abrir: abrirEdicao } = useEditarOcorrencia();
+  const editar = (o: OcorrenciaAgenda) =>
+    o.origem === "evento"
+      ? () =>
+          abrirEdicao({
+            eventId: o.eventId,
+            dataOriginal: o.dataOriginal,
+            titulo: o.titulo,
+            areaId: o.areaId,
+            inicio: o.inicio,
+            fim: o.fim,
+            movida: o.movida,
+            recorrente: o.recorrente,
+          })
+      : undefined;
   const ehIphone = useMidia("(max-width: 767px)");
   const agora = useRelogio();
   const [visaoEscolhida, setVisao] = useState<"semana" | "dia" | null>(null);
@@ -275,9 +295,13 @@ export function Agenda({
                     ((b.fimMin - HORA_INICIO * 60) / 60) * PX_HORA,
                   );
                   if (fundo <= 0 || topo >= horas.length * PX_HORA) return null;
+                  const aoTocar = editar(b);
+                  const Tag = aoTocar ? "button" : "div";
                   return (
-                    <div
+                    <Tag
                       key={b.chave}
+                      type={aoTocar ? "button" : undefined}
+                      onClick={aoTocar}
                       className={s.bloco}
                       data-area={b.areaId}
                       style={{
@@ -291,7 +315,7 @@ export function Agenda({
                       <span className={`${s.blocoHora} mono`}>
                         {hm(b.ini)}–{hm(b.fimMin % 1440)}
                       </span>
-                    </div>
+                    </Tag>
                   );
                 })}
                 {d === hoje && linhaAgora !== null && (
@@ -330,6 +354,7 @@ export function Agenda({
             })}
           </div>
           <LinhaDoTempo
+            editar={editar}
             itens={porDia.get(dia)!}
             fuso={fuso}
             agora={dia === hoje ? agoraLocal?.minutos : undefined}
@@ -341,10 +366,12 @@ export function Agenda({
 }
 
 function LinhaDoTempo({
+  editar,
   itens,
   fuso,
   agora,
 }: {
+  editar: (o: OcorrenciaAgenda) => (() => void) | undefined;
   itens: { blocos: Bloco[]; inteiros: OcorrenciaAgenda[]; prazos: PrazoAgenda[] };
   fuso: string;
   agora?: number;
@@ -378,23 +405,28 @@ function LinhaDoTempo({
           </Link>
         </li>
       ))}
-      {blocos.map((b) => (
-        <li
-          key={b.chave}
-          className={s.tempoItem}
-          data-area={b.areaId}
-          data-passado={agora !== undefined && b.fimMin <= agora ? true : undefined}
-        >
-          <span className={`${s.tempoHora} mono`}>{hm(b.ini)}</span>
-          <span className={s.tempoCartao}>
-            <strong>{b.titulo}</strong>
-            <span className="mono">
-              {hm(b.ini)} – {hm(b.fimMin % 1440)}
-              {b.local ? ` · ${b.local}` : ""}
-            </span>
-          </span>
-        </li>
-      ))}
+      {blocos.map((b) => {
+        const aoTocar = editar(b);
+        const Tag = aoTocar ? "button" : "span";
+        return (
+          <li
+            key={b.chave}
+            className={s.tempoItem}
+            data-area={b.areaId}
+            data-passado={agora !== undefined && b.fimMin <= agora ? true : undefined}
+          >
+            <span className={`${s.tempoHora} mono`}>{hm(b.ini)}</span>
+            <Tag type={aoTocar ? "button" : undefined} onClick={aoTocar} className={s.tempoCartao}>
+              <strong>{b.titulo}</strong>
+              <span className="mono">
+                {hm(b.ini)} – {hm(b.fimMin % 1440)}
+                {b.local ? ` · ${b.local}` : ""}
+                {b.movida ? " · mudado neste dia" : ""}
+              </span>
+            </Tag>
+          </li>
+        );
+      })}
     </ol>
   );
 }

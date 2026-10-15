@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq, gte, lt, or } from "drizzle-orm";
 import type { z } from "zod";
+import { proximaRepeticao } from "@/lib/repeticao";
 import { addDias, paraUtc } from "@/lib/tempo";
 import type { lembreteSchema } from "@/lib/validacao";
 import { db } from "../db";
@@ -66,14 +67,30 @@ export async function atualizarLembrete(userId: string, id: string, entrada: Lem
   return salvo;
 }
 
+/**
+ * Concluir um lembrete que repete não o encerra: ele pula para a próxima vez (mesma hora local).
+ * Os que não repetem ficam marcados como concluídos.
+ */
 export async function concluirLembrete(userId: string, id: string, concluido: boolean) {
+  const [atual] = await db()
+    .select()
+    .from(reminders)
+    .where(and(eq(reminders.id, id), eq(reminders.userId, userId)));
+  if (!atual) throw new NaoEncontrado("Lembrete");
+  const { fuso } = await obterAjustes(userId);
+  const proximo = concluido
+    ? proximaRepeticao(atual.quando, atual.repetir, new Date(), fuso)
+    : null;
   const [salvo] = await db()
     .update(reminders)
-    .set({ concluido, concluidoEm: concluido ? new Date() : null })
-    .where(and(eq(reminders.id, id), eq(reminders.userId, userId)))
+    .set(
+      proximo
+        ? { quando: proximo, concluido: false, concluidoEm: new Date() }
+        : { concluido, concluidoEm: concluido ? new Date() : null },
+    )
+    .where(eq(reminders.id, id))
     .returning();
-  if (!salvo) throw new NaoEncontrado("Lembrete");
-  return salvo;
+  return { ...salvo, repetiu: !!proximo };
 }
 
 export async function apagarLembrete(userId: string, id: string) {

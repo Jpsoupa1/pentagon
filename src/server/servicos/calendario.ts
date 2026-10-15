@@ -3,16 +3,19 @@ import { randomBytes } from "node:crypto";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { horariosComPadrao } from "@/lib/estudos";
 import { addDias, hojeLocal } from "@/lib/tempo";
-import { expandirOcorrencias } from "../agenda/recorrencia";
 import { urlPublica } from "../avisos/agendador";
 import { gerarCalendario } from "../calendario/ics";
-import { eventosDeCompromissos } from "../calendario/agenda";
+import {
+  eventosDeAvaliacoes,
+  eventosDeCompromissos,
+  eventosDeFeriados,
+} from "../calendario/agenda";
 import { eventosDaTrilha } from "../calendario/trilha";
 import { db } from "../db";
-import { calendarTokens, studySessions, studyWeeks } from "../db/schema";
+import { assessments, calendarTokens, studySessions, studyWeeks, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
 import { obterTrilha } from "./estudos";
-import { eventosNoIntervalo } from "./eventos";
+import { compromissos } from "./agenda";
 
 export async function tokenAtivo(userId: string) {
   const [t] = await db()
@@ -61,27 +64,41 @@ export async function feedPorToken(token: string) {
         .where(eq(studySessions.trackId, trilha.id))
         .orderBy(asc(studySessions.data))
     : [];
-  // Compromissos de Estudos criados pelo usuário: 30 dias para trás e um ano para frente.
-  // (Na etapa 3 o feed passa a cobrir todas as áreas escolhidas em Ajustes.)
+  // Compromissos de 30 dias atrás até um ano à frente, só das áreas escolhidas em Ajustes.
+  const areas = new Set(ajustes.areasNoFeed);
   const hoje = hojeLocal(new Date(), ajustes.fuso);
   const intervalo = { de: addDias(hoje, -30), ate: addDias(hoje, 365) };
-  const { eventos: compromissos, excecoes } = await eventosNoIntervalo(
-    t.userId,
-    intervalo.de,
-    intervalo.ate,
+  const c = await compromissos(t.userId, intervalo);
+  const proprios = eventosDeCompromissos(
+    c.ocorrencias.filter((o) => areas.has(o.areaId)),
+    {
+      fuso: ajustes.fuso,
+      avisoPadrao: ajustes.avisoMin,
+      lembrarPorEvento: new Map(c.eventos.map((e) => [e.id, e.lembrarMin])),
+    },
   );
-  const deEstudos = compromissos.filter((e) => e.areaId === "estudos");
-  const proprios = eventosDeCompromissos(expandirOcorrencias(deEstudos, excecoes, intervalo), {
-    fuso: ajustes.fuso,
-    avisoPadrao: ajustes.avisoMin,
-    lembrarPorEvento: new Map(deEstudos.map((e) => [e.id, e.lembrarMin])),
-  });
+  const avaliacoes = areas.has("provas")
+    ? await db()
+        .select({
+          id: assessments.id,
+          tipo: assessments.tipo,
+          titulo: assessments.titulo,
+          sigla: subjects.sigla,
+          entregaEm: assessments.entregaEm,
+          lembrarMin: assessments.lembrarMin,
+        })
+        .from(assessments)
+        .leftJoin(subjects, eq(subjects.id, assessments.subjectId))
+        .where(and(eq(assessments.userId, t.userId), isNull(assessments.concluidaEm)))
+    : [];
   return gerarCalendario({
     nome: "Pentagon",
     fuso: ajustes.fuso,
     eventos: [
       ...proprios,
-      ...(trilha
+      ...eventosDeFeriados(c.feriados),
+      ...eventosDeAvaliacoes(avaliacoes, ajustes.fuso, ajustes.avisoMin),
+      ...(trilha && areas.has("estudos")
         ? eventosDaTrilha({
             sessoes,
             fases: trilha.fases,

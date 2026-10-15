@@ -24,7 +24,7 @@ export type ExcecaoParaExpandir = {
   novaDuracaoMin: number | null;
 };
 
-export type OrigemOcorrencia = "evento" | "sessao" | "marco";
+export type OrigemOcorrencia = "evento" | "sessao" | "marco" | "feriado";
 
 export type Ocorrencia = {
   /** Identificador estável da ocorrência: `<eventId>:<data original>` */

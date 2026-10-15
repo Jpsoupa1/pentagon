@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NovaDisciplina, RegistrarFalta } from "@/components/telas/Acoes";
+import { BotaoApagar, NovaDisciplina, RegistrarFalta } from "@/components/telas/Acoes";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
@@ -8,6 +8,7 @@ import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { TIPO_AVALIACAO_NOME } from "@/lib/dominio";
 import { dataCurta, DIAS, DIAS_CURTOS, horaLocal, partesLocais } from "@/lib/tempo";
+import { alvoDeEdicao } from "@/lib/alvo";
 import { idSchema } from "@/server/api";
 import { exigirUsuario } from "@/server/sessao";
 import { obterAjustes } from "@/server/servicos/ajustes";
@@ -101,7 +102,12 @@ async function Detalhe({
       <Cartao>
         <CartaoCabeca
           titulo={disciplina.nome}
-          acao={<RegistrarFalta disciplinaId={disciplina.id} />}
+          acao={
+            <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <RegistrarFalta disciplinaId={disciplina.id} />
+              <NovaDisciplina editar={disciplina} />
+            </span>
+          }
         />
         <p className={layout.meta}>
           {disciplina.professor || "Professor não informado"} ·{" "}
@@ -111,7 +117,7 @@ async function Detalhe({
           <div className={layout.numero}>
             <span className={layout.meta}>Faltas</span>
             <strong>
-              {det.faltasUsadas}/{disciplina.limiteFaltas}
+              {det.faltasUsadas}/{disciplina.limiteFaltas || "—"}
             </strong>
           </div>
           <div className={layout.numero}>
@@ -126,6 +132,27 @@ async function Detalhe({
           </div>
         </div>
       </Cartao>
+      {det.faltas.length > 0 && (
+        <Cartao>
+          <CartaoCabeca titulo="Faltas registradas" nivel={3} />
+          <ul className={layout.lista}>
+            {det.faltas.map((x) => (
+              <li key={x.id} className={layout.itemLink}>
+                <span className={layout.itemTexto}>
+                  <span className={`${layout.itemTitulo} mono`}>{dataCurta(x.data)}</span>
+                  <span className={layout.meta}>
+                    {x.quantidade} {x.quantidade === 1 ? "aula" : "aulas"}
+                  </span>
+                </span>
+                <BotaoApagar
+                  url={`/api/faltas/${x.id}`}
+                  rotulo={`Apagar falta de ${dataCurta(x.data)}`}
+                />
+              </li>
+            ))}
+          </ul>
+        </Cartao>
+      )}
       <div className={layout.duas}>
         <Cartao>
           <CartaoCabeca titulo="Próximas aulas" nivel={3} />
@@ -138,6 +165,7 @@ async function Detalhe({
                   area="aulas"
                   titulo={`${DIAS[partesLocais(o.inicio, fuso).diaSemana]}, ${horaLocal(o.inicio, fuso)}`}
                   meta={o.local ?? undefined}
+                  editar={alvoDeEdicao(o)}
                 />
               ))}
             </ul>

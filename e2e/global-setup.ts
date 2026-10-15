@@ -3,6 +3,7 @@ import "../scripts/env";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { semearTrilha } from "../src/server/estudos/seed";
+import { semearRotina } from "../src/server/rotina/seed";
 import { criarSessaoDeTeste } from "./sessao";
 
 export default async function globalSetup() {
@@ -12,6 +13,7 @@ export default async function globalSetup() {
   const pool = new Pool({ connectionString: url, max: 1 });
   try {
     await semearTrilha(drizzle(pool), userId);
+    await semearRotina(drizzle(pool), userId);
   } finally {
     await pool.end();
   }
