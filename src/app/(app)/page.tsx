@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CartaoAgora, type OcorrenciaCliente } from "@/components/telas/CartaoAgora";
 import { ListaLembretes } from "@/components/telas/ListaLembretes";
+import { ListaSessoes } from "@/components/telas/ListaSessoes";
 import { BotaoLink } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
@@ -9,7 +10,6 @@ import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { GraficoPentagono } from "@/components/ui/GraficoPentagono";
 import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
-import { TIPO_AVALIACAO_NOME } from "@/lib/dominio";
 import { dataCurta, dataLonga, duracaoTexto, horaLocal, partesLocais } from "@/lib/tempo";
 import type { Ocorrencia } from "@/server/agenda/recorrencia";
 import { exigirUsuario } from "@/server/sessao";
@@ -20,6 +20,7 @@ export const metadata: Metadata = { title: "Hoje" };
 function paraCliente(o: Ocorrencia | null): OcorrenciaCliente | null {
   if (!o) return null;
   return {
+    origem: o.origem,
     eventId: o.eventId,
     dataOriginal: o.dataOriginal,
     titulo: o.titulo,
@@ -74,9 +75,9 @@ export default async function Hoje() {
                     meta={
                       o.diaInteiro
                         ? "Dia inteiro"
-                        : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}`
+                        : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}${o.feita ? " · feita" : ""}`
                     }
-                    passada={o.fim < agora}
+                    passada={o.fim < agora || o.feita}
                   />
                 ))}
               </ul>
@@ -84,6 +85,22 @@ export default async function Hoje() {
               <EstadoVazio>Nada na agenda de hoje.</EstadoVazio>
             )}
           </Cartao>
+          {p.pendentes.total > 0 && (
+            <Cartao aria-labelledby="pendentes">
+              <CartaoCabeca
+                titulo={<span id="pendentes">Sessões pendentes</span>}
+                acao={<span className="mono">{p.pendentes.total}</span>}
+              />
+              <ListaSessoes
+                sessoes={p.pendentes.lista.map((x) => ({
+                  id: x.id,
+                  rotulo: dataCurta(x.data),
+                  texto: `${x.tipo}: ${x.conteudo}`,
+                  feita: false,
+                }))}
+              />
+            </Cartao>
+          )}
         </div>
         <div className={layout.pilha}>
           <Cartao aria-labelledby="equilibrio">
@@ -101,19 +118,18 @@ export default async function Hoje() {
             {p.prazos.length ? (
               <ul className={layout.lista}>
                 {p.prazos.map((a) => (
-                  <li key={a.id}>
-                    <Link href={`/provas?item=${a.id}`} className={layout.itemLink}>
+                  <li key={a.chave}>
+                    <Link href={a.href} className={layout.itemLink} data-area={a.area}>
                       <span className={layout.itemTexto}>
                         <span className={layout.itemTitulo}>{a.titulo}</span>
                         <span className={layout.meta}>
-                          {TIPO_AVALIACAO_NOME[a.tipo]}
-                          {a.sigla ? ` · ${a.sigla}` : ""} ·{" "}
+                          {a.descricao} ·{" "}
                           <span className="mono">
-                            {dataCurta(partesLocais(a.entregaEm, p.fuso).data)}
+                            {dataCurta(partesLocais(a.quando, p.fuso).data)}
                           </span>
                         </span>
                       </span>
-                      <Contagem alvo={a.entregaEm} agora={agora} fuso={p.fuso} />
+                      <Contagem alvo={a.quando} agora={agora} fuso={p.fuso} />
                     </Link>
                   </li>
                 ))}

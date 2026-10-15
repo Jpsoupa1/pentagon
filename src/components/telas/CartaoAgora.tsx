@@ -13,6 +13,7 @@ import { useNovoItem } from "../shell/NovoItemProvider";
 import s from "./CartaoAgora.module.css";
 
 export type OcorrenciaCliente = {
+  origem: "evento" | "sessao" | "marco";
   eventId: string;
   dataOriginal: string;
   titulo: string;
@@ -93,9 +94,17 @@ export function CartaoAgora({
     if (r.ok) router.refresh();
   }
 
+  const ehSessao = item.origem === "sessao";
   const adiar = () => excecao(inicio.getTime() + ADIAR_MIN * 60_000, total / 60_000);
-  // Concluir encerra a ocorrência agora (só a deste dia).
-  const concluir = () => excecao(inicio.getTime(), Math.round((agora - inicio.getTime()) / 60_000));
+  // Concluir encerra a ocorrência agora (só a deste dia); numa sessão de estudo, marca como feita.
+  async function concluir() {
+    if (!ehSessao)
+      return excecao(inicio.getTime(), Math.round((agora - inicio.getTime()) / 60_000));
+    setOcupado(true);
+    const r = await enviar("PATCH", `/api/estudos/sessoes/${item!.eventId}`, { feita: true });
+    setOcupado(false);
+    if (r.ok) router.refresh();
+  }
 
   return (
     <section className={s.cartao} data-area={item.areaId} aria-labelledby="agora-titulo">
@@ -123,10 +132,12 @@ export function CartaoAgora({
         <p className={`${s.meta} mono`}>começa em {duracaoTexto(restante)}</p>
       )}
       <div className={s.acoes}>
-        <Botao variante="claro" onClick={adiar} disabled={ocupado}>
-          Adiar {ADIAR_MIN} min
-        </Botao>
-        {atual && (
+        {!ehSessao && (
+          <Botao variante="claro" onClick={adiar} disabled={ocupado}>
+            Adiar {ADIAR_MIN} min
+          </Botao>
+        )}
+        {(atual || ehSessao) && (
           <Botao variante="claro" onClick={concluir} disabled={ocupado} className={s.concluir}>
             Concluir
           </Botao>
