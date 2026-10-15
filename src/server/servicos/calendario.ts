@@ -2,13 +2,17 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { horariosComPadrao } from "@/lib/estudos";
+import { addDias, hojeLocal } from "@/lib/tempo";
+import { expandirOcorrencias } from "../agenda/recorrencia";
 import { urlPublica } from "../avisos/agendador";
 import { gerarCalendario } from "../calendario/ics";
+import { eventosDeCompromissos } from "../calendario/agenda";
 import { eventosDaTrilha } from "../calendario/trilha";
 import { db } from "../db";
 import { calendarTokens, studySessions, studyWeeks } from "../db/schema";
 import { obterAjustes } from "./ajustes";
 import { obterTrilha } from "./estudos";
+import { eventosNoIntervalo } from "./eventos";
 
 export async function tokenAtivo(userId: string) {
   const [t] = await db()
@@ -57,18 +61,36 @@ export async function feedPorToken(token: string) {
         .where(eq(studySessions.trackId, trilha.id))
         .orderBy(asc(studySessions.data))
     : [];
+  // Compromissos de Estudos criados pelo usuário: 30 dias para trás e um ano para frente.
+  // (Na etapa 3 o feed passa a cobrir todas as áreas escolhidas em Ajustes.)
+  const hoje = hojeLocal(new Date(), ajustes.fuso);
+  const intervalo = { de: addDias(hoje, -30), ate: addDias(hoje, 365) };
+  const { eventos: compromissos, excecoes } = await eventosNoIntervalo(
+    t.userId,
+    intervalo.de,
+    intervalo.ate,
+  );
+  const deEstudos = compromissos.filter((e) => e.areaId === "estudos");
+  const proprios = eventosDeCompromissos(expandirOcorrencias(deEstudos, excecoes, intervalo), {
+    fuso: ajustes.fuso,
+    avisoPadrao: ajustes.avisoMin,
+    lembrarPorEvento: new Map(deEstudos.map((e) => [e.id, e.lembrarMin])),
+  });
   return gerarCalendario({
     nome: "Pentagon",
     fuso: ajustes.fuso,
-    eventos: trilha
-      ? eventosDaTrilha({
-          sessoes,
-          fases: trilha.fases,
-          marcos: trilha.marcos,
-          horarios: horariosComPadrao(ajustes.horariosEstudo),
-          avisoMin: ajustes.avisoMin,
-          urlApp: urlPublica() ?? undefined,
-        })
-      : [],
+    eventos: [
+      ...proprios,
+      ...(trilha
+        ? eventosDaTrilha({
+            sessoes,
+            fases: trilha.fases,
+            marcos: trilha.marcos,
+            horarios: horariosComPadrao(ajustes.horariosEstudo),
+            avisoMin: ajustes.avisoMin,
+            urlApp: urlPublica() ?? undefined,
+          })
+        : []),
+    ],
   });
 }

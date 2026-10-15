@@ -5,6 +5,7 @@ import { BarraProgresso } from "@/components/ui/BarraProgresso";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
+import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { horariosComPadrao } from "@/lib/estudos";
 import {
@@ -13,11 +14,13 @@ import {
   diaDaSemana,
   hmParaMin,
   hojeLocal,
+  horaLocal,
   minParaHm,
   paraUtc,
+  partesLocais,
 } from "@/lib/tempo";
 import { exigirUsuario } from "@/server/sessao";
-import { semanaDe } from "@/server/servicos/agenda";
+import { ocorrencias, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
 import { obterTrilha, progressoPorFase, sessoesEntre } from "@/server/servicos/estudos";
 
@@ -31,11 +34,14 @@ export default async function Estudos() {
   const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
   const horarios = horariosComPadrao(ajustes.horariosEstudo);
-  const [trilha, daSemana, fases] = await Promise.all([
+  const [trilha, daSemana, fases, agendaDaSemana] = await Promise.all([
     obterTrilha(usuario.id),
     sessoesEntre(usuario.id, semana.de, semana.ate),
     progressoPorFase(usuario.id),
+    ocorrencias(usuario.id, semana),
   ]);
+  // Compromissos de Estudos criados pelo usuário (fora da trilha).
+  const proprios = agendaDaSemana.filter((o) => o.origem === "evento" && o.areaId === "estudos");
 
   if (!trilha) {
     return (
@@ -107,6 +113,29 @@ export default async function Estudos() {
               />
             ) : (
               <EstadoVazio>Nenhuma sessão nesta semana.</EstadoVazio>
+            )}
+            {proprios.length > 0 && (
+              <>
+                <h3 className={layout.meta} style={{ margin: "16px 0 4px", fontWeight: 600 }}>
+                  Seus estudos fora da trilha
+                </h3>
+                <ul className={layout.lista}>
+                  {proprios.map((o) => (
+                    <LinhaAgenda
+                      key={o.chave}
+                      hora={DIAS_CURTOS[partesLocais(o.inicio, fuso).diaSemana]}
+                      area="estudos"
+                      titulo={o.titulo}
+                      meta={
+                        o.diaInteiro
+                          ? "Dia inteiro"
+                          : `${horaLocal(o.inicio, fuso)} – ${horaLocal(o.fim, fuso)}${o.local ? ` · ${o.local}` : ""}`
+                      }
+                      passada={o.fim < agora}
+                    />
+                  ))}
+                </ul>
+              </>
             )}
           </Cartao>
         </div>

@@ -181,7 +181,12 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     const semana = page.getByRole("region", { name: "Sessões da semana" });
     const primeira = semana.getByRole("checkbox").first();
     const marcada = await primeira.isChecked();
-    await primeira.setChecked(!marcada);
+    await Promise.all([
+      page.waitForResponse(
+        (r) => r.url().includes("/api/estudos/sessoes/") && r.request().method() === "PATCH",
+      ),
+      primeira.setChecked(!marcada),
+    ]);
     await page.reload();
     await expect(
       page.getByRole("region", { name: "Sessões da semana" }).getByRole("checkbox").first(),
@@ -238,6 +243,31 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
       ).status(),
     ).toBe(404);
     await request.patch("/api/ajustes", { data: { horariosEstudo: null } });
+  });
+
+  test("compromisso de Estudos criado pelo usuário aparece em Estudos e no feed", async ({
+    page,
+    request,
+  }) => {
+    const titulo = `Leitura extra ${Date.now()}`;
+    const r = await request.post("/api/eventos", {
+      data: {
+        titulo,
+        areaId: "estudos",
+        data: "2026-10-15",
+        hora: "20:00",
+        duracaoMin: 45,
+        lembrarMin: 15,
+      },
+    });
+    expect(r.status()).toBe(201);
+    await page.goto("/estudos");
+    await expect(page.getByText(titulo)).toBeVisible();
+    const { token } = await (await request.post("/api/calendario/token")).json();
+    const ics = await (await request.get(`/api/calendario/${token}.ics`)).text();
+    expect(ics).toContain(`SUMMARY:${titulo}`);
+    expect(ics).toContain("DTSTART;TZID=America/Sao_Paulo:20261015T200000");
+    expect(ics).toContain("TRIGGER:-PT15M");
   });
 
   test("disparo de aviso só aceita assinatura do QStash", async ({ request }) => {
