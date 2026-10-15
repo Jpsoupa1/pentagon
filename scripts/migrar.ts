@@ -2,6 +2,7 @@ import "./env";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
+import { urlDoBanco } from "../src/server/db/url";
 import { semearAreas } from "./seed-areas";
 import { semearRotinaParaTodos } from "./seed-rotina";
 import { semearTrilhaParaTodos } from "./seed-trilha";
@@ -9,7 +10,7 @@ import { semearTrilhaParaTodos } from "./seed-trilha";
 export async function migrar() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL não definida.");
-  const pool = new Pool({ connectionString: url, max: 1 });
+  const pool = new Pool({ connectionString: urlDoBanco(url), max: 1 });
   try {
     const db = drizzle(pool);
     await migrate(db, { migrationsFolder: "drizzle" });

@@ -3,6 +3,7 @@ import "./env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { urlDoBanco } from "../src/server/db/url";
 import { users } from "../src/server/db/schema";
 import { semearTrilha } from "../src/server/estudos/seed";
 
@@ -21,7 +22,7 @@ export async function semearTrilhaParaTodos(db: ReturnType<typeof drizzle>, emai
 }
 
 if (process.argv[1]?.endsWith("seed-trilha.ts")) {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
+  const pool = new Pool({ connectionString: urlDoBanco(process.env.DATABASE_URL ?? ""), max: 1 });
   semearTrilhaParaTodos(drizzle(pool), process.argv[2])
     .catch((e) => {
       console.error(e);
