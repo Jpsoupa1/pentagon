@@ -11,6 +11,7 @@ Funciona no notebook, iPad e iPhone (instalável na Tela de Início), com dados 
 | 1. Estrutura do site (frontend, API, banco, login, PWA, CI)      | Pronta   |
 | 2. Rotina de estudos (trilha DevOps, avisos, feed de calendário) | Pronta   |
 | 3. Rotina pessoal (estágio, academia, aulas, provas, lembretes)  | Pronta   |
+| 4. Assistente de voz (`/voz`, API do Claude, atalho do iPhone)   | Pronta   |
 
 ## Arquitetura
 
@@ -95,6 +96,32 @@ cron diário 03:00 (GET /api/cron/reconciliar) ─┘ agenda no QStash os que fa
 - **Lembretes:** repetem (todo dia, semana ou mês); concluir um que repete o leva para a próxima vez. Aviso na hora marcada.
 - **Feed e avisos** cobrem todas as áreas escolhidas em Ajustes. Regras puras em `src/server/agenda/regras.ts` e `src/server/avisos/planejar.ts`.
 
+## Assistente de voz (etapa 4)
+
+Em `/voz` você fala (ou digita) o que quer e a IA executa dentro do app. Antes de você sair, a tela mostra **exatamente** o que mudou, com desfazer.
+
+- **Transcrição:** gratuita e sem áudio no servidor. No Safari e no notebook usa o reconhecimento de fala do navegador (tela "Ouvindo" com transcrição ao vivo). No **app instalado na Tela de Início do iPhone** a WebKit não oferece essa API, então o microfone abre o campo de texto para o **ditado do teclado do iOS**. O atalho da tela bloqueada usa o "Ditar Texto" do próprio iOS. Só o texto chega ao Pentagon.
+- **Como a IA age:** `POST /api/assistente` monta o contexto (data e hora em `America/Sao_Paulo`, hoje e amanhã, próximos prazos, disciplinas) e chama o Claude (`ANTHROPIC_MODEL`, padrão `claude-sonnet-5-5`) com **só as ferramentas do Pentagon** (`src/server/assistente/ferramentas.ts`). Cada ferramenta chama a mesma camada de serviço das telas (mesmas validações e detecção de conflito) e grava `assistant_actions` **na mesma transação** da mudança (`naTransacao` em `src/server/db/index.ts`).
+- **Tela "O que foi feito":** montada só a partir de `assistant_actions` (estado antes e depois), nunca do texto da IA. Desfazer usa o "antes"; "Desfazer tudo" vai na ordem inversa e, se um item mudou depois, avisa em vez de sobrescrever.
+- **Conflitos:** a mudança pedida é aplicada e o outro item **não é mexido**; o cartão laranja oferece levar o outro item para o horário liberado (ex.: "Mover sessão para 16:00") ou "Deixar assim". Para isso, uma sessão de estudo pode ter horário próprio naquele dia (`study_sessions.hora_inicio`).
+- **Apagar** nunca acontece direto: vira proposta com "Confirmar".
+- **Escopo fechado:** instruções de sistema fixas, só ferramentas do app, fim obrigatório pela ferramenta `responder` (texto solto é rejeitado), recusa com texto fixo do app, consultas montadas com os dados do app (a IA só escolhe o período), dados do usuário marcados como dados, e `fora_do_escopo` nunca deixa mudança (o servidor desfaz o que houver).
+- **Custos e limites:** 60 pedidos por hora por usuário (contando os recusados), teto de 4.096 tokens por resposta e 6 idas e voltas por pedido, cache de prompt nas instruções e ferramentas. Ajustes mostra o consumo do mês em dólares e em % dos US$ 100 (preços em `src/lib/assistente.ts`). Se os créditos acabarem, a tela mostra "O assistente volta quando os créditos renovarem" e o resto do app segue normal.
+- **Fallback de recusa:** as chamadas usam `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`): se o modelo recusar por segurança, a API tenta outro modelo na mesma chamada.
+
+### Atalho na tela bloqueada (iPhone, iOS 18 ou mais novo)
+
+O app Atalhos abre URLs **no Safari**, não no app instalado (e Safari e app instalado têm logins separados). Por isso:
+
+1. **Entre no Pentagon pelo Safari uma vez** (o login dura 90 dias).
+2. No app **Atalhos**, toque em **+** e dê o nome **Pentagon voz**.
+3. Adicione a ação **Ditar Texto** (idioma: Português (Brasil); "Parar de Ouvir": Após Pausa).
+4. Adicione **Codificar URL** (entrada: Texto Ditado).
+5. Adicione **Abrir URLs** com `https://pentagon-mauve.vercel.app/voz?texto=` seguido da variável **Texto Codificado**.
+6. Na tela bloqueada, toque e segure → **Personalizar** → **Tela Bloqueada** → toque no **−** de um dos controles de baixo (lanterna ou câmera) → **+** → **Atalhos** → escolha **Pentagon voz**. (Também dá para pôr na Central de Controle ou no botão de Ação.)
+
+Ao tocar no controle, o iPhone pede o desbloqueio, você fala, e o Safari abre `/voz` já com o pedido enviado e o resultado na tela. Sem texto, `/voz` abre no "Pronto para ouvir".
+
 ## API
 
 Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `campos`.
@@ -116,6 +143,8 @@ Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `
 | `/api/calendario/token`, `/api/calendario/[token].ics`                                                                   | POST, DELETE / GET público com token                 |
 | `/api/feriados`, `/api/feriados/[id]`, `/api/feriados/nacionais` (POST `{ano}`)                                          | GET, POST, DELETE                                    |
 | `/api/cron/reconciliar`                                                                                                  | GET com `Authorization: Bearer $CRON_SECRET`         |
+| `/api/assistente` (POST `{texto}`), `/api/assistente/execucoes/[id]`, `.../execucoes/[id]/desfazer`                      | POST, GET                                            |
+| `/api/assistente/acoes/[id]/desfazer`, `/confirmar`, `/conflito` (POST `{decisao: "mover" \| "manter"}`)                 | POST                                                 |
 
 ## Rodar localmente
 
@@ -140,7 +169,9 @@ Para o login local, crie um OAuth App no GitHub com callback `http://localhost:3
 | `npm run lint`, `typecheck`, `format`        | Qualidade                                                                 |
 | `npm test`                                   | Vitest (recorrência, exceções, contagem, cartão Agora, validação, acesso) |
 | `npm run seed:trilha`, `npm run seed:rotina` | Seeds idempotentes (trilha DevOps; rotina pessoal uma vez por usuário)    |
+| `npm run test:integracao`                    | Vitest com banco de verdade e API do Claude simulada (assistente)         |
 | `npm run test:e2e`                           | Playwright contra `next start` (rode `npm run build` antes)               |
+| `npm run assistente:real`                    | Teste manual que chama a API do Claude **de verdade** (gasta créditos)    |
 | `npm run db:generate`                        | Gera migração a partir de `src/server/db/schema.ts`                       |
 | `npm run db:migrate`                         | Aplica migrações e o seed das áreas                                       |
 | `npm run icons`                              | Regera os ícones do PWA a partir do logo                                  |
@@ -151,7 +182,7 @@ Os testes e2e criam um usuário e uma sessão direto no banco local (`e2e/sessao
 
 1. Projeto na Vercel ligado ao repositório do GitHub (deploy pela integração Git; produção = `main`, cada PR ganha preview).
 2. Neon instalado pela Vercel Marketplace, com **branch do banco por preview**. A integração injeta `DATABASE_URL`.
-3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. As do QStash vêm da integração Upstash da Vercel Marketplace.
+3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `ANTHROPIC_API_KEY` (chave de um workspace do Console só do Pentagon, com limite de gasto) e `ANTHROPIC_MODEL`. As do QStash vêm da integração Upstash da Vercel Marketplace.
 4. O build da Vercel usa `npm run vercel-build`: aplica as migrações (só quando `VERCEL_ENV` é `production` ou `preview`, cada um no seu banco) e depois roda `next build`.
 5. Cron diário em `vercel.json` (06:00 UTC = 03:00 em São Paulo).
 

@@ -58,9 +58,11 @@ export default async function Estudos() {
   const deHoje = ligadas.find((x) => x.data === hoje);
   const semanaAtual = deHoje ?? daSemana[0];
   const faseAtual = semanaAtual ? trilha.fases.find((f) => f.id === semanaAtual.fase) : undefined;
-  const horario = (data: string) => {
-    const h = horarios[String(diaDaSemana(data))];
-    return `${h.inicio} – ${minParaHm(hmParaMin(h.inicio) + h.minutos)}`;
+  const inicioDa = (x: { data: string; horaInicio: string | null }) =>
+    x.horaInicio ?? horarios[String(diaDaSemana(x.data))].inicio;
+  const horario = (x: { data: string; horaInicio: string | null }) => {
+    const h = horarios[String(diaDaSemana(x.data))];
+    return `${inicioDa(x)} – ${minParaHm(hmParaMin(inicioDa(x)) + h.minutos)}`;
   };
   const total = fases.reduce((t, f) => t + f.total, 0);
   const feitas = fases.reduce((t, f) => t + f.feitas, 0);
@@ -83,7 +85,7 @@ export default async function Estudos() {
               deHoje
                 ? {
                     id: deHoje.id,
-                    rotulo: `Sessão de hoje · ${horario(deHoje.data)}`,
+                    rotulo: `Sessão de hoje · ${horario(deHoje)}`,
                     tipo: deHoje.tipo,
                     conteudo: deHoje.conteudo,
                     detalhe: `Tema: ${deHoje.tema}${deHoje.parte ? ` (parte ${deHoje.parte})` : ""}`,
@@ -106,7 +108,7 @@ export default async function Estudos() {
               <ListaSessoes
                 sessoes={ligadas.map((x) => ({
                   id: x.id,
-                  rotulo: `${DIAS_CURTOS[diaDaSemana(x.data)]} ${horarios[String(diaDaSemana(x.data))].inicio}`,
+                  rotulo: `${DIAS_CURTOS[diaDaSemana(x.data)]} ${inicioDa(x)}`,
                   texto: `${x.tipo}: ${x.conteudo}`,
                   feita: x.status === "feita",
                 }))}

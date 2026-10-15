@@ -7,6 +7,7 @@ export type SessaoFeed = {
   data: string;
   tipo: string;
   conteudo: string;
+  horaInicio?: string | null;
   semana: number;
   fase: number;
   tema: string;
@@ -34,7 +35,7 @@ export function eventosDaTrilha(opcoes: {
       tipo: "hora",
       uid: `sessao-${s.data}@rotina-devops`,
       data: s.data,
-      inicioMin: hmParaMin(h.inicio),
+      inicioMin: hmParaMin(s.horaInicio ?? h.inicio),
       minutos: h.minutos,
       titulo: `${s.tipo}: ${s.conteudo}`,
       descricao:

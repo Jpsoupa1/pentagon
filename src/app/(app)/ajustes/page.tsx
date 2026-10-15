@@ -16,6 +16,9 @@ import { horariosComPadrao } from "@/lib/estudos";
 import { chavePublicaVapid } from "@/server/avisos/push";
 import { obterAjustes } from "@/server/servicos/ajustes";
 import { tokenAtivo } from "@/server/servicos/calendario";
+import { consumoDoMes } from "@/server/assistente/consumo";
+import { CREDITOS_MENSAIS_USD } from "@/lib/assistente";
+import Link from "next/link";
 import { listarFeriados } from "@/server/servicos/feriados";
 
 export const metadata: Metadata = { title: "Ajustes" };
@@ -28,6 +31,7 @@ export default async function Ajustes() {
     headers(),
     listarFeriados(usuario.id),
   ]);
+  const consumo = await consumoDoMes(usuario.id, ajustes.fuso);
   const ano = new Date().getFullYear();
   const host = cabecalhos.get("x-forwarded-host") ?? cabecalhos.get("host") ?? "localhost:3000";
 
@@ -63,6 +67,21 @@ export default async function Ajustes() {
         <Cartao>
           <CartaoCabeca titulo="Calendário do iPhone" />
           <FeedCalendario token={token?.token ?? null} host={host} />
+        </Cartao>
+        <Cartao>
+          <CartaoCabeca titulo="Assistente de voz" />
+          <p className={layout.meta} style={{ marginBottom: 6 }}>
+            Consumo deste mês: <strong>US$ {consumo.dolares.toFixed(2)}</strong> de US${" "}
+            {CREDITOS_MENSAIS_USD} ({consumo.percentual.toFixed(1).replace(".", ",")}%)
+          </p>
+          <p className={layout.meta} style={{ marginBottom: 14 }}>
+            {consumo.pedidos} {consumo.pedidos === 1 ? "pedido" : "pedidos"} ·{" "}
+            {consumo.tokens.toLocaleString("pt-BR")} tokens. Os créditos renovam a cada ciclo e não
+            acumulam.
+          </p>
+          <Link href="/voz" className={uiS.botao + " " + uiS.secundario}>
+            Abrir o assistente
+          </Link>
         </Cartao>
         <div className={layout.pilha}>
           <Cartao>

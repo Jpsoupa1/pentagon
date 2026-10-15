@@ -54,6 +54,7 @@ export async function feedPorToken(token: string) {
           data: studySessions.data,
           tipo: studySessions.tipo,
           conteudo: studySessions.conteudo,
+          horaInicio: studySessions.horaInicio,
           semana: studyWeeks.numero,
           fase: studyWeeks.fase,
           tema: studyWeeks.tema,

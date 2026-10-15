@@ -3,6 +3,7 @@ node_modules
 drizzle/meta
 trilha_devops.js
 PROMPT_PENTAGON.md
+PROMPT_ASSISTENTE_VOZ.md
 package-lock.json
 playwright-report
 test-results

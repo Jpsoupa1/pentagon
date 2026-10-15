@@ -21,9 +21,12 @@
     "db:studio": "drizzle-kit studio",
     "icons": "node scripts/gerar-icones.mjs",
     "seed:trilha": "tsx scripts/seed-trilha.ts",
-    "seed:rotina": "tsx scripts/seed-rotina.ts"
+    "seed:rotina": "tsx scripts/seed-rotina.ts",
+    "test:integracao": "vitest run --config vitest.integracao.config.mts",
+    "assistente:real": "tsx --conditions=react-server scripts/assistente-real.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@auth/drizzle-adapter": "^1.11.3",
     "@serwist/turbopack": "^9.5.13",
     "@upstash/qstash": "^2.12.0",

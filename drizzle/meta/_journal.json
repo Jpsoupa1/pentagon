@@ -15,6 +15,13 @@
       "when": 1792085293289,
       "tag": "0001_rotina-pessoal",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792099083198,
+      "tag": "0002_assistente",
+      "breakpoints": true
     }
   ]
 }

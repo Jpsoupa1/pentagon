@@ -16,7 +16,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { areaIds, assessmentKinds, repeticoes, type HorariosEstudo } from "../../lib/dominio";
+import {
+  areaIds,
+  assessmentKinds,
+  repeticoes,
+  type AreaId as AreaIdDominio,
+  type HorariosEstudo,
+} from "../../lib/dominio";
 
 export type { AreaId, HorarioEstudo, HorariosEstudo } from "../../lib/dominio";
 
@@ -262,6 +268,8 @@ export const studySessions = pgTable(
     tipo: text("tipo").notNull(),
     conteudo: text("conteudo").notNull(),
     status: sessionStatusEnum("status").notNull().default("pendente"),
+    /** Horário próprio (HH:MM) quando a sessão foi movida; sem ele, vale o horário do dia em Ajustes. */
+    horaInicio: text("hora_inicio"),
     feitaEm: timestamp("feita_em", tz),
     updatedAt: atualizadoEm(),
   },
@@ -378,3 +386,112 @@ export const calendarTokens = pgTable("calendar_tokens", {
   createdAt: criadoEm(),
   revogadoEm: timestamp("revogado_em", tz),
 });
+
+// ---------------------------------------------------------------- Assistente de voz
+
+export const tiposDeResposta = ["pendente", "acoes", "consulta", "fora_do_escopo", "erro"] as const;
+export const assistantReplyEnum = pgEnum("assistant_reply", tiposDeResposta);
+
+/** Janela que a IA escolheu para uma consulta; a resposta é montada pelo app a partir dela. */
+export type JanelaConsulta = {
+  de: string;
+  ate: string;
+  horaInicio: string | null;
+  horaFim: string | null;
+  areas: AreaIdDominio[] | null;
+};
+
+/** Ferramenta que falhou (a mensagem é a do próprio app: validação, item não encontrado...). */
+export type FalhaDoAssistente = { ferramenta: string; mensagem: string };
+
+/** Uma execução do assistente: o pedido, o tipo de resposta e o custo em tokens. */
+export const assistantRuns = pgTable(
+  "assistant_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    texto: text("texto").notNull(),
+    tipo: assistantReplyEnum("tipo").notNull().default("pendente"),
+    /** Resumo curto da IA. Fica só no registro: a tela nunca o mostra. */
+    resumo: text("resumo"),
+    /** O pedido tinha uma parte fora do escopo, que foi ignorada. */
+    ignorouParte: boolean("ignorou_parte").notNull().default(false),
+    consulta: jsonb("consulta").$type<JanelaConsulta>(),
+    falhas: jsonb("falhas").$type<FalhaDoAssistente[]>().notNull().default([]),
+    modelo: text("modelo").notNull(),
+    tokensEntrada: integer("tokens_entrada").notNull().default(0),
+    tokensSaida: integer("tokens_saida").notNull().default(0),
+    tokensCacheEscrita: integer("tokens_cache_escrita").notNull().default(0),
+    tokensCacheLeitura: integer("tokens_cache_leitura").notNull().default(0),
+    createdAt: criadoEm(),
+  },
+  (t) => [index("assistant_runs_user_criado_idx").on(t.userId, t.createdAt)],
+);
+
+export const assistantActionKindEnum = pgEnum("assistant_action_kind", [
+  "alterado",
+  "criado",
+  "concluido",
+  "apagado",
+]);
+export const assistantActionStatusEnum = pgEnum("assistant_action_status", [
+  "feita",
+  "proposta",
+  "desfeita",
+  "descartada",
+]);
+
+/** Item que a ação tocou (cada um sabe se desfazer). */
+export const entidadesDoAssistente = [
+  "evento",
+  "excecao",
+  "lembrete",
+  "sessao",
+  "avaliacao",
+  "falta",
+] as const;
+export const assistantEntityEnum = pgEnum("assistant_entity", entidadesDoAssistente);
+
+/** Como o cartão descreve a mudança (montado pelo app a partir do banco, nunca do texto da IA). */
+export type DescricaoDaAcao = {
+  areaId: AreaIdDominio | null;
+  titulo: string;
+  campos: { rotulo: string; antes: string | null; depois: string | null }[];
+};
+
+export type ConflitoDaAcao = {
+  titulo: string;
+  horario: string;
+  origem: "evento" | "sessao" | "marco" | "feriado";
+  id: string;
+  /** Data original da ocorrência (a que a exceção usa) e o dia em que ela acontece de fato. */
+  data: string;
+  dia: string;
+  /** Sugestão de correção (hora local HH:MM). Só acontece se o usuário tocar no botão. */
+  sugestao: string | null;
+};
+
+export const assistantActions = pgTable(
+  "assistant_actions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => assistantRuns.id, { onDelete: "cascade" }),
+    userId: dono(),
+    ordem: smallint("ordem").notNull(),
+    tipo: assistantActionKindEnum("tipo").notNull(),
+    status: assistantActionStatusEnum("status").notNull().default("feita"),
+    entidade: assistantEntityEnum("entidade").notNull(),
+    entidadeId: text("entidade_id").notNull(),
+    antes: jsonb("antes").$type<Record<string, unknown> | null>(),
+    depois: jsonb("depois").$type<Record<string, unknown> | null>(),
+    descricao: jsonb("descricao").$type<DescricaoDaAcao>().notNull(),
+    conflitos: jsonb("conflitos").$type<ConflitoDaAcao[]>().notNull().default([]),
+    /** O que o usuário decidiu sobre os conflitos: manter como está ou aplicar a sugestão. */
+    conflitoDecisao: text("conflito_decisao"),
+    createdAt: criadoEm(),
+    atualizadaEm: timestamp("atualizada_em", tz),
+  },
+  (t) => [index("assistant_actions_run_idx").on(t.runId, t.ordem)],
+);

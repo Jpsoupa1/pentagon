@@ -13,7 +13,8 @@ export function proxy(req: NextRequest) {
     return NextResponse.json({ erro: "Faça login para continuar." }, { status: 401 });
   }
   const login = new URL("/login", req.url);
-  if (req.nextUrl.pathname !== "/") login.searchParams.set("voltar", req.nextUrl.pathname);
+  if (req.nextUrl.pathname !== "/")
+    login.searchParams.set("voltar", req.nextUrl.pathname + req.nextUrl.search);
   return NextResponse.redirect(login);
 }
 
