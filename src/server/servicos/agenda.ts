@@ -11,13 +11,20 @@ import {
 import { db } from "../db";
 import { assessments, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
-import { proximosPrazos } from "./avaliacoes";
 import { eventosNoIntervalo } from "./eventos";
+import { ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
 import { lembretesDeHoje } from "./lembretes";
+import { proximosPrazos } from "./prazos";
 
+/** Tudo o que ocupa a agenda no intervalo: compromissos, sessões e marcos da trilha. */
 export async function ocorrencias(userId: string, intervalo: Intervalo): Promise<Ocorrencia[]> {
-  const { eventos, excecoes } = await eventosNoIntervalo(userId, intervalo.de, intervalo.ate);
-  return expandirOcorrencias(eventos, excecoes, intervalo);
+  const [{ eventos, excecoes }, estudo] = await Promise.all([
+    eventosNoIntervalo(userId, intervalo.de, intervalo.ate),
+    ocorrenciasDeEstudo(userId, intervalo),
+  ]);
+  return [...expandirOcorrencias(eventos, excecoes, intervalo), ...estudo].sort(
+    (a, b) => a.inicio.getTime() - b.inicio.getTime() || a.titulo.localeCompare(b.titulo),
+  );
 }
 
 async function prazosNoIntervalo(userId: string, intervalo: Intervalo, fuso: string) {
@@ -62,17 +69,22 @@ export async function painelHoje(userId: string, agora = new Date()) {
   const { fuso } = await obterAjustes(userId);
   const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
-  const [daSemana, prazos, lembretes] = await Promise.all([
+  const [daSemana, prazos, lembretes, pendentes] = await Promise.all([
     ocorrencias(userId, semana),
     proximosPrazos(userId, paraUtc(hoje, "00:00", fuso)),
     lembretesDeHoje(userId, hoje, fuso),
+    sessoesPendentes(userId, hoje),
   ]);
   const doDia = daSemana.filter(
     (o) =>
       o.inicio < paraUtc(addDias(hoje, 1), "00:00", fuso) && o.fim > paraUtc(hoje, "00:00", fuso),
   );
   // "Próximo" pode estar num dia seguinte da semana se hoje já acabou.
-  const { atual, proximo } = agoraEProximo(daSemana, agora);
+  // Sessões já feitas não disputam o cartão "Agora".
+  const { atual, proximo } = agoraEProximo(
+    daSemana.filter((o) => !o.feita),
+    agora,
+  );
   return {
     hoje,
     fuso,
@@ -83,5 +95,6 @@ export async function painelHoje(userId: string, agora = new Date()) {
     minutosPorArea: minutosPorArea(daSemana),
     prazos,
     lembretes,
+    pendentes,
   };
 }

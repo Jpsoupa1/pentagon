@@ -65,13 +65,9 @@ for (const t of LARGURAS) {
   });
 }
 
-test("cria compromisso semanal pelo Novo item e ele aparece na Agenda", async ({ page }, info) => {
+test("cria compromisso semanal pelo Novo item e ele aparece na Agenda", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  // O banco é compartilhado entre os projetos: só a primeira rodada encontra a tela vazia.
-  if (info.project.name === "chromium") {
-    await expect(page.getByText("Nada agendado por enquanto.")).toBeVisible();
-  }
   await page.getByRole("button", { name: "Novo item" }).first().click();
   const folha = page.getByRole("dialog", { name: "Novo item" });
   await folha.getByLabel("Título").fill("Academia");
@@ -171,4 +167,106 @@ test("cria lembrete online", async ({ page }) => {
   await folha.getByRole("button", { name: "Salvar lembrete" }).click();
   await expect(folha).toBeHidden();
   await expect(page.getByText("Ligar para o banco")).toBeVisible();
+});
+
+test.describe("etapa 2: trilha, avisos e calendário", () => {
+  test("Estudos mostra a trilha, a semana e marca sessão como feita", async ({ page }) => {
+    await page.goto("/estudos");
+    await expect(page.getByText(/Trilha DevOps · semana \d+ de 49/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Progresso por fase" })).toBeVisible();
+    await expect(page.getByText("Fase 1: Kubernetes e fundamentos")).toBeVisible();
+    await expect(page.getByText("Prova CKA (meta)")).toBeVisible();
+    const semana = page.getByRole("region", { name: "Sessões da semana" });
+    const primeira = semana.getByRole("checkbox").first();
+    const marcada = await primeira.isChecked();
+    await primeira.setChecked(!marcada);
+    await page.reload();
+    await expect(
+      page.getByRole("region", { name: "Sessões da semana" }).getByRole("checkbox").first(),
+    ).toBeChecked({
+      checked: !marcada,
+    });
+  });
+
+  test("sessões aparecem na Agenda com a cor de Estudos", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/agenda?semana=2026-10-19");
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "Aula:" }).first(),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "14:00–15:30" }).first(),
+    ).toBeVisible();
+  });
+
+  test("feed .ics gerado na hora e segue o horário dos Ajustes", async ({ page, request }) => {
+    await page.goto("/ajustes");
+    await page
+      .getByRole("button", { name: /Gerar (endereço do calendário|novo endereço)/ })
+      .click();
+    const campo = page.getByLabel("Endereço do calendário");
+    await expect(campo).toHaveValue(/^webcal:\/\/.+\/api\/calendario\/[A-Za-z0-9_-]+\.ics$/);
+    const caminho = new URL((await campo.inputValue()).replace("webcal://", "http://")).pathname;
+
+    const antes = await (await request.get(caminho, { headers: { cookie: "" } })).text();
+    expect(antes).toContain("BEGIN:VCALENDAR");
+    expect(antes).toContain("UID:sessao-2026-10-19@rotina-devops");
+    expect(antes).toContain("DTSTART;TZID=America/Sao_Paulo:20261019T140000");
+
+    const r = await request.patch("/api/ajustes", {
+      data: {
+        horariosEstudo: {
+          "0": { ativo: true, inicio: "19:00", minutos: 60 },
+          "1": { ativo: true, inicio: "15:00", minutos: 90 },
+          "2": { ativo: true, inicio: "14:00", minutos: 90 },
+          "3": { ativo: true, inicio: "14:00", minutos: 90 },
+          "4": { ativo: true, inicio: "14:00", minutos: 90 },
+          "5": { ativo: false, inicio: "14:00", minutos: 60 },
+          "6": { ativo: true, inicio: "09:00", minutos: 180 },
+        },
+      },
+    });
+    expect(r.ok()).toBe(true);
+    const depois = await (await request.get(caminho)).text();
+    expect(depois).toContain("DTSTART;TZID=America/Sao_Paulo:20261019T150000");
+
+    expect(
+      (
+        await request.get("/api/calendario/token-invalido-que-nao-existe-aaaaaaaaaaaaaaaaaaaa.ics")
+      ).status(),
+    ).toBe(404);
+    await request.patch("/api/ajustes", { data: { horariosEstudo: null } });
+  });
+
+  test("disparo de aviso só aceita assinatura do QStash", async ({ request }) => {
+    const r = await request.post("/api/push/disparar", {
+      data: { id: "00000000-0000-4000-8000-000000000000" },
+    });
+    expect(r.status()).toBe(401);
+  });
+
+  test("Ajustes mostra o botão de avisos e salva inscrição do aparelho", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/ajustes");
+    await expect(page.getByRole("heading", { name: "Avisos" })).toBeVisible();
+    // O Chromium sem tela informa notificações como bloqueadas; os dois estados são válidos aqui.
+    await expect(
+      page
+        .getByRole("button", { name: "Ativar avisos neste aparelho" })
+        .or(page.getByText("Os avisos estão bloqueados.", { exact: false })),
+    ).toBeVisible();
+    const r = await request.post("/api/push/inscricoes", {
+      data: {
+        endpoint: "https://push.example.com/abc",
+        keys: { p256dh: "chave", auth: "segredo" },
+        aparelho: "teste",
+      },
+    });
+    expect(r.status()).toBe(201);
+    await request.delete("/api/push/inscricoes", {
+      data: { endpoint: "https://push.example.com/abc" },
+    });
+  });
 });

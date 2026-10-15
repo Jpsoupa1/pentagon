@@ -15,7 +15,18 @@ export async function criarSessaoDeTeste(url: string) {
     );
     const userId = rows[0].id as string;
     // Limpa dados de execuções anteriores para cada rodada começar do zero.
-    for (const t of ["events", "subjects", "assessments", "reminders", "settings", "sessions"]) {
+    for (const t of [
+      "events",
+      "subjects",
+      "assessments",
+      "reminders",
+      "settings",
+      "sessions",
+      "study_tracks",
+      "calendar_tokens",
+      "push_subscriptions",
+      "notifications",
+    ]) {
       await pool.query(`delete from ${t} where user_id = $1`, [userId]);
     }
     const token = randomBytes(32).toString("hex");

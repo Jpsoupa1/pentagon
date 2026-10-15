@@ -19,7 +19,8 @@
     "db:migrate": "tsx scripts/migrar.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "icons": "node scripts/gerar-icones.mjs"
+    "icons": "node scripts/gerar-icones.mjs",
+    "seed:trilha": "tsx scripts/seed-trilha.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

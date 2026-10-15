@@ -9,7 +9,7 @@ Funciona no notebook, iPad e iPhone (instalável na Tela de Início), com dados 
 | Etapa                                                            | Situação |
 | ---------------------------------------------------------------- | -------- |
 | 1. Estrutura do site (frontend, API, banco, login, PWA, CI)      | Pronta   |
-| 2. Rotina de estudos (trilha DevOps, avisos, feed de calendário) | A fazer  |
+| 2. Rotina de estudos (trilha DevOps, avisos, feed de calendário) | Pronta   |
 | 3. Rotina pessoal (estágio, academia, aulas, provas, lembretes)  | A fazer  |
 
 ## Arquitetura
@@ -56,6 +56,34 @@ Tudo é exibido em `America/Sao_Paulo`, 24 h. Instantes ficam em UTC no banco (`
 | iPad horizontal (1024 a 1366 px, toque) | Trilho de ícones de 76 px                     |
 | Notebook (1024 px ou mais, mouse)       | Barra lateral de 220 px                       |
 
+## Trilha DevOps (etapa 2)
+
+- **Fonte:** `trilha_devops.js` (fases, 50 semanas da semana 0 à 49, conteúdo de cada dia, marcos). Lido por `src/server/estudos/trilha.ts`, sem cópia do conteúdo.
+- **Seed idempotente:** `npm run seed:trilha [email]` grava trilha, semanas e uma sessão por dia (inclusive a Reposição de sexta). Rodar de novo atualiza conteúdo e datas e preserva o status de cada sessão. Também roda no build da Vercel, depois das migrações, para todos os usuários.
+- **Horários:** vêm de Ajustes (padrão: segunda a quinta 14:00 às 15:30, sábado 09:00 às 12:00, domingo 19:00 às 20:00, sexta desligada). O horário não fica gravado na sessão, então mudar em Ajustes não perde o progresso.
+- **Onde aparece:** Hoje (cartão Agora, Linha do dia, Sessões pendentes, Próximos prazos com os marcos), Agenda (cor de Estudos, marcos na faixa de dia inteiro), Estudos e Equilíbrio da semana.
+
+## Avisos
+
+```
+Ajustes: "Ativar avisos neste aparelho" ──► POST /api/push/inscricoes (inscrição Web Push no banco)
+                                               │
+mudança de sessão, horário ou antecedência ───►│ reconciliarAvisos(): calcula os avisos das próximas 48 h,
+cron diário 03:00 (GET /api/cron/reconciliar) ─┘ agenda no QStash os que faltam e cancela os que mudaram
+                                                          │
+                     QStash no horário exato ──► POST /api/push/disparar (assinatura do QStash) ──► Web Push
+```
+
+- Regras puras em `src/server/avisos/planejar.ts` (testadas); QStash em `agendador.ts`; envio em `push.ts`.
+- O QStash só é usado em produção (ou com `APP_URL` definida); em dev e preview os avisos são calculados mas não entregues.
+- No iPhone, os avisos só chegam com o app instalado na Tela de Início (iOS 16.4 ou mais recente). Ajustes tem "Enviar aviso de teste".
+
+## Feed de calendário
+
+- `GET /api/calendario/<token>.ics`, gerado na hora a partir do banco, com alerta em cada evento (antecedência de Ajustes; marcos às 09:00 do dia).
+- Os eventos da trilha saem idênticos aos do gerador original (`src/server/calendario/ics.test.ts` compara evento por evento).
+- Em Ajustes: endereço `webcal://` com botão de copiar, gerar novo (revoga o anterior), revogar e o passo a passo do iPhone.
+
 ## API
 
 Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `campos`.
@@ -69,9 +97,12 @@ Todas exigem sessão e respondem JSON. Erros de validação voltam com `400` e `
 | `/api/disciplinas`, `/api/disciplinas/[id]`, `/api/disciplinas/[id]/faltas`, `/api/faltas/[id]`                          | GET, POST, PUT, DELETE                               |
 | `/api/avaliacoes`, `/api/avaliacoes/[id]` (PATCH `{concluida}`), `/api/avaliacoes/[id]/checklist`, `/api/checklist/[id]` | GET, POST, PUT, PATCH, DELETE                        |
 | `/api/lembretes`, `/api/lembretes/[id]` (PATCH `{concluido}`)                                                            | GET, POST, PUT, PATCH, DELETE                        |
-| `/api/estudos`                                                                                                           | GET                                                  |
+| `/api/estudos`, `/api/estudos/sessoes/[id]` (PATCH `{feita}`)                                                            | GET, PATCH                                           |
 | `/api/ajustes`                                                                                                           | GET, PATCH                                           |
 | `/api/exportar`                                                                                                          | GET (todos os dados em JSON)                         |
+| `/api/push/inscricoes`, `/api/push/teste`                                                                                | POST, DELETE                                         |
+| `/api/push/disparar`                                                                                                     | POST, só com assinatura do QStash                    |
+| `/api/calendario/token`, `/api/calendario/[token].ics`                                                                   | POST, DELETE / GET público com token                 |
 | `/api/cron/reconciliar`                                                                                                  | GET com `Authorization: Bearer $CRON_SECRET`         |
 
 ## Rodar localmente
@@ -107,7 +138,7 @@ Os testes e2e criam um usuário e uma sessão direto no banco local (`e2e/sessao
 
 1. Projeto na Vercel ligado ao repositório do GitHub (deploy pela integração Git; produção = `main`, cada PR ganha preview).
 2. Neon instalado pela Vercel Marketplace, com **branch do banco por preview**. A integração injeta `DATABASE_URL`.
-3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `CRON_SECRET`. As de push e QStash entram na etapa 2.
+3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. As do QStash vêm da integração Upstash da Vercel Marketplace.
 4. O build da Vercel usa `npm run vercel-build`: aplica as migrações (só quando `VERCEL_ENV` é `production` ou `preview`, cada um no seu banco) e depois roda `next build`.
 5. Cron diário em `vercel.json` (06:00 UTC = 03:00 em São Paulo).
 

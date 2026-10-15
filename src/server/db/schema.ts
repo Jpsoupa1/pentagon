@@ -16,9 +16,9 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { areaIds, assessmentKinds, repeticoes } from "../../lib/dominio";
+import { areaIds, assessmentKinds, repeticoes, type HorariosEstudo } from "../../lib/dominio";
 
-export type { AreaId } from "../../lib/dominio";
+export type { AreaId, HorarioEstudo, HorariosEstudo } from "../../lib/dominio";
 
 const tz = { withTimezone: true, mode: "date" } as const;
 const criadoEm = () => timestamp("created_at", tz).notNull().defaultNow();
@@ -335,10 +335,6 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
 });
 
 // ---------------------------------------------------------------- Ajustes
-
-export type HorarioEstudo = { ativo: boolean; inicio: string; minutos: number };
-/** Chave = dia da semana (0 = domingo). */
-export type HorariosEstudo = Record<string, HorarioEstudo>;
 
 export const settings = pgTable("settings", {
   userId: text("user_id")

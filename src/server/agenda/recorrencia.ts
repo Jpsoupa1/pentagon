@@ -24,9 +24,14 @@ export type ExcecaoParaExpandir = {
   novaDuracaoMin: number | null;
 };
 
+export type OrigemOcorrencia = "evento" | "sessao" | "marco";
+
 export type Ocorrencia = {
   /** Identificador estável da ocorrência: `<eventId>:<data original>` */
   chave: string;
+  /** De onde veio: compromisso da agenda, sessão da trilha ou marco da trilha. */
+  origem: OrigemOcorrencia;
+  /** Id do item de origem (evento, sessão de estudo ou data do marco). */
   eventId: string;
   /** Data local original da ocorrência (a que a exceção usaria). */
   dataOriginal: string;
@@ -39,6 +44,8 @@ export type Ocorrencia = {
   diaInteiro: boolean;
   movida: boolean;
   recorrente: boolean;
+  /** Só para sessões de estudo. */
+  feita?: boolean;
 };
 
 export type Intervalo = { de: string; ate: string };
@@ -76,6 +83,7 @@ function montar(
 ): Ocorrencia {
   return {
     chave: `${e.id}:${dataOriginal}`,
+    origem: "evento",
     eventId: e.id,
     dataOriginal,
     titulo: e.titulo,

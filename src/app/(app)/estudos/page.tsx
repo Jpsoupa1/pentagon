@@ -1,28 +1,41 @@
 import type { Metadata } from "next";
+import { ListaSessoes } from "@/components/telas/ListaSessoes";
+import { SessaoHoje } from "@/components/telas/SessaoHoje";
 import { BarraProgresso } from "@/components/ui/BarraProgresso";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
-import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
-import { DIAS_CURTOS, diaDaSemana, hojeLocal, paraUtc } from "@/lib/tempo";
+import { horariosComPadrao } from "@/lib/estudos";
+import {
+  dataCurta,
+  DIAS_CURTOS,
+  diaDaSemana,
+  hmParaMin,
+  hojeLocal,
+  minParaHm,
+  paraUtc,
+} from "@/lib/tempo";
 import { exigirUsuario } from "@/server/sessao";
 import { semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
-import { listarTrilhas, sessoesEntre } from "@/server/servicos/estudos";
+import { obterTrilha, progressoPorFase, sessoesEntre } from "@/server/servicos/estudos";
 
 export const metadata: Metadata = { title: "Estudos" };
 
 export default async function Estudos() {
   const usuario = await exigirUsuario();
-  const { fuso } = await obterAjustes(usuario.id);
-  const hoje = hojeLocal(new Date(), fuso);
+  const ajustes = await obterAjustes(usuario.id);
+  const { fuso } = ajustes;
+  const agora = new Date();
+  const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
-  const [trilhas, sessoes] = await Promise.all([
-    listarTrilhas(usuario.id),
+  const horarios = horariosComPadrao(ajustes.horariosEstudo);
+  const [trilha, daSemana, fases] = await Promise.all([
+    obterTrilha(usuario.id),
     sessoesEntre(usuario.id, semana.de, semana.ate),
+    progressoPorFase(usuario.id),
   ]);
-  const trilha = trilhas[0];
 
   if (!trilha) {
     return (
@@ -35,96 +48,116 @@ export default async function Estudos() {
     );
   }
 
-  const deHoje = sessoes.find((x) => x.data === hoje);
-  const certificacoes = trilha.marcos.filter((m) => m.prova);
+  const ligadas = daSemana.filter((x) => horarios[String(diaDaSemana(x.data))]?.ativo);
+  const deHoje = ligadas.find((x) => x.data === hoje);
+  const semanaAtual = deHoje ?? daSemana[0];
+  const faseAtual = semanaAtual ? trilha.fases.find((f) => f.id === semanaAtual.fase) : undefined;
+  const horario = (data: string) => {
+    const h = horarios[String(diaDaSemana(data))];
+    return `${h.inicio} – ${minParaHm(hmParaMin(h.inicio) + h.minutos)}`;
+  };
+  const total = fases.reduce((t, f) => t + f.total, 0);
+  const feitas = fases.reduce((t, f) => t + f.feitas, 0);
 
   return (
     <>
-      <CabecalhoPagina titulo="Estudos" sobre={trilha.nome} />
+      <CabecalhoPagina
+        titulo="Estudos"
+        sobre={
+          semanaAtual
+            ? `${trilha.nome} · semana ${semanaAtual.semana} de 49${faseAtual ? ` · ${faseAtual.nome}` : ""}`
+            : trilha.nome
+        }
+      />
       <div className={layout.colunas}>
         <div className={layout.pilha}>
-          <section
-            data-area="estudos"
-            style={{
-              background: "var(--estudos)",
-              color: "#fff",
-              borderRadius: "var(--r-lg)",
-              padding: 22,
-              display: "grid",
-              gap: 8,
-            }}
-            aria-labelledby="sessao-hoje"
-          >
-            <span
-              className="mono"
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                opacity: 0.85,
-              }}
-            >
-              Sessão de hoje
-            </span>
-            <h2 id="sessao-hoje" style={{ fontSize: 22, fontWeight: 650 }}>
-              {deHoje ? `${deHoje.tipo}: ${deHoje.conteudo}` : "Sem sessão hoje."}
-            </h2>
-          </section>
-          <Cartao>
-            <CartaoCabeca titulo="Sessões da semana" />
-            {sessoes.length ? (
-              <ul className={layout.lista}>
-                {sessoes.map((x) => (
-                  <LinhaAgenda
-                    key={x.id}
-                    hora={DIAS_CURTOS[diaDaSemana(x.data)]}
-                    area="estudos"
-                    titulo={`${x.tipo}: ${x.conteudo}`}
-                    fim={
-                      x.status === "feita" ? <span className={layout.meta}>feita</span> : undefined
-                    }
-                  />
-                ))}
-              </ul>
+          <SessaoHoje
+            agoraServidor={Math.floor(agora.getTime() / 60_000) * 60_000}
+            sessao={
+              deHoje
+                ? {
+                    id: deHoje.id,
+                    rotulo: `Sessão de hoje · ${horario(deHoje.data)}`,
+                    tipo: deHoje.tipo,
+                    conteudo: deHoje.conteudo,
+                    detalhe: `Tema: ${deHoje.tema}${deHoje.parte ? ` (parte ${deHoje.parte})` : ""}`,
+                    minutos: horarios[String(diaDaSemana(deHoje.data))].minutos,
+                    feita: deHoje.status === "feita",
+                  }
+                : null
+            }
+          />
+          <Cartao aria-labelledby="sessoes-semana">
+            <CartaoCabeca
+              titulo={<span id="sessoes-semana">Sessões da semana</span>}
+              acao={
+                <span className="mono">
+                  {ligadas.filter((x) => x.status === "feita").length}/{ligadas.length}
+                </span>
+              }
+            />
+            {ligadas.length ? (
+              <ListaSessoes
+                sessoes={ligadas.map((x) => ({
+                  id: x.id,
+                  rotulo: `${DIAS_CURTOS[diaDaSemana(x.data)]} ${horarios[String(diaDaSemana(x.data))].inicio}`,
+                  texto: `${x.tipo}: ${x.conteudo}`,
+                  feita: x.status === "feita",
+                }))}
+              />
             ) : (
               <EstadoVazio>Nenhuma sessão nesta semana.</EstadoVazio>
             )}
           </Cartao>
         </div>
         <div className={layout.pilha}>
-          <Cartao>
+          <Cartao aria-labelledby="progresso">
             <CartaoCabeca
-              titulo="Progresso"
+              titulo={<span id="progresso">Progresso por fase</span>}
               acao={
                 <span className="mono">
-                  {trilha.feitas}/{trilha.total}
+                  {feitas}/{total}
                 </span>
               }
             />
-            <div data-area="estudos">
-              <BarraProgresso
-                valor={trilha.total ? trilha.feitas / trilha.total : 0}
-                rotulo="Progresso da trilha"
-              />
-            </div>
-          </Cartao>
-          <Cartao>
-            <CartaoCabeca titulo="Certificações" />
-            {certificacoes.length ? (
-              <ul className={layout.lista}>
-                {certificacoes.map((m) => (
-                  <li key={m.data} className={layout.itemLink}>
-                    <span className={layout.itemTexto}>
-                      <span className={layout.itemTitulo}>{m.titulo}</span>
-                      <Rotulo>Fase {m.fase}</Rotulo>
+            <ul className={layout.lista} data-area="estudos">
+              {trilha.fases.map((f) => {
+                const p = fases.find((x) => x.fase === f.id) ?? { total: 0, feitas: 0 };
+                return (
+                  <li key={f.id} style={{ display: "grid", gap: 6, padding: "10px 0" }}>
+                    <span style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ fontWeight: f.id === semanaAtual?.fase ? 650 : 500 }}>
+                        {f.id === 0 ? f.nome : `Fase ${f.id}: ${f.nome}`}
+                      </span>
+                      <span className={`${layout.meta} mono`}>
+                        {p.feitas}/{p.total}
+                      </span>
                     </span>
-                    <Contagem alvo={paraUtc(m.data, "09:00", fuso)} fuso={fuso} />
+                    <BarraProgresso
+                      valor={p.total ? p.feitas / p.total : 0}
+                      rotulo={`Progresso: ${f.nome}`}
+                    />
+                    {f.prova && <Rotulo>Fecha com {f.prova}</Rotulo>}
                   </li>
-                ))}
-              </ul>
-            ) : (
-              <EstadoVazio>Nenhuma certificação marcada.</EstadoVazio>
-            )}
+                );
+              })}
+            </ul>
+          </Cartao>
+          <Cartao aria-labelledby="certificacoes">
+            <CartaoCabeca titulo={<span id="certificacoes">Certificações e marcos</span>} />
+            <ul className={layout.lista}>
+              {trilha.marcos.map((m) => (
+                <li key={m.data} className={layout.itemLink}>
+                  <span className={layout.itemTexto}>
+                    <span className={layout.itemTitulo}>{m.titulo}</span>
+                    <span className={`${layout.meta} mono`}>
+                      {dataCurta(m.data)} {m.data.slice(0, 4)}
+                    </span>
+                  </span>
+                  <Contagem alvo={paraUtc(m.data, "00:00", fuso)} agora={agora} fuso={fuso} />
+                </li>
+              ))}
+            </ul>
           </Cartao>
         </div>
       </div>
