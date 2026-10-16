@@ -8,6 +8,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "tests/**/*.test.ts"],
+    // Os de integração precisam do banco: rodam com `npm run test:integracao`.
+    exclude: ["tests/integracao/**", "node_modules/**"],
     env: { TZ: "UTC" },
   },
 });

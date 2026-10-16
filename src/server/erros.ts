@@ -12,3 +12,9 @@ export class Conflito extends Error {
     super(mensagem);
   }
 }
+
+/** Pedidos demais ao assistente na última hora. */
+export class LimiteExcedido extends Error {}
+
+/** A API do Claude respondeu que os créditos do mês acabaram. */
+export class SemCreditos extends Error {}

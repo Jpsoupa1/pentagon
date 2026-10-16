@@ -17,11 +17,28 @@ import { obterAjustes } from "./ajustes";
 import { ocorrencias } from "./agenda";
 import { feriadosEntre } from "./feriados";
 import { atualizarEvento, criarEvento, linhaDoEvento, obterEvento, salvarExcecao } from "./eventos";
+import { moverSessao, ocorrenciaDaSessao } from "./estudos";
 
 /** Quantos dias à frente a checagem de conflito olha para compromissos que repetem. */
 const HORIZONTE_DIAS = 56;
 
-export type DetalheConflito = { quando: string; titulo: string; com: string; comHorario: string };
+/** O item com que a mudança choca, identificado para quem quiser oferecer uma correção. */
+export type OutroDoConflito = {
+  origem: Ocorrencia["origem"];
+  id: string;
+  data: string;
+  areaId: Ocorrencia["areaId"];
+  inicio: string;
+  fim: string;
+};
+
+export type DetalheConflito = {
+  quando: string;
+  titulo: string;
+  com: string;
+  comHorario: string;
+  outro: OutroDoConflito;
+};
 
 function descrever(c: Conflito[], fuso: string): DetalheConflito[] {
   return c.map(({ ocorrencia: o, com }) => {
@@ -31,6 +48,14 @@ function descrever(c: Conflito[], fuso: string): DetalheConflito[] {
       titulo: o.titulo,
       com: com.titulo,
       comHorario: `${horaLocal(com.inicio, fuso)}–${horaLocal(com.fim, fuso)}`,
+      outro: {
+        origem: com.origem,
+        id: com.eventId,
+        data: com.dataOriginal,
+        areaId: com.areaId,
+        inicio: com.inicio.toISOString(),
+        fim: com.fim.toISOString(),
+      },
     };
   });
 }
@@ -118,4 +143,16 @@ export async function excecaoComChecagem(
     await checar(userId, [nova], eventId, x.ignorarConflito);
   }
   return salvarExcecao(userId, eventId, x);
+}
+
+/** Muda o horário de uma sessão de estudo só naquele dia, conferindo contra o resto do dia. */
+export async function moverSessaoComChecagem(
+  userId: string,
+  id: string,
+  hora: string | null,
+  ignorarConflito = false,
+) {
+  const nova = await ocorrenciaDaSessao(userId, id, hora);
+  if (nova) await checar(userId, [nova], undefined, ignorarConflito);
+  return moverSessao(userId, id, hora);
 }

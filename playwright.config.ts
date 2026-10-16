@@ -22,7 +22,7 @@ export default defineConfig({
     {
       name: "iphone",
       use: { ...devices["iPhone 15"] },
-      grep: /Novo item|lembrete|disciplina/,
+      grep: /Novo item|lembrete|disciplina|Assistente/,
     },
   ],
   webServer: {
@@ -36,6 +36,9 @@ export default defineConfig({
       AUTH_GITHUB_SECRET: process.env.AUTH_GITHUB_SECRET ?? "teste",
       ALLOWED_EMAILS: process.env.ALLOWED_EMAILS ?? "teste@pentagon.local",
       AUTH_URL: `http://localhost:${porta}`,
+      // API do Claude simulada (e2e/claude-falso.ts), iniciada no globalSetup.
+      ANTHROPIC_BASE_URL: `http://localhost:${porta + 99}`,
+      ANTHROPIC_API_KEY: "teste",
     },
   },
 });

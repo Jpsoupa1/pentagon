@@ -10,6 +10,7 @@ export type SessaoParaAgenda = {
   conteudo: string;
   status: "pendente" | "feita";
   diaSemana: number;
+  horaInicio?: string | null;
 };
 
 /** Sessões da trilha nos dias ligados, no horário configurado em Ajustes. */
@@ -22,7 +23,7 @@ export function ocorrenciasDeSessoes(
   for (const s of sessoes) {
     const h = horarios[String(s.diaSemana)];
     if (!h?.ativo) continue;
-    const inicio = paraUtc(s.data, h.inicio, fuso);
+    const inicio = paraUtc(s.data, s.horaInicio ?? h.inicio, fuso);
     saida.push({
       chave: `sessao:${s.data}`,
       origem: "sessao",

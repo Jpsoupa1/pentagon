@@ -47,6 +47,7 @@ export async function sessoesEntre(userId: string, de: string, ate: string) {
       tipo: studySessions.tipo,
       conteudo: studySessions.conteudo,
       status: studySessions.status,
+      horaInicio: studySessions.horaInicio,
       feitaEm: studySessions.feitaEm,
       semana: studyWeeks.numero,
       fase: studyWeeks.fase,
@@ -142,6 +143,37 @@ export async function marcarSessao(userId: string, id: string, feita: boolean) {
   const [s] = await db()
     .update(studySessions)
     .set({ status: feita ? "feita" : "pendente", feitaEm: feita ? new Date() : null })
+    .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)))
+    .returning();
+  if (!s) throw new NaoEncontrado("Sessão");
+  return s;
+}
+
+export async function obterSessao(userId: string, id: string) {
+  const [s] = await db()
+    .select()
+    .from(studySessions)
+    .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)));
+  if (!s) throw new NaoEncontrado("Sessão");
+  return s;
+}
+
+/** Como a sessão ficaria na agenda com outro horário (null = horário do dia em Ajustes). */
+export async function ocorrenciaDaSessao(userId: string, id: string, hora: string | null) {
+  const [s, ajustes] = await Promise.all([obterSessao(userId, id), obterAjustes(userId)]);
+  const [o] = ocorrenciasDeSessoes(
+    [{ ...s, horaInicio: hora, diaSemana: diaDaSemana(s.data) }],
+    horariosComPadrao(ajustes.horariosEstudo),
+    ajustes.fuso,
+  );
+  return o ?? null;
+}
+
+/** Horário próprio da sessão naquele dia (null volta ao horário de Ajustes). */
+export async function moverSessao(userId: string, id: string, hora: string | null) {
+  const [s] = await db()
+    .update(studySessions)
+    .set({ horaInicio: hora })
     .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)))
     .returning();
   if (!s) throw new NaoEncontrado("Sessão");

@@ -50,6 +50,7 @@ export const MENU: ItemNav[] = [
 ];
 
 export const SECUNDARIO: ItemNav[] = [
+  { href: "/voz", rotulo: "Assistente", curto: "Assistente", icone: "microfone" },
   { href: "/areas", rotulo: "Áreas", curto: "Áreas", icone: "areas" },
   { href: "/ajustes", rotulo: "Ajustes", curto: "Ajustes", icone: "ajustes" },
 ];

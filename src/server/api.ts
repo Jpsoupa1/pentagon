@@ -2,7 +2,7 @@ import "server-only";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { z, ZodError } from "zod";
 import { auth } from "./auth";
-import { Conflito, NaoEncontrado } from "./erros";
+import { Conflito, LimiteExcedido, NaoEncontrado, SemCreditos } from "./erros";
 
 type Contexto<P> = { userId: string; req: NextRequest; params: P };
 
@@ -50,6 +50,10 @@ export function respostaDeErro(erro: unknown) {
   if (erro instanceof Conflito) {
     return NextResponse.json({ erro: erro.message, detalhes: erro.detalhes }, { status: 409 });
   }
+  if (erro instanceof LimiteExcedido)
+    return NextResponse.json({ erro: erro.message, codigo: "limite" }, { status: 429 });
+  if (erro instanceof SemCreditos)
+    return NextResponse.json({ erro: erro.message, codigo: "sem_creditos" }, { status: 503 });
   if (erro instanceof SyntaxError)
     return NextResponse.json({ erro: "JSON inválido." }, { status: 400 });
   console.error(erro);

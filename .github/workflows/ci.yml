@@ -57,6 +57,8 @@ jobs:
           fi
       - name: Aplicar migrações num banco limpo
         run: npm run db:migrate
+      - name: Testes de integração (banco real, API do Claude simulada)
+        run: npm run test:integracao
       - name: Build
         run: npm run build
       - name: Instalar Chromium e WebKit
