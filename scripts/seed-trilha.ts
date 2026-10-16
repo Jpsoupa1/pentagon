@@ -16,7 +16,10 @@ export async function semearTrilhaParaTodos(db: ReturnType<typeof drizzle>, emai
     : await db.select({ id: users.id, email: users.email }).from(users);
   for (const u of alvo) {
     const r = await semearTrilha(db, u.id);
-    console.log(`Trilha gravada para ${u.email}: ${r.semanas} semanas, ${r.sessoes} sessões.`);
+    console.log(
+      `Trilha gravada para ${u.email}: ${r.semanas} semanas, ${r.sessoes} sessões` +
+        (r.removidas ? `, ${r.removidas} fora do período removidas.` : "."),
+    );
   }
   if (!alvo.length) console.log("Nenhum usuário encontrado. Entre no app uma vez e rode de novo.");
 }

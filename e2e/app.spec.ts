@@ -1,4 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { ROTINA } from "../src/server/estudos/trilha";
+
+const hojeEmSaoPaulo = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
 const LARGURAS = [
   { nome: "iphone", largura: 390, altura: 844, nav: "Principal" },
@@ -81,7 +85,11 @@ test("cria compromisso semanal pelo Novo item e ele aparece na Agenda", async ({
   await expect(folha.getByText(/choca com Academia/).first()).toBeVisible();
   await folha.getByRole("button", { name: "Salvar mesmo assim" }).click();
   await expect(folha).toBeHidden();
-  await page.goto("/agenda");
+  // Salvar dispara router.refresh() em Hoje; no WebKit ele pode atropelar a próxima navegação.
+  await page.waitForLoadState("networkidle");
+  await expect(async () => {
+    await page.goto("/agenda");
+  }).toPass({ timeout: 15_000 });
   await expect(
     page.locator('[data-area="pessoal"]').filter({ hasText: "Academia" }).first(),
   ).toBeVisible();
@@ -157,7 +165,13 @@ test("abre offline na primeira abertura e sincroniza a fila", async ({
 
   await context.setOffline(false);
   await expect(page.getByText("1 alteração aguardando conexão")).toBeHidden({ timeout: 10_000 });
-  await page.goto("/lembretes");
+  // A página passa pelo service worker (rede primeiro): recarrega até a versão nova chegar.
+  await expect
+    .poll(async () => {
+      await page.goto("/lembretes");
+      return page.getByText(texto).count();
+    })
+    .toBeGreaterThan(0);
   // Exatamente uma vez: a fila não pode reenviar a mesma alteração.
   await expect(page.getByText(texto)).toHaveCount(1);
 });
@@ -177,6 +191,12 @@ test("cria lembrete online", async ({ page }, info) => {
 test.describe("etapa 2: trilha, avisos e calendário", () => {
   test("Estudos mostra a trilha, a semana e marca sessão como feita", async ({ page }) => {
     await page.goto("/estudos");
+    if (hojeEmSaoPaulo() < ROTINA.INICIO) {
+      // Antes da semana zero não há sessão nesta semana: a tela diz quando a trilha começa.
+      await expect(page.getByText(/Trilha DevOps · começa /)).toBeVisible();
+      await expect(page.getByText(/A trilha começa /)).toBeVisible();
+      return;
+    }
     await expect(page.getByText(/Trilha DevOps · semana \d+ de 49/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Progresso por fase" })).toBeVisible();
     await expect(page.getByText("Fase 1: Kubernetes e fundamentos")).toBeVisible();

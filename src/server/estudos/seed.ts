@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, eq, gt, lt, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { studySessions, studyTracks, studyWeeks } from "../db/schema";
 import { NOME_TRILHA, ROTINA, SLUG_TRILHA, TODOS_OS_DIAS } from "./trilha";
@@ -81,5 +81,20 @@ export async function semearTrilha(db: QualquerDb, userId: string) {
         },
       });
   }
-  return { trilhaId: trilha.id, semanas: semanas.length, sessoes: sessoes.length };
+  // Se as datas da trilha mudarem, as sessões que ficaram fora do período saem do banco.
+  const removidas = await db
+    .delete(studySessions)
+    .where(
+      and(
+        eq(studySessions.trackId, trilha.id),
+        or(lt(studySessions.data, ROTINA.INICIO), gt(studySessions.data, ROTINA.FIM)),
+      ),
+    )
+    .returning({ id: studySessions.id });
+  return {
+    trilhaId: trilha.id,
+    semanas: semanas.length,
+    sessoes: sessoes.length,
+    removidas: removidas.length,
+  };
 }

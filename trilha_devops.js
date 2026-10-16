@@ -4,8 +4,8 @@
 (function (g) {
   'use strict';
 
-  var INICIO = '2026-10-12'; // segunda da semana zero
-  var TOTAL_SEMANAS = 49;    // semana 1 começa em 19/10/2026
+  var INICIO = '2026-10-19'; // segunda da semana zero
+  var TOTAL_SEMANAS = 49;    // semana 1 começa em 26/10/2026
   var TZ = 'America/Sao_Paulo';
 
   var FASES = [
@@ -182,12 +182,12 @@
 
   var MARCOS = [
     { data: '2026-11-27', titulo: 'Black Friday: comprar o voucher da CKA', fase: 1 },
-    { data: '2027-02-26', titulo: 'Prova CKA (meta)', fase: 1, prova: true },
     { data: '2027-03-01', titulo: 'Início das candidaturas a estágio e júnior', fase: 2 },
-    { data: '2027-03-19', titulo: 'Prova AWS Cloud Practitioner (meta)', fase: 2, prova: true },
-    { data: '2027-05-28', titulo: 'Prova AWS Solutions Architect Associate (meta)', fase: 2, prova: true },
-    { data: '2027-07-23', titulo: 'Prova Terraform Associate (meta)', fase: 3, prova: true },
-    { data: '2027-09-24', titulo: 'Projeto principal publicado', fase: 4, prova: true }
+    { data: '2027-03-05', titulo: 'Prova CKA (meta)', fase: 1, prova: true },
+    { data: '2027-03-26', titulo: 'Prova AWS Cloud Practitioner (meta)', fase: 2, prova: true },
+    { data: '2027-06-04', titulo: 'Prova AWS Solutions Architect Associate (meta)', fase: 2, prova: true },
+    { data: '2027-07-30', titulo: 'Prova Terraform Associate (meta)', fase: 3, prova: true },
+    { data: '2027-10-01', titulo: 'Projeto principal publicado', fase: 4, prova: true }
   ];
 
   var TIPOS = { 1: 'Aula', 2: 'Lab', 3: 'Aprofundar', 4: 'Base', 5: 'Reposição', 6: 'Projeto', 0: 'Revisão' };
