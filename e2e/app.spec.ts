@@ -85,7 +85,11 @@ test("cria compromisso semanal pelo Novo item e ele aparece na Agenda", async ({
   await expect(folha.getByText(/choca com Academia/).first()).toBeVisible();
   await folha.getByRole("button", { name: "Salvar mesmo assim" }).click();
   await expect(folha).toBeHidden();
-  await page.goto("/agenda");
+  // Salvar dispara router.refresh() em Hoje; no WebKit ele pode atropelar a próxima navegação.
+  await page.waitForLoadState("networkidle");
+  await expect(async () => {
+    await page.goto("/agenda");
+  }).toPass({ timeout: 15_000 });
   await expect(
     page.locator('[data-area="pessoal"]').filter({ hasText: "Academia" }).first(),
   ).toBeVisible();
