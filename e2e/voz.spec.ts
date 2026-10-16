@@ -54,7 +54,10 @@ test.describe("Assistente de voz", () => {
   test("consulta é respondida com os dados do app", async ({ page }) => {
     await page.goto(`/voz?texto=${encodeURIComponent("o que eu tenho amanhã?")}`);
     await expect(page.getByText("Você pediu")).toBeVisible();
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    // Amanhã pode ser um dia sem nada (fim de semana fora da trilha): vale a lista ou o aviso.
+    await expect(
+      page.getByRole("listitem").first().or(page.getByText("Nada na agenda nesse período.")),
+    ).toBeVisible();
   });
 
   test("Ajustes mostra o consumo do mês", async ({ page }) => {

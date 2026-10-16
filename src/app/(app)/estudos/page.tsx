@@ -10,6 +10,7 @@ import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { horariosComPadrao } from "@/lib/estudos";
 import {
   dataCurta,
+  dataLonga,
   DIAS_CURTOS,
   diaDaSemana,
   hmParaMin,
@@ -64,6 +65,8 @@ export default async function Estudos() {
     const h = horarios[String(diaDaSemana(x.data))];
     return `${inicioDa(x)} – ${minParaHm(hmParaMin(inicioDa(x)) + h.minutos)}`;
   };
+  // Antes da semana zero: avisa quando a trilha começa.
+  const comecaEm = hoje < trilha.inicio ? dataLonga(trilha.inicio).toLowerCase() : null;
   const total = fases.reduce((t, f) => t + f.total, 0);
   const feitas = fases.reduce((t, f) => t + f.feitas, 0);
 
@@ -74,7 +77,9 @@ export default async function Estudos() {
         sobre={
           semanaAtual
             ? `${trilha.nome} · semana ${semanaAtual.semana} de 49${faseAtual ? ` · ${faseAtual.nome}` : ""}`
-            : trilha.nome
+            : comecaEm
+              ? `${trilha.nome} · começa ${comecaEm}`
+              : trilha.nome
         }
       />
       <div className={layout.colunas}>
@@ -114,7 +119,9 @@ export default async function Estudos() {
                 }))}
               />
             ) : (
-              <EstadoVazio>Nenhuma sessão nesta semana.</EstadoVazio>
+              <EstadoVazio>
+                {comecaEm ? `A trilha começa ${comecaEm}.` : "Nenhuma sessão nesta semana."}
+              </EstadoVazio>
             )}
             {proprios.length > 0 && (
               <>

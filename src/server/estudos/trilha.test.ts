@@ -6,16 +6,17 @@ import { ocorrenciasDeMarcos, ocorrenciasDeSessoes } from "./ocorrencias";
 import { ROTINA, semanaDaTrilha, TODOS_OS_DIAS } from "./trilha";
 
 describe("semana da trilha", () => {
-  it("semana zero começa em 12/10/2026 e a semana 1 em 19/10/2026", () => {
-    expect(semanaDaTrilha("2026-10-12")).toBe(0);
-    expect(semanaDaTrilha("2026-10-18")).toBe(0);
-    expect(semanaDaTrilha("2026-10-19")).toBe(1);
+  it("semana zero começa em 19/10/2026 e a semana 1 em 26/10/2026", () => {
+    expect(semanaDaTrilha("2026-10-18")).toBeNull();
+    expect(semanaDaTrilha("2026-10-19")).toBe(0);
+    expect(semanaDaTrilha("2026-10-25")).toBe(0);
+    expect(semanaDaTrilha("2026-10-26")).toBe(1);
   });
 
   it("termina em 26/09/2027 na semana 49", () => {
-    expect(ROTINA.FIM).toBe("2027-09-26");
-    expect(semanaDaTrilha("2027-09-26")).toBe(49);
-    expect(semanaDaTrilha("2027-09-27")).toBeNull();
+    expect(ROTINA.FIM).toBe("2027-10-03");
+    expect(semanaDaTrilha("2027-10-03")).toBe(49);
+    expect(semanaDaTrilha("2027-10-04")).toBeNull();
     expect(semanaDaTrilha("2026-10-11")).toBeNull();
   });
 
@@ -51,12 +52,12 @@ describe("semana da trilha", () => {
   it("marcos nas datas combinadas", () => {
     expect(ROTINA.MARCOS.map((m) => m.data)).toEqual([
       "2026-11-27",
-      "2027-02-26",
       "2027-03-01",
-      "2027-03-19",
-      "2027-05-28",
-      "2027-07-23",
-      "2027-09-24",
+      "2027-03-05",
+      "2027-03-26",
+      "2027-06-04",
+      "2027-07-30",
+      "2027-10-01",
     ]);
   });
 });
