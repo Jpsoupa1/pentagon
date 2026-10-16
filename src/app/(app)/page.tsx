@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CartaoAgora, type OcorrenciaCliente } from "@/components/telas/CartaoAgora";
 import { ListaLembretes } from "@/components/telas/ListaLembretes";
 import { ListaSessoes } from "@/components/telas/ListaSessoes";
+import { Icone } from "@/components/shell/icones";
 import { BotaoLink } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
@@ -51,6 +52,17 @@ export default async function Hoje() {
       <CabecalhoPagina
         sobre={dataLonga(p.hoje)}
         titulo={`${saudacao(local.minutos)}${nome ? `, ${nome}` : ""}`}
+        acoes={
+          // No iPhone e no iPad vertical as abas não têm o assistente: o atalho fica aqui.
+          <BotaoLink
+            href="/voz"
+            variante="secundario"
+            pequeno
+            aria-label="Abrir o assistente de voz"
+          >
+            <Icone nome="microfone" tamanho={18} /> Assistente
+          </BotaoLink>
+        }
       />
       <div className={layout.colunas}>
         <div className={layout.pilha}>

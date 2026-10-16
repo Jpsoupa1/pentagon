@@ -62,3 +62,13 @@ test.describe("Assistente de voz", () => {
     await expect(page.getByText(/Consumo deste mês: US\$ \d+\.\d{2}/)).toBeVisible();
   });
 });
+
+test("Assistente: no celular, abre pelo topo de Hoje e pela página Áreas", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("link", { name: "Abrir o assistente de voz" }).click();
+  await expect(page).toHaveURL(/\/voz$/);
+  await page.goto("/areas");
+  await page.getByRole("link", { name: "Assistente" }).click();
+  await expect(page.getByRole("heading", { name: "O que você quer fazer?" })).toBeVisible();
+});
