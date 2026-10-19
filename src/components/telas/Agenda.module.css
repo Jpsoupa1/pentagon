@@ -309,3 +309,18 @@ button.tempoCartao:hover {
 button.tempoCartao {
   width: 100%;
 }
+
+/* Estudo marcado para acontecer durante o estágio: selo discreto, sem cara de alerta. */
+.selo {
+  justify-self: start;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  font-size: 10.5px;
+  line-height: 1.5;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+.tempoCartao .selo {
+  font-size: var(--fs-label);
+}

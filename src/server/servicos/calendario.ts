@@ -52,6 +52,7 @@ export async function feedPorToken(token: string) {
     ? await db()
         .select({
           data: studySessions.data,
+          turno: studySessions.turno,
           tipo: studySessions.tipo,
           conteudo: studySessions.conteudo,
           horaInicio: studySessions.horaInicio,
@@ -63,7 +64,7 @@ export async function feedPorToken(token: string) {
         .from(studySessions)
         .innerJoin(studyWeeks, eq(studyWeeks.id, studySessions.weekId))
         .where(eq(studySessions.trackId, trilha.id))
-        .orderBy(asc(studySessions.data))
+        .orderBy(asc(studySessions.data), asc(studySessions.turno))
     : [];
   // Compromissos de 30 dias atrás até um ano à frente, só das áreas escolhidas em Ajustes.
   const areas = new Set(ajustes.areasNoFeed);

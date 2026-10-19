@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { HORARIOS_PADRAO, TIPO_SESSAO } from "@/lib/estudos";
-import { paraUtc } from "@/lib/tempo";
+import { HORARIOS_PADRAO, TURNOS_ESTUDO } from "@/lib/estudos";
+import { diaDaSemana, paraUtc } from "@/lib/tempo";
 import { minutosPorArea } from "../agenda/recorrencia";
 import { ocorrenciasDeMarcos, ocorrenciasDeSessoes } from "./ocorrencias";
 import { ROTINA, semanaDaTrilha, TODOS_OS_DIAS } from "./trilha";
@@ -13,7 +13,7 @@ describe("semana da trilha", () => {
     expect(semanaDaTrilha("2026-10-26")).toBe(1);
   });
 
-  it("termina em 26/09/2027 na semana 49", () => {
+  it("termina em 03/10/2027 na semana 49", () => {
     expect(ROTINA.FIM).toBe("2027-10-03");
     expect(semanaDaTrilha("2027-10-03")).toBe(49);
     expect(semanaDaTrilha("2027-10-04")).toBeNull();
@@ -29,23 +29,36 @@ describe("semana da trilha", () => {
     ]);
   });
 
-  it("tipos de sessão por dia", () => {
-    expect(TIPO_SESSAO).toEqual({
-      0: "Revisão",
-      1: "Aula",
-      2: "Lab",
-      3: "Aprofundar",
-      4: "Base",
-      5: "Reposição",
-      6: "Projeto",
-    });
-    expect(ROTINA.sessao("2026-10-19", TODOS_OS_DIAS)?.tipo).toBe("Aula");
-    expect(ROTINA.sessao("2026-10-23", TODOS_OS_DIAS)?.tipo).toBe("Reposição");
+  it("a semana zero continua com uma sessão por dia, à tarde, como antes", () => {
+    const zero = ROTINA.sessoesEntre("2026-10-19", "2026-10-25", TODOS_OS_DIAS);
+    expect(zero.map((s) => [s.data, s.turno, s.ini, s.titulo])).toEqual([
+      ["2026-10-19", "tarde", "14:00", "Aula: Ler o plano de estudos completo"],
+      ["2026-10-20", "tarde", "14:00", "Lab: Separar os horários fixos da semana"],
+      ["2026-10-21", "tarde", "14:00", "Aprofundar: Revisar o que já foi feito na CKA"],
+      [
+        "2026-10-22",
+        "tarde",
+        "14:00",
+        "Base: Configurar o app, o calendário e o widget da tela bloqueada",
+      ],
+      [
+        "2026-10-24",
+        "manha",
+        "09:00",
+        "Projeto: Montar o lab no CachyOS (minikube e kind) e criar o repositório do Projeto 1",
+      ],
+      ["2026-10-25", "noite", "19:00", "Revisão: Planejar a semana 1"],
+    ]);
   });
 
-  it("horários padrão iguais aos da trilha original (tarde, sexta desligada)", () => {
-    for (const [d, slot] of Object.entries(ROTINA.PADRAO.dias)) {
-      expect(HORARIOS_PADRAO[d]).toEqual({ ativo: slot.on, inicio: slot.ini, minutos: slot.min });
+  it("horários padrão iguais aos da trilha (dois blocos de segunda a quinta)", () => {
+    expect(Object.keys(HORARIOS_PADRAO).sort()).toEqual(TURNOS_ESTUDO.map((t) => t.chave).sort());
+    for (const [chave, slot] of Object.entries(ROTINA.PADRAO.turnos)) {
+      expect(HORARIOS_PADRAO[chave]).toEqual({
+        ativo: slot.on,
+        inicio: slot.ini,
+        minutos: slot.min,
+      });
     }
   });
 
@@ -63,38 +76,41 @@ describe("semana da trilha", () => {
 });
 
 describe("sessões na agenda", () => {
-  const semana = ROTINA.sessoesEntre("2026-10-19", "2026-10-25", TODOS_OS_DIAS).map((s, i) => ({
-    id: `s${i}`,
-    data: s.data,
-    tipo: s.tipo,
-    conteudo: s.texto,
-    status: "pendente" as const,
-    diaSemana: s.dow,
-  }));
+  const paraAgenda = (de: string, ate: string) =>
+    ROTINA.sessoesEntre(de, ate, TODOS_OS_DIAS).map((s) => ({
+      id: s.id,
+      data: s.data,
+      turno: s.turno,
+      tipo: s.tipo,
+      conteudo: s.texto,
+      status: "pendente" as const,
+      diaSemana: diaDaSemana(s.data),
+      permiteSobreposicao: s.permiteSobreposicao,
+    }));
+  const semana3 = paraAgenda("2026-11-09", "2026-11-15");
 
-  it("ficam à tarde nos dias ligados e somem na sexta desligada", () => {
-    const oc = ocorrenciasDeSessoes(semana, HORARIOS_PADRAO, "America/Sao_Paulo");
-    expect(oc.map((o) => o.dataOriginal)).toEqual([
-      "2026-10-19",
-      "2026-10-20",
-      "2026-10-21",
-      "2026-10-22",
-      "2026-10-24",
-      "2026-10-25",
-    ]);
-    expect(oc[0].inicio).toEqual(paraUtc("2026-10-19", "14:00"));
-    expect(oc[0].fim).toEqual(paraUtc("2026-10-19", "15:30"));
-    expect(oc[4].inicio).toEqual(paraUtc("2026-10-24", "09:00"));
-    expect(oc[5].inicio).toEqual(paraUtc("2026-10-25", "19:00"));
-    expect(oc[0].titulo).toBe(`Aula: ${semana[0].conteudo}`);
-    expect(minutosPorArea(oc).estudos).toBe(4 * 90 + 180 + 60);
+  it("ficam no horário de cada turno e contam 17 h 30 em Estudos", () => {
+    const oc = ocorrenciasDeSessoes(semana3, HORARIOS_PADRAO, "America/Sao_Paulo");
+    expect(oc).toHaveLength(11);
+    expect(oc[0].inicio).toEqual(paraUtc("2026-11-09", "08:00"));
+    expect(oc[0].fim).toEqual(paraUtc("2026-11-09", "09:30"));
+    expect(oc[1].inicio).toEqual(paraUtc("2026-11-09", "14:00"));
+    expect(oc[0].titulo).toBe("Aula: Drain, cordon e atualização do sistema dos nós");
+    expect(oc[0].chave).toBe("sessao:2026-11-09:manha");
+    expect(minutosPorArea(oc).estudos).toBe(17 * 60 + 30);
+  });
+
+  it("turno desligado some da agenda", () => {
+    const h = { ...HORARIOS_PADRAO, "5-manha": { ativo: false, inicio: "08:00", minutos: 90 } };
+    const oc = ocorrenciasDeSessoes(semana3, h, "America/Sao_Paulo");
+    expect(oc.map((o) => o.dataOriginal)).not.toContain("2026-11-13");
   });
 
   it("mudar o horário não muda a sessão, só a hora", () => {
-    const h = { ...HORARIOS_PADRAO, "1": { ativo: true, inicio: "13:00", minutos: 60 } };
-    const [seg] = ocorrenciasDeSessoes(semana, h, "America/Sao_Paulo");
-    expect(seg.eventId).toBe("s0");
-    expect(seg.inicio).toEqual(paraUtc("2026-10-19", "13:00"));
+    const h = { ...HORARIOS_PADRAO, "1-tarde": { ativo: true, inicio: "13:00", minutos: 60 } };
+    const [, tarde] = ocorrenciasDeSessoes(semana3, h, "America/Sao_Paulo");
+    expect(tarde.eventId).toBe("2026-11-09-tarde");
+    expect(tarde.inicio).toEqual(paraUtc("2026-11-09", "13:00"));
   });
 
   it("marcos viram itens de dia inteiro", () => {

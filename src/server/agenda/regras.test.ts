@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { HORARIOS_PADRAO } from "@/lib/estudos";
 import { proximaRepeticao } from "@/lib/repeticao";
-import { paraUtc } from "@/lib/tempo";
+import { diaDaSemana, paraUtc } from "@/lib/tempo";
+import { ocorrenciasDeSessoes } from "../estudos/ocorrencias";
+import { ROTINA, TODOS_OS_DIAS } from "../estudos/trilha";
 import type { EventoParaExpandir } from "./recorrencia";
-import { encontrarConflitos, expandirComRegras } from "./regras";
+import { encontrarConflitos, expandirComRegras, marcarNoEstagio } from "./regras";
 
 const fuso = "America/Sao_Paulo";
 const base = { fuso, diaInteiro: false, repeteAte: null } as const;
@@ -122,6 +125,67 @@ describe("conflito de horários", () => {
         oc,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("estudo durante o estágio", () => {
+  // Semana 6 da trilha (30/11 a 06/12): conteúdo às 08:00 e prática às 14:00 de segunda a quinta.
+  const sessoes = ocorrenciasDeSessoes(
+    ROTINA.sessoesEntre(semana.de, semana.ate, TODOS_OS_DIAS).map((x) => ({
+      id: x.id,
+      data: x.data,
+      turno: x.turno,
+      tipo: x.tipo,
+      conteudo: x.texto,
+      status: "pendente" as const,
+      diaSemana: diaDaSemana(x.data),
+      permiteSobreposicao: x.permiteSobreposicao,
+    })),
+    HORARIOS_PADRAO,
+    fuso,
+  );
+
+  it("a sessão das 08:00 dentro do estágio não é conflito, nos dois sentidos", () => {
+    const doEstagio = expandirComRegras([estagio], [], [], null, semana);
+    const manha = sessoes.filter((o) => o.permiteSobreposicao);
+    expect(manha).toHaveLength(5);
+    expect(encontrarConflitos(manha, doEstagio)).toEqual([]);
+    expect(encontrarConflitos(doEstagio, sessoes)).toEqual([]);
+  });
+
+  it("academia às 14:00 continua chocando com a prática da tarde", () => {
+    const academia14 = { ...academia, inicio: paraUtc("2026-08-03", "14:00") };
+    const c = encontrarConflitos(expandirComRegras([academia14], [], [], null, semana), sessoes);
+    expect(c.map((x) => x.com.titulo)).toEqual(
+      ["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03"].map(
+        () => "Prática do tema da manhã",
+      ),
+    );
+  });
+
+  it("a sessão da manhã ainda choca com o que não é estágio", () => {
+    const medico = {
+      ...academia,
+      id: "med",
+      inicio: paraUtc("2026-12-01", "08:30"),
+      diasSemana: null,
+    };
+    const c = encontrarConflitos(expandirComRegras([medico], [], [], null, semana), sessoes);
+    expect(c.map((x) => x.com.titulo)).toEqual(["Lab: Roles, ClusterRoles e ServiceAccounts"]);
+  });
+
+  it('marca o selo "no estágio" só nas sessões que caem dentro dele', () => {
+    const todas = marcarNoEstagio([
+      ...expandirComRegras([estagio], [], [], null, semana),
+      ...sessoes,
+    ]);
+    expect(todas.filter((o) => o.noEstagio).map((o) => o.chave)).toEqual([
+      "sessao:2026-11-30:manha",
+      "sessao:2026-12-01:manha",
+      "sessao:2026-12-02:manha",
+      "sessao:2026-12-03:manha",
+      "sessao:2026-12-04:manha",
+    ]);
   });
 });
 

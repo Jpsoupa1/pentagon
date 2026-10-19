@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { areaIds, assessmentKinds, repeticoes, type AreaId } from "@/lib/dominio";
+import { turnos } from "@/lib/estudos";
 import {
   addDias,
   dataCurta,
@@ -34,6 +35,7 @@ import {
   type DetalheConflito,
 } from "../servicos/compromissos";
 import { obterDisciplina, registrarFalta } from "../servicos/disciplinas";
+import { tituloDaSessao } from "../estudos/trilha";
 import { marcarSessao, sessoesEntre } from "../servicos/estudos";
 import { apagarEvento, listarEventos, obterEvento, salvarExcecao } from "../servicos/eventos";
 import {
@@ -177,6 +179,12 @@ export const esquemas = {
   concluir_lembrete: z.object({ item: z.string().describe("Chave `lembrete:<id>`") }),
   concluir_sessao_estudo: z.object({
     data: dataSchema.describe("Dia da sessão da trilha de estudos"),
+    turno: z
+      .enum(turnos)
+      .optional()
+      .describe(
+        "Segunda a quinta têm duas sessões: manha (conteúdo) e tarde (prática). Sem turno, vale a única pendente do dia.",
+      ),
   }),
   criar_avaliacao: z.object({
     tipo: z.enum(assessmentKinds),
@@ -229,7 +237,8 @@ export const DESCRICOES: Record<NomeFerramenta, string> = {
     "Muda horário, data ou duração de um compromisso. Com escopo `ocorrencia`, só naquele dia; com `todas`, em todas as vezes. Conflitos de horário não impedem a mudança: o app avisa o usuário, e você não mexe no outro item.",
   criar_lembrete: "Cria um lembrete com aviso no horário.",
   concluir_lembrete: "Marca um lembrete como concluído.",
-  concluir_sessao_estudo: "Marca como feita a sessão da trilha de estudos de um dia.",
+  concluir_sessao_estudo:
+    "Marca como feita uma sessão da trilha de estudos (de segunda a quinta há a da manhã e a da tarde).",
   criar_avaliacao: "Cadastra prova, entrega, trabalho ou apresentação.",
   marcar_falta: "Registra falta numa disciplina num dia.",
   propor_exclusao:
@@ -525,10 +534,20 @@ export async function executarFerramenta(
     }
 
     case "concluir_sessao_estudo": {
-      const { data } = esquemas.concluir_sessao_estudo.parse(entrada);
-      const [sessao] = await sessoesEntre(userId, data, data);
-      if (!sessao) throw new NaoEncontrado("Sessão de estudo nesse dia");
-      if (sessao.status === "feita") return { texto: "Essa sessão já estava feita. Nada mudou." };
+      const { data, turno } = esquemas.concluir_sessao_estudo.parse(entrada);
+      const doDia = await sessoesEntre(userId, data, data);
+      const candidatas = turno
+        ? doDia.filter((x) => x.turno === turno)
+        : doDia.filter((x) => x.status === "pendente");
+      if (!doDia.length || (turno && !candidatas.length))
+        throw new NaoEncontrado("Sessão de estudo nesse dia");
+      if (!candidatas.length || candidatas[0].status === "feita")
+        return { texto: "Essa sessão já estava feita. Nada mudou." };
+      if (candidatas.length > 1)
+        throw new Conflito(
+          `Há ${candidatas.length} sessões pendentes nesse dia (${candidatas.map((x) => x.turno).join(" e ")}): diga o turno.`,
+        );
+      const [sessao] = candidatas;
       const antes = await fotoAtual(userId, "sessao", sessao.id);
       await marcarSessao(userId, sessao.id, true);
       await gravarAcao({
@@ -539,7 +558,7 @@ export async function executarFerramenta(
         entidadeId: sessao.id,
         antes,
         depois: await fotoAtual(userId, "sessao", sessao.id),
-        descricao: descricao("estudos", `${sessao.tipo}: ${sessao.conteudo}`, [
+        descricao: descricao("estudos", tituloDaSessao(sessao), [
           { rotulo: "Sessão", antes: "Pendente", depois: "Feita" },
         ]),
       });

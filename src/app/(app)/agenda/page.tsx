@@ -42,6 +42,7 @@ export default async function PaginaAgenda({ searchParams }: PageProps<"/agenda"
           fim: o.fim.toISOString(),
           diaInteiro: o.diaInteiro,
           movida: o.movida,
+          noEstagio: o.noEstagio,
         }))}
         prazos={dados.prazos.map((p) => ({
           id: p.id,

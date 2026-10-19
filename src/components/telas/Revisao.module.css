@@ -1,0 +1,101 @@
+.etapas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.etapaTitulo {
+  display: block;
+  font-weight: 600;
+}
+.etapaComo {
+  display: block;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.nota {
+  max-width: 160px;
+}
+.ok {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.caderno {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+.subtitulo {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 650;
+}
+.vazio {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.listaErros {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+.revisar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.erro {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line-soft);
+  overflow-wrap: anywhere;
+}
+.erro:first-child {
+  border-top: 0;
+}
+.erroData {
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+.resposta {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.resposta summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.notas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.notas li {
+  display: grid;
+  gap: 6px;
+}
+.notaLinha {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--fs-small);
+}

@@ -18,6 +18,7 @@ const sessoes = (feitaSeg = false) =>
       {
         id: "seg",
         data: "2026-10-19",
+        turno: "tarde",
         tipo: "Aula",
         conteudo: "ALM",
         status: feitaSeg ? "feita" : "pendente",
@@ -26,6 +27,7 @@ const sessoes = (feitaSeg = false) =>
       {
         id: "ter",
         data: "2026-10-20",
+        turno: "tarde",
         tipo: "Lab",
         conteudo: "Rollback",
         status: "pendente",
@@ -34,6 +36,7 @@ const sessoes = (feitaSeg = false) =>
       {
         id: "qua",
         data: "2026-10-21",
+        turno: "tarde",
         tipo: "Aprofundar",
         conteudo: "Simulado",
         status: "pendente",
@@ -74,13 +77,14 @@ describe("agendamento de avisos", () => {
       id: `n${i}`,
       qstashMessageId: `m${i}`,
     }));
-    const h = { ...HORARIOS_PADRAO, "1": { ativo: true, inicio: "15:00", minutos: 90 } };
+    const h = { ...HORARIOS_PADRAO, "1-tarde": { ativo: true, inicio: "15:00", minutos: 90 } };
     const depois = avisosDeSessoes(
       ocorrenciasDeSessoes(
         [
           {
             id: "seg",
             data: "2026-10-19",
+            turno: "tarde",
             tipo: "Aula",
             conteudo: "ALM",
             status: "pendente",

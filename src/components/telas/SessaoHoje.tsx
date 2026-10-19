@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { enviar } from "@/lib/cliente/api";
 import { useRelogio } from "@/lib/cliente/hooks";
 import { duracaoTexto } from "@/lib/tempo";
@@ -11,8 +11,7 @@ import s from "./SessaoHoje.module.css";
 export type SessaoHojeCliente = {
   id: string;
   rotulo: string;
-  tipo: string;
-  conteudo: string;
+  titulo: string;
   detalhe: string;
   minutos: number;
   feita: boolean;
@@ -47,13 +46,18 @@ function assinar(avisar: () => void) {
   };
 }
 
-/** Cartão verde da sessão do dia: Começar marca o início (neste aparelho), Concluir grava no banco. */
+/**
+ * Cartão verde da sessão do dia: Começar marca o início (neste aparelho), Concluir grava no banco.
+ * `extra` traz as ações próprias da sessão (roteiro da revisão de sexta, anotar erro na prática).
+ */
 export function SessaoHoje({
   sessao,
   agoraServidor,
+  extra,
 }: {
   sessao: SessaoHojeCliente | null;
   agoraServidor: number;
+  extra?: ReactNode;
 }) {
   const router = useRouter();
   const agora = useRelogio(agoraServidor) ?? agoraServidor;
@@ -100,7 +104,7 @@ export function SessaoHoje({
         <span className={`${s.chip} mono`}>{duracaoTexto(sessao.minutos)}</span>
       </div>
       <h2 id="sessao-hoje" className={s.titulo}>
-        {sessao.tipo}: {sessao.conteudo}
+        {sessao.titulo}
       </h2>
       <p className={s.meta}>{sessao.detalhe}</p>
       {sessao.feita ? (
@@ -109,6 +113,7 @@ export function SessaoHoje({
           <Botao variante="claro" pequeno onClick={() => marcar(false)} disabled={ocupado}>
             Desfazer
           </Botao>
+          {extra}
         </div>
       ) : inicio ? (
         <div className={s.acoes}>
@@ -123,6 +128,7 @@ export function SessaoHoje({
           >
             Concluir
           </Botao>
+          {extra}
         </div>
       ) : (
         <div className={s.acoes}>
@@ -132,6 +138,7 @@ export function SessaoHoje({
           <Botao variante="claro" onClick={() => marcar(true)} disabled={ocupado}>
             Já fiz
           </Botao>
+          {extra}
         </div>
       )}
     </section>

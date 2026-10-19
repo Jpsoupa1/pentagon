@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { horariosComPadrao } from "@/lib/estudos";
+import type { HorariosEstudo } from "@/lib/dominio";
 import { diaDaSemana } from "@/lib/tempo";
 import type { Intervalo, Ocorrencia } from "../agenda/recorrencia";
 import { db } from "../db";
@@ -39,11 +40,24 @@ export async function listarTrilhas(userId: string) {
 
 export type SessaoComSemana = Awaited<ReturnType<typeof sessoesEntre>>[number];
 
+/** Só as sessões dos turnos ligados em Ajustes (chave `<dia>-<turno>`). */
+function turnosLigados(horarios: HorariosEstudo) {
+  const chaves = Object.entries(horarios)
+    .filter(([, h]) => h.ativo)
+    .map(([chave]) => chave);
+  if (!chaves.length) return null;
+  return sql`(extract(dow from ${studySessions.data})::int || '-' || ${studySessions.turno}) in (${sql.join(chaves, sql`, `)})`;
+}
+
 export async function sessoesEntre(userId: string, de: string, ate: string) {
   return db()
     .select({
       id: studySessions.id,
       data: studySessions.data,
+      turno: studySessions.turno,
+      categoria: studySessions.categoria,
+      permiteSobreposicao: studySessions.permiteSobreposicao,
+      weekId: studySessions.weekId,
       tipo: studySessions.tipo,
       conteudo: studySessions.conteudo,
       status: studySessions.status,
@@ -59,10 +73,10 @@ export async function sessoesEntre(userId: string, de: string, ate: string) {
     .where(
       and(eq(studySessions.userId, userId), sql`${studySessions.data} between ${de} and ${ate}`),
     )
-    .orderBy(asc(studySessions.data));
+    .orderBy(asc(studySessions.data), asc(studySessions.turno));
 }
 
-/** Sessões (nos dias ligados) e marcos da trilha como ocorrências da agenda. */
+/** Sessões (nos turnos ligados) e marcos da trilha como ocorrências da agenda. */
 export async function ocorrenciasDeEstudo(
   userId: string,
   intervalo: Intervalo,
@@ -81,19 +95,16 @@ export async function ocorrenciasDeEstudo(
   ];
 }
 
-/** Sessões de dias já passados, em dias ligados, ainda não feitas (as mais recentes primeiro). */
+/** Sessões de dias já passados, em turnos ligados, ainda não feitas (as mais recentes primeiro). */
 export async function sessoesPendentes(userId: string, antesDe: string, limite = 5) {
   const ajustes = await obterAjustes(userId);
-  const horarios = horariosComPadrao(ajustes.horariosEstudo);
-  const diasLigados = Object.entries(horarios)
-    .filter(([, h]) => h.ativo)
-    .map(([d]) => Number(d));
-  if (!diasLigados.length) return { total: 0, lista: [] };
+  const ligados = turnosLigados(horariosComPadrao(ajustes.horariosEstudo));
+  if (!ligados) return { total: 0, lista: [] };
   const filtro = and(
     eq(studySessions.userId, userId),
     eq(studySessions.status, "pendente"),
     sql`${studySessions.data} < ${antesDe}`,
-    sql`extract(dow from ${studySessions.data})::int in (${sql.join(diasLigados, sql`, `)})`,
+    ligados,
   );
   const [{ total }] = await db()
     .select({ total: sql<number>`count(*)::int` })
@@ -103,24 +114,22 @@ export async function sessoesPendentes(userId: string, antesDe: string, limite =
     .select({
       id: studySessions.id,
       data: studySessions.data,
+      turno: studySessions.turno,
       tipo: studySessions.tipo,
       conteudo: studySessions.conteudo,
     })
     .from(studySessions)
     .where(filtro)
-    .orderBy(sql`${studySessions.data} desc`)
+    .orderBy(sql`${studySessions.data} desc`, sql`${studySessions.turno} desc`)
     .limit(limite);
   return { total, lista };
 }
 
-/** Progresso por fase, contando só os dias ligados. */
+/** Progresso por fase, contando só os turnos ligados. */
 export async function progressoPorFase(userId: string) {
   const ajustes = await obterAjustes(userId);
-  const horarios = horariosComPadrao(ajustes.horariosEstudo);
-  const diasLigados = Object.entries(horarios)
-    .filter(([, h]) => h.ativo)
-    .map(([d]) => Number(d));
-  if (!diasLigados.length) return [];
+  const ligados = turnosLigados(horariosComPadrao(ajustes.horariosEstudo));
+  if (!ligados) return [];
   return db()
     .select({
       fase: studyWeeks.fase,
@@ -129,12 +138,7 @@ export async function progressoPorFase(userId: string) {
     })
     .from(studySessions)
     .innerJoin(studyWeeks, eq(studyWeeks.id, studySessions.weekId))
-    .where(
-      and(
-        eq(studySessions.userId, userId),
-        sql`extract(dow from ${studySessions.data})::int in (${sql.join(diasLigados, sql`, `)})`,
-      ),
-    )
+    .where(and(eq(studySessions.userId, userId), ligados))
     .groupBy(studyWeeks.fase)
     .orderBy(studyWeeks.fase);
 }

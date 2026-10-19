@@ -14,6 +14,7 @@ import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { dataCurta, dataLonga, duracaoTexto, horaLocal, partesLocais } from "@/lib/tempo";
 import type { Ocorrencia } from "@/server/agenda/recorrencia";
 import { alvoDeEdicao } from "@/lib/alvo";
+import { tituloDaSessao } from "@/server/estudos/trilha";
 import { exigirUsuario } from "@/server/sessao";
 import { painelHoje } from "@/server/servicos/agenda";
 
@@ -88,7 +89,7 @@ export default async function Hoje() {
                     meta={
                       o.diaInteiro
                         ? "Dia inteiro"
-                        : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}${o.feita ? " · feita" : ""}`
+                        : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}${o.noEstagio ? " · no estágio" : ""}${o.feita ? " · feita" : ""}`
                     }
                     passada={o.fim < agora || o.feita}
                     editar={alvoDeEdicao(o)}
@@ -108,8 +109,8 @@ export default async function Hoje() {
               <ListaSessoes
                 sessoes={p.pendentes.lista.map((x) => ({
                   id: x.id,
-                  rotulo: dataCurta(x.data),
-                  texto: `${x.tipo}: ${x.conteudo}`,
+                  rotulo: `${dataCurta(x.data)}${x.turno === "tarde" ? " (tarde)" : ""}`,
+                  texto: tituloDaSessao(x),
                   feita: false,
                 }))}
               />

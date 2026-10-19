@@ -57,12 +57,17 @@ Tudo é exibido em `America/Sao_Paulo`, 24 h. Instantes ficam em UTC no banco (`
 | iPad horizontal (1024 a 1366 px, toque) | Trilho de ícones de 76 px                     |
 | Notebook (1024 px ou mais, mouse)       | Barra lateral de 220 px                       |
 
-## Trilha DevOps (etapa 2)
+## Trilha DevOps (etapa 2, versão 2)
 
-- **Fonte:** `trilha_devops.js` (fases, 50 semanas da semana 0 à 49, conteúdo de cada dia, marcos). Lido por `src/server/estudos/trilha.ts`, sem cópia do conteúdo.
-- **Seed idempotente:** `npm run seed:trilha [email]` grava trilha, semanas e uma sessão por dia (inclusive a Reposição de sexta). Rodar de novo atualiza conteúdo e datas e preserva o status de cada sessão. Também roda no build da Vercel, depois das migrações, para todos os usuários.
-- **Horários:** vêm de Ajustes (padrão: segunda a quinta 14:00 às 15:30, sábado 09:00 às 12:00, domingo 19:00 às 20:00, sexta desligada). O horário não fica gravado na sessão, então mudar em Ajustes não perde o progresso.
-- **Onde aparece:** Hoje (cartão Agora, Linha do dia, Sessões pendentes, Próximos prazos com os marcos), Agenda (cor de Estudos, marcos na faixa de dia inteiro), Estudos e Equilíbrio da semana.
+- **Documentos:** [`docs/trilha/`](docs/trilha/) tem o plano de estudos, o método de revisão e o cronograma semana a semana (versão 2, de 19/10/2026). O cronograma é a fonte de verdade do conteúdo; `src/server/estudos/cronograma.test.ts` confere cada célula das tabelas contra o seed.
+- **Fonte no código:** `trilha_devops.js` (fases, 50 semanas da semana 0 à 49, conteúdo de cada turno, marcos). Lido por `src/server/estudos/trilha.ts`, sem cópia do conteúdo. A semana zero é de 19 a 25/10/2026 e a semana 1 começa em 26/10.
+- **Sessões por turno:** de segunda a quinta, conteúdo de manhã (08:00 às 09:30, durante o estágio) e prática à tarde (14:00 às 15:30); revisão da semana na sexta às 08:00; projeto no sábado às 09:00; revisão espaçada no domingo às 19:00 (cerca de 17 h 30 por semana). Cada sessão tem `turno` e `categoria` (`conteudo`, `pratica`, `revisao_semanal`, `projeto`, `revisao_espacada`).
+- **Estudo no estágio:** a sessão da manhã tem `permite_sobreposicao`: não gera conflito com o estágio (os outros conflitos continuam) e aparece na Agenda com o selo "no estágio".
+- **Seed idempotente:** `npm run seed:trilha [email]` grava trilha, semanas e sessões, identificadas por dia e turno. Rodar de novo atualiza conteúdo e preserva o status; sessões que a trilha não prevê mais são removidas. Também roda no build da Vercel, depois das migrações. A migração `0003` deu turno e categoria às sessões da versão 1 sem perder o que estava feito.
+- **Horários:** vêm de Ajustes, um por turno (chave `<dia>-<turno>`). Os horários gravados na versão 1 continuam valendo para a tarde. O horário não fica gravado na sessão, então mudar em Ajustes não perde o progresso.
+- **Revisão de sexta:** a sessão de sexta abre o roteiro (folha em branco, bateria, correção, nota e pontos fracos), gravado por semana em `study_reviews`; Estudos mostra as notas das últimas semanas.
+- **Caderno de erros** (`study_errors`): anotado na revisão de sexta, na prática da tarde ou em Estudos, com revisão 21 dias depois. No domingo, Estudos mostra os erros da semana com "Acertei" (sai da lista) e "Errei de novo" (volta em 21 dias).
+- **Onde aparece:** Hoje (cartão Agora, Linha do dia, Sessões pendentes, Próximos prazos com os marcos), Agenda (cor de Estudos, selo "no estágio", marcos na faixa de dia inteiro), Estudos, Equilíbrio da semana (as horas da manhã contam em Estudos), avisos e feed `.ics` (um evento por sessão).
 
 ## Avisos
 
