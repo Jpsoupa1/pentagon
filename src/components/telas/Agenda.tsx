@@ -25,6 +25,8 @@ export type OcorrenciaAgenda = {
   fim: string;
   diaInteiro: boolean;
   movida: boolean;
+  /** Sessão de estudo que acontece durante o estágio, de propósito. */
+  noEstagio?: boolean;
 };
 export type PrazoAgenda = {
   id: string;
@@ -315,6 +317,7 @@ export function Agenda({
                       <span className={`${s.blocoHora} mono`}>
                         {hm(b.ini)}–{hm(b.fimMin % 1440)}
                       </span>
+                      {b.noEstagio && <span className={s.selo}>no estágio</span>}
                     </Tag>
                   );
                 })}
@@ -423,6 +426,7 @@ function LinhaDoTempo({
                 {b.local ? ` · ${b.local}` : ""}
                 {b.movida ? " · mudado neste dia" : ""}
               </span>
+              {b.noEstagio && <span className={s.selo}>no estágio</span>}
             </Tag>
           </li>
         );

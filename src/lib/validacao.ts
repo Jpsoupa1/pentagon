@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { areaIds, assessmentKinds, repeticoes } from "./dominio";
+import { CHAVES_TURNO } from "./estudos";
 
 // Esquemas compartilhados entre formulários (cliente) e API (servidor).
 
@@ -133,7 +134,7 @@ export const ajustesSchema = z
     avisoMin: z.number().int().min(0).max(1440),
     periodoInicio: dataSchema.nullable(),
     periodoFim: dataSchema.nullable(),
-    horariosEstudo: z.record(z.enum(["0", "1", "2", "3", "4", "5", "6"]), horarioEstudo).nullable(),
+    horariosEstudo: z.record(z.enum(CHAVES_TURNO), horarioEstudo).nullable(),
     areasNoFeed: z.array(areaSchema),
   })
   .partial()
@@ -141,6 +142,30 @@ export const ajustesSchema = z
     message: "O fim do período precisa ser depois do início",
     path: ["periodoFim"],
   });
+
+/** Revisão de sexta: etapas do roteiro feitas, nota de 0 a 10 e os 2 ou 3 pontos mais fracos. */
+export const revisaoSchema = z
+  .object({
+    etapas: z.array(z.boolean()).length(4),
+    nota: z.number().int().min(0, "Nota de 0 a 10").max(10, "Nota de 0 a 10").nullable(),
+    pontosFracos: textoOpcional(500),
+  })
+  .partial();
+
+/** Uma linha do caderno de erros. Sem `revisarEm`, a revisão fica para 21 dias depois. */
+export const erroSchema = z.object({
+  data: dataSchema,
+  tema: texto(120),
+  errei: texto(500),
+  correto: texto(500),
+  revisarEm: dataSchema.optional(),
+  origem: z.enum(["revisao_semanal", "pratica"]).optional(),
+  sessaoId: z.uuid().optional(),
+});
+
+export const revisarErroSchema = z.object({
+  resultado: z.enum(["acertei", "errei"]),
+});
 
 export const intervaloSchema = z
   .object({ de: dataSchema, ate: dataSchema })

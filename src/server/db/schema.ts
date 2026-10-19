@@ -16,6 +16,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { categoriasSessao, turnos } from "../../lib/estudos";
 import {
   areaIds,
   assessmentKinds,
@@ -252,6 +253,8 @@ export const studyWeeks = pgTable(
 );
 
 export const sessionStatusEnum = pgEnum("study_session_status", ["pendente", "feita"]);
+export const sessionShiftEnum = pgEnum("study_session_shift", turnos);
+export const sessionKindEnum = pgEnum("study_session_kind", categoriasSessao);
 
 export const studySessions = pgTable(
   "study_sessions",
@@ -265,6 +268,11 @@ export const studySessions = pgTable(
       .notNull()
       .references(() => studyWeeks.id, { onDelete: "cascade" }),
     data: date("data").notNull(),
+    /** Manhã, tarde ou noite: o horário vem de Ajustes pela chave `<dia>-<turno>`. */
+    turno: sessionShiftEnum("turno").notNull().default("manha"),
+    categoria: sessionKindEnum("categoria").notNull().default("conteudo"),
+    /** Estudo que acontece de propósito dentro de outro compromisso (a manhã, durante o estágio). */
+    permiteSobreposicao: boolean("permite_sobreposicao").notNull().default(false),
     tipo: text("tipo").notNull(),
     conteudo: text("conteudo").notNull(),
     status: sessionStatusEnum("status").notNull().default("pendente"),
@@ -273,7 +281,50 @@ export const studySessions = pgTable(
     feitaEm: timestamp("feita_em", tz),
     updatedAt: atualizadoEm(),
   },
-  (t) => [uniqueIndex("study_sessions_track_data_uq").on(t.trackId, t.data)],
+  (t) => [uniqueIndex("study_sessions_track_data_turno_uq").on(t.trackId, t.data, t.turno)],
+);
+
+/** Revisão de sexta de uma semana: etapas do roteiro feitas, nota de 0 a 10 e pontos fracos. */
+export const studyReviews = pgTable(
+  "study_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    weekId: uuid("week_id")
+      .notNull()
+      .references(() => studyWeeks.id, { onDelete: "cascade" }),
+    etapas: jsonb("etapas").$type<boolean[]>().notNull().default([false, false, false, false]),
+    nota: smallint("nota"),
+    pontosFracos: text("pontos_fracos"),
+    createdAt: criadoEm(),
+    updatedAt: atualizadoEm(),
+  },
+  (t) => [uniqueIndex("study_reviews_user_week_uq").on(t.userId, t.weekId)],
+);
+
+export const errorOriginEnum = pgEnum("study_error_origin", ["revisao_semanal", "pratica"]);
+
+/** Caderno de erros: cada erro volta para a revisão espaçada de domingo em `revisarEm`. */
+export const studyErrors = pgTable(
+  "study_errors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    data: date("data").notNull(),
+    tema: text("tema").notNull(),
+    errei: text("errei").notNull(),
+    correto: text("correto").notNull(),
+    revisarEm: date("revisar_em").notNull(),
+    origem: errorOriginEnum("origem"),
+    sessionId: uuid("session_id").references(() => studySessions.id, { onDelete: "set null" }),
+    /** Quantas vezes errou de novo na revisão de domingo. */
+    reincidencias: smallint("reincidencias").notNull().default(0),
+    /** Acertou na revisão: sai da lista. */
+    resolvidoEm: timestamp("resolvido_em", tz),
+    createdAt: criadoEm(),
+    updatedAt: atualizadoEm(),
+  },
+  (t) => [index("study_errors_user_revisar_idx").on(t.userId, t.revisarEm)],
 );
 
 // ---------------------------------------------------------------- Lembretes e avisos

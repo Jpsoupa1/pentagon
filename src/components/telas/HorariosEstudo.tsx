@@ -4,15 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { enviar } from "@/lib/cliente/api";
 import type { HorariosEstudo as Horarios } from "@/lib/dominio";
-import { TIPO_SESSAO } from "@/lib/estudos";
+import { TURNOS_ESTUDO } from "@/lib/estudos";
 import { DIAS, DIAS_CURTOS } from "@/lib/tempo";
 import { Botao } from "../ui/Botao";
 import f from "../shell/Form.module.css";
 import s from "./HorariosEstudo.module.css";
 
-const ORDEM = [1, 2, 3, 4, 5, 6, 0];
-
-/** Horário de cada tipo de sessão. Mudar aqui só move a hora: o progresso da trilha fica. */
+/**
+ * Horário de cada sessão da semana: duas de segunda a quinta, a revisão de sexta, o projeto de
+ * sábado e a revisão espaçada de domingo. Mudar aqui só move a hora: o progresso da trilha fica.
+ */
 export function HorariosEstudo({ inicial }: { inicial: Horarios }) {
   const router = useRouter();
   const [h, setH] = useState(inicial);
@@ -20,10 +21,10 @@ export function HorariosEstudo({ inicial }: { inicial: Horarios }) {
   const [salvando, setSalvando] = useState(false);
 
   const mudar = (
-    d: number,
+    chave: string,
     campo: "ativo" | "inicio" | "minutos",
     valor: boolean | string | number,
-  ) => setH((atual) => ({ ...atual, [d]: { ...atual[String(d)], [campo]: valor } }));
+  ) => setH((atual) => ({ ...atual, [chave]: { ...atual[chave], [campo]: valor } }));
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -39,38 +40,40 @@ export function HorariosEstudo({ inicial }: { inicial: Horarios }) {
   return (
     <form className={f.form} onSubmit={salvar}>
       <ul className={s.lista}>
-        {ORDEM.map((d) => {
-          const x = h[String(d)];
+        {TURNOS_ESTUDO.map((t) => {
+          const x = h[t.chave];
+          const nome = `${DIAS[t.dia]} (${t.rotulo.toLowerCase()})`;
           return (
-            <li key={d} className={s.dia}>
+            <li key={t.chave} className={s.dia}>
               <label className={s.liga}>
                 <input
                   type="checkbox"
                   checked={x.ativo}
-                  onChange={(e) => mudar(d, "ativo", e.target.checked)}
+                  onChange={(e) => mudar(t.chave, "ativo", e.target.checked)}
+                  aria-label={nome}
                 />
                 <span>
-                  <strong>{DIAS_CURTOS[d]}</strong>
-                  <span className={s.tipo}>{TIPO_SESSAO[d]}</span>
+                  <strong>{DIAS_CURTOS[t.dia]}</strong>
+                  <span className={s.tipo}>{t.rotulo}</span>
                 </span>
               </label>
               <label className={s.campo}>
-                <span className="sr-only">Início de {DIAS[d]}</span>
+                <span className="sr-only">Início de {nome}</span>
                 <input
                   type="time"
                   value={x.inicio}
                   disabled={!x.ativo}
                   required
-                  onChange={(e) => mudar(d, "inicio", e.target.value)}
+                  onChange={(e) => mudar(t.chave, "inicio", e.target.value)}
                   className={`${f.entrada} mono`}
                 />
               </label>
               <label className={s.campo}>
-                <span className="sr-only">Duração de {DIAS[d]} em minutos</span>
+                <span className="sr-only">Duração de {nome} em minutos</span>
                 <select
                   value={x.minutos}
                   disabled={!x.ativo}
-                  onChange={(e) => mudar(d, "minutos", Number(e.target.value))}
+                  onChange={(e) => mudar(t.chave, "minutos", Number(e.target.value))}
                   className={`${f.entrada} mono`}
                 >
                   {[30, 45, 60, 90, 120, 150, 180, 240].map((m) => (

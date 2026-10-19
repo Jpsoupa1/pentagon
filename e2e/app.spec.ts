@@ -229,6 +229,58 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     ).toBeVisible();
   });
 
+  test("Agenda mostra manhã no estágio e prática à tarde", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/agenda?semana=2026-11-09");
+    const manha = page
+      .locator('[data-area="estudos"]')
+      .filter({ hasText: "Aula: Drain, cordon e atualização do sistema dos nós" });
+    await expect(manha).toBeVisible();
+    await expect(manha).toContainText("08:00–09:30");
+    await expect(manha.getByText("no estágio")).toBeVisible();
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "Prática do tema da manhã" }),
+    ).toHaveCount(4);
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "Revisão da semana: Cluster" }),
+    ).toContainText("08:00–09:30");
+  });
+
+  test("Ajustes tem os dois blocos de segunda a quinta", async ({ page }) => {
+    await page.goto("/ajustes");
+    await expect(page.getByLabel("Segunda (conteúdo, no estágio)", { exact: true })).toBeChecked();
+    await expect(page.getByLabel("Início de Segunda (conteúdo, no estágio)")).toHaveValue("08:00");
+    await expect(page.getByLabel("Início de Segunda (prática)")).toHaveValue("14:00");
+    await expect(page.getByLabel("Início de Sexta (revisão da semana, no estágio)")).toHaveValue(
+      "08:00",
+    );
+    await expect(page.getByLabel("Início de Domingo (revisão espaçada)")).toHaveValue("19:00");
+  });
+
+  test("caderno de erros pela API: anota, revisa e apaga", async ({ request }) => {
+    const r = await request.post("/api/estudos/erros", {
+      data: {
+        data: "2026-11-06",
+        tema: "Static pods (e2e)",
+        errei: "Manifest no nó errado",
+        correto: "/etc/kubernetes/manifests do nó certo",
+      },
+    });
+    expect(r.status(), await r.text()).toBe(201);
+    const erro = await r.json();
+    expect(erro.revisarEm).toBe("2026-11-27");
+    const errei = await request.patch(`/api/estudos/erros/${erro.id}`, {
+      data: { resultado: "errei" },
+    });
+    expect((await errei.json()).reincidencias).toBe(1);
+    expect(
+      (
+        await request.patch(`/api/estudos/erros/${erro.id}`, { data: { resultado: "talvez" } })
+      ).status(),
+    ).toBe(400);
+    expect((await request.delete(`/api/estudos/erros/${erro.id}`)).status()).toBe(204);
+  });
+
   test("feed .ics gerado na hora e segue o horário dos Ajustes", async ({ page, request }) => {
     await page.goto("/ajustes");
     await page
@@ -240,23 +292,33 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
 
     const antes = await (await request.get(caminho, { headers: { cookie: "" } })).text();
     expect(antes).toContain("BEGIN:VCALENDAR");
-    expect(antes).toContain("UID:sessao-2026-10-19@rotina-devops");
+    expect(antes).toContain("UID:sessao-2026-10-19-tarde@rotina-devops");
     expect(antes).toContain("DTSTART;TZID=America/Sao_Paulo:20261019T140000");
+    // Da semana 1 em diante, duas sessões por dia útil: 08:00 (no estágio) e 14:00.
+    expect(antes).toContain("UID:sessao-2026-11-09-manha@rotina-devops");
+    expect(antes).toContain("DTSTART;TZID=America/Sao_Paulo:20261109T080000");
+    expect(antes).toContain("UID:sessao-2026-11-09-tarde@rotina-devops");
+    expect(antes).toContain("DTSTART;TZID=America/Sao_Paulo:20261109T140000");
 
     const r = await request.patch("/api/ajustes", {
       data: {
         horariosEstudo: {
-          "0": { ativo: true, inicio: "19:00", minutos: 60 },
-          "1": { ativo: true, inicio: "15:00", minutos: 90 },
-          "2": { ativo: true, inicio: "14:00", minutos: 90 },
-          "3": { ativo: true, inicio: "14:00", minutos: 90 },
-          "4": { ativo: true, inicio: "14:00", minutos: 90 },
-          "5": { ativo: false, inicio: "14:00", minutos: 60 },
-          "6": { ativo: true, inicio: "09:00", minutos: 180 },
+          ...Object.fromEntries(
+            ["1", "2", "3", "4", "5"].map((d) => [
+              `${d}-manha`,
+              { ativo: true, inicio: "08:00", minutos: 90 },
+            ]),
+          ),
+          "1-tarde": { ativo: true, inicio: "15:00", minutos: 90 },
+          "2-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
+          "3-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
+          "4-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
+          "6-manha": { ativo: true, inicio: "09:00", minutos: 180 },
+          "0-noite": { ativo: true, inicio: "19:00", minutos: 60 },
         },
       },
     });
-    expect(r.ok()).toBe(true);
+    expect(r.ok(), await r.text()).toBe(true);
     const depois = await (await request.get(caminho)).text();
     expect(depois).toContain("DTSTART;TZID=America/Sao_Paulo:20261019T150000");
 
@@ -277,7 +339,7 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
       data: {
         titulo,
         areaId: "estudos",
-        data: "2026-10-15",
+        data: hojeEmSaoPaulo(),
         hora: "12:30",
         duracaoMin: 45,
         lembrarMin: 15,
@@ -289,7 +351,9 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     const { token } = await (await request.post("/api/calendario/token")).json();
     const ics = await (await request.get(`/api/calendario/${token}.ics`)).text();
     expect(ics).toContain(`SUMMARY:${titulo}`);
-    expect(ics).toContain("DTSTART;TZID=America/Sao_Paulo:20261015T123000");
+    expect(ics).toContain(
+      `DTSTART;TZID=America/Sao_Paulo:${hojeEmSaoPaulo().replace(/-/g, "")}T123000`,
+    );
     expect(ics).toContain("TRIGGER:-PT15M");
   });
 

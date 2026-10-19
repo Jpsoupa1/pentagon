@@ -3,7 +3,7 @@ import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { addDias, hojeLocal, paraUtc, segundaDe } from "@/lib/tempo";
 import { agoraEProximo } from "../agenda/agora";
 import { minutosPorArea, type Intervalo, type Ocorrencia } from "../agenda/recorrencia";
-import { expandirComRegras, ocorrenciasDeFeriados } from "../agenda/regras";
+import { expandirComRegras, marcarNoEstagio, ocorrenciasDeFeriados } from "../agenda/regras";
 import { db } from "../db";
 import { assessments, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
@@ -47,9 +47,11 @@ export async function ocorrencias(
     ocorrenciasDeEstudo(userId, intervalo),
     obterAjustes(userId),
   ]);
-  return [...c.ocorrencias, ...ocorrenciasDeFeriados(c.feriados, intervalo, fuso), ...estudo].sort(
-    porHorario,
-  );
+  return marcarNoEstagio([
+    ...c.ocorrencias,
+    ...ocorrenciasDeFeriados(c.feriados, intervalo, fuso),
+    ...estudo,
+  ]).sort(porHorario);
 }
 
 async function prazosNoIntervalo(userId: string, intervalo: Intervalo, fuso: string) {

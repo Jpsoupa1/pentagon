@@ -18,6 +18,7 @@ function eventosDe(ics: string) {
 
 const sessoes = ROTINA.sessoesEntre(ROTINA.INICIO, ROTINA.FIM, TODOS_OS_DIAS).map((s) => ({
   data: s.data,
+  turno: s.turno,
   tipo: s.tipo,
   conteudo: s.texto,
   semana: s.semana,
@@ -59,9 +60,25 @@ describe("feed .ics", () => {
     expect(eventos[0]).toContain("TRIGGER:-PT30M");
   });
 
+  it("traz as duas sessões de cada dia útil, com o alerta configurado", () => {
+    const seg = eventosDe(feed(HORARIOS_PADRAO, 15)).filter((e) =>
+      e.includes("DTSTART;TZID=America/Sao_Paulo:20261109"),
+    );
+    expect(seg).toHaveLength(2);
+    expect(seg[0]).toContain("UID:sessao-2026-11-09-manha@rotina-devops");
+    expect(seg[0]).toContain("DTSTART;TZID=America/Sao_Paulo:20261109T080000");
+    expect(seg[0]).toContain("SUMMARY:Aula: Drain\\, cordon e atualização do sistema dos nós");
+    expect(seg[1]).toContain("UID:sessao-2026-11-09-tarde@rotina-devops");
+    expect(seg[1]).toContain("DTSTART;TZID=America/Sao_Paulo:20261109T140000");
+    expect(seg[1]).toContain("SUMMARY:Prática do tema da manhã");
+    for (const e of seg) expect(e).toContain("TRIGGER:-PT15M");
+  });
+
   it("muda o horário quando os Ajustes mudam, mantendo o UID", () => {
-    const h = { ...HORARIOS_PADRAO, "1": { ativo: true, inicio: "15:30", minutos: 60 } };
-    const seg = eventosDe(feed(h)).find((e) => e.includes("UID:sessao-2026-10-19@rotina-devops"))!;
+    const h = { ...HORARIOS_PADRAO, "1-tarde": { ativo: true, inicio: "15:30", minutos: 60 } };
+    const seg = eventosDe(feed(h)).find((e) =>
+      e.includes("UID:sessao-2026-10-19-tarde@rotina-devops"),
+    )!;
     expect(seg).toContain("DTSTART;TZID=America/Sao_Paulo:20261019T153000");
     expect(seg).toContain("DTEND;TZID=America/Sao_Paulo:20261019T163000");
   });

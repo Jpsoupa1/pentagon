@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { AnotarErro } from "@/components/telas/AnotarErro";
 import { ListaSessoes } from "@/components/telas/ListaSessoes";
+import { RevisaoEspacada } from "@/components/telas/RevisaoEspacada";
+import { RevisaoSexta } from "@/components/telas/RevisaoSexta";
 import { SessaoHoje } from "@/components/telas/SessaoHoje";
+import r from "@/components/telas/Revisao.module.css";
 import { BarraProgresso } from "@/components/ui/BarraProgresso";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
-import { horariosComPadrao } from "@/lib/estudos";
+import { chaveTurno, domingoDe, horariosComPadrao } from "@/lib/estudos";
 import {
   dataCurta,
   dataLonga,
@@ -20,10 +24,18 @@ import {
   paraUtc,
   partesLocais,
 } from "@/lib/tempo";
+import { tituloDaSessao } from "@/server/estudos/trilha";
 import { exigirUsuario } from "@/server/sessao";
 import { ocorrencias, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
 import { obterTrilha, progressoPorFase, sessoesEntre } from "@/server/servicos/estudos";
+import {
+  errosDaSemanaAnotados,
+  errosParaRevisar,
+  notasDasRevisoes,
+  obterRevisao,
+  resumoDoCaderno,
+} from "@/server/servicos/revisao";
 
 export const metadata: Metadata = { title: "Estudos" };
 
@@ -34,15 +46,24 @@ export default async function Estudos() {
   const agora = new Date();
   const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
+  const domingo = diaDaSemana(hoje) === 0;
   const horarios = horariosComPadrao(ajustes.horariosEstudo);
-  const [trilha, daSemana, fases, agendaDaSemana] = await Promise.all([
-    obterTrilha(usuario.id),
-    sessoesEntre(usuario.id, semana.de, semana.ate),
-    progressoPorFase(usuario.id),
-    ocorrencias(usuario.id, semana),
-  ]);
+  const [trilha, daSemana, fases, agendaDaSemana, notas, caderno, paraRevisar, anotados] =
+    await Promise.all([
+      obterTrilha(usuario.id),
+      sessoesEntre(usuario.id, semana.de, semana.ate),
+      progressoPorFase(usuario.id),
+      ocorrencias(usuario.id, semana),
+      notasDasRevisoes(usuario.id, hoje),
+      resumoDoCaderno(usuario.id),
+      domingo ? errosParaRevisar(usuario.id, hoje) : Promise.resolve([]),
+      errosDaSemanaAnotados(usuario.id, semana.de),
+    ]);
   // Compromissos de Estudos criados pelo usuário (fora da trilha).
   const proprios = agendaDaSemana.filter((o) => o.origem === "evento" && o.areaId === "estudos");
+  const noEstagio = new Set(
+    agendaDaSemana.filter((o) => o.origem === "sessao" && o.noEstagio).map((o) => o.eventId),
+  );
 
   if (!trilha) {
     return (
@@ -55,20 +76,60 @@ export default async function Estudos() {
     );
   }
 
-  const ligadas = daSemana.filter((x) => horarios[String(diaDaSemana(x.data))]?.ativo);
-  const deHoje = ligadas.find((x) => x.data === hoje);
-  const semanaAtual = deHoje ?? daSemana[0];
+  const horarioDe = (x: { data: string; turno: string }) =>
+    horarios[chaveTurno(diaDaSemana(x.data), x.turno)];
+  const ligadas = daSemana.filter((x) => horarioDe(x)?.ativo);
+  const deHoje = ligadas.filter((x) => x.data === hoje);
+  // A sessão em destaque é a primeira de hoje ainda não feita (ou a última, se todas foram feitas).
+  const destaque = deHoje.find((x) => x.status === "pendente") ?? deHoje.at(-1);
+  const semanaAtual = destaque ?? daSemana[0];
   const faseAtual = semanaAtual ? trilha.fases.find((f) => f.id === semanaAtual.fase) : undefined;
-  const inicioDa = (x: { data: string; horaInicio: string | null }) =>
-    x.horaInicio ?? horarios[String(diaDaSemana(x.data))].inicio;
-  const horario = (x: { data: string; horaInicio: string | null }) => {
-    const h = horarios[String(diaDaSemana(x.data))];
-    return `${inicioDa(x)} – ${minParaHm(hmParaMin(inicioDa(x)) + h.minutos)}`;
-  };
+  const inicioDa = (x: { data: string; turno: string; horaInicio: string | null }) =>
+    x.horaInicio ?? horarioDe(x).inicio;
+  const horario = (x: { data: string; turno: string; horaInicio: string | null }) =>
+    `${inicioDa(x)} – ${minParaHm(hmParaMin(inicioDa(x)) + horarioDe(x).minutos)}`;
   // Antes da semana zero: avisa quando a trilha começa.
   const comecaEm = hoje < trilha.inicio ? dataLonga(trilha.inicio).toLowerCase() : null;
   const total = fases.reduce((t, f) => t + f.total, 0);
   const feitas = fases.reduce((t, f) => t + f.feitas, 0);
+
+  const revisaoDaSemana = daSemana.find((x) => x.categoria === "revisao_semanal");
+  const revisao = revisaoDaSemana ? await obterRevisao(usuario.id, revisaoDaSemana.weekId) : null;
+  const conteudoDoDia = (data: string) =>
+    daSemana.find((x) => x.data === data && x.categoria === "conteudo")?.conteudo;
+  const padraoErro = {
+    data: hoje,
+    tema: (destaque && conteudoDoDia(destaque.data)) ?? semanaAtual?.tema ?? "",
+  };
+  const roteiro = (variante: "claro" | "secundario") =>
+    revisaoDaSemana && (
+      <RevisaoSexta
+        weekId={revisaoDaSemana.weekId}
+        semana={revisaoDaSemana.semana}
+        inicial={revisao}
+        erros={anotados.map((e) => ({ id: e.id, tema: e.tema, errei: e.errei }))}
+        padraoErro={{
+          data: revisaoDaSemana.data <= hoje ? hoje : revisaoDaSemana.data,
+          tema: revisaoDaSemana.tema,
+          origem: "revisao_semanal",
+          sessaoId: revisaoDaSemana.id,
+        }}
+        variante={variante}
+      />
+    );
+  const extraDoDestaque =
+    destaque?.categoria === "revisao_semanal"
+      ? roteiro("claro")
+      : destaque?.categoria === "pratica" && (
+          <AnotarErro
+            padrao={{
+              data: destaque.data,
+              tema: conteudoDoDia(destaque.data) ?? destaque.tema,
+              origem: "pratica",
+              sessaoId: destaque.id,
+            }}
+          />
+        );
 
   return (
     <>
@@ -86,16 +147,16 @@ export default async function Estudos() {
         <div className={layout.pilha}>
           <SessaoHoje
             agoraServidor={Math.floor(agora.getTime() / 60_000) * 60_000}
+            extra={extraDoDestaque || undefined}
             sessao={
-              deHoje
+              destaque
                 ? {
-                    id: deHoje.id,
-                    rotulo: `Sessão de hoje · ${horario(deHoje)}`,
-                    tipo: deHoje.tipo,
-                    conteudo: deHoje.conteudo,
-                    detalhe: `Tema: ${deHoje.tema}${deHoje.parte ? ` (parte ${deHoje.parte})` : ""}`,
-                    minutos: horarios[String(diaDaSemana(deHoje.data))].minutos,
-                    feita: deHoje.status === "feita",
+                    id: destaque.id,
+                    rotulo: `${deHoje.length > 1 ? `Sessão ${deHoje.indexOf(destaque) + 1} de ${deHoje.length}` : "Sessão de hoje"} · ${horario(destaque)}${noEstagio.has(destaque.id) ? " · no estágio" : ""}`,
+                    titulo: tituloDaSessao(destaque),
+                    detalhe: `Tema: ${destaque.tema}${destaque.parte ? ` (parte ${destaque.parte})` : ""}`,
+                    minutos: horarioDe(destaque).minutos,
+                    feita: destaque.status === "feita",
                   }
                 : null
             }
@@ -114,7 +175,7 @@ export default async function Estudos() {
                 sessoes={ligadas.map((x) => ({
                   id: x.id,
                   rotulo: `${DIAS_CURTOS[diaDaSemana(x.data)]} ${inicioDa(x)}`,
-                  texto: `${x.tipo}: ${x.conteudo}`,
+                  texto: tituloDaSessao(x),
                   feita: x.status === "feita",
                 }))}
               />
@@ -147,8 +208,78 @@ export default async function Estudos() {
               </>
             )}
           </Cartao>
+          <Cartao aria-labelledby="caderno">
+            <CartaoCabeca
+              titulo={<span id="caderno">{domingo ? "Revisão espaçada" : "Caderno de erros"}</span>}
+              acao={<span className="mono">{caderno.abertos}</span>}
+            />
+            {domingo ? (
+              <RevisaoEspacada
+                erros={paraRevisar.map((e) => ({
+                  id: e.id,
+                  rotulo: `${dataCurta(e.data)} · revisar em ${dataCurta(e.revisarEm)}`,
+                  tema: e.tema,
+                  errei: e.errei,
+                  correto: e.correto,
+                }))}
+              />
+            ) : (
+              <p className={r.vazio}>
+                {caderno.abertos
+                  ? `${caderno.abertos} ${caderno.abertos === 1 ? "erro" : "erros"} no caderno. A próxima revisão é no domingo, ${dataCurta(domingoDe(caderno.proxima! > hoje ? caderno.proxima! : hoje))}.`
+                  : "Nenhum erro no caderno. Anote os exercícios errados na prática da tarde e na revisão de sexta."}
+              </p>
+            )}
+            <div style={{ marginTop: 12 }}>
+              <AnotarErro padrao={padraoErro} variante="secundario" />
+            </div>
+          </Cartao>
         </div>
         <div className={layout.pilha}>
+          {revisaoDaSemana && (
+            <Cartao aria-labelledby="revisao-sexta">
+              <CartaoCabeca
+                titulo={<span id="revisao-sexta">Revisão de sexta</span>}
+                acao={
+                  <span className="mono">
+                    {revisao?.nota !== null && revisao?.nota !== undefined
+                      ? `${revisao.nota}/10`
+                      : dataCurta(revisaoDaSemana.data)}
+                  </span>
+                }
+              />
+              <div className={layout.pilha} style={{ gap: 12 }}>
+                <p className={r.vazio}>
+                  {revisao?.pontosFracos
+                    ? `Pontos fracos: ${revisao.pontosFracos}`
+                    : "Folha em branco, bateria da semana, correção, nota e pontos fracos."}
+                </p>
+                <div>{roteiro("secundario")}</div>
+                {notas.length > 0 && (
+                  <>
+                    <Rotulo>Notas das últimas semanas</Rotulo>
+                    <ul className={r.notas} aria-label="Notas das revisões de sexta">
+                      {notas.map((n) => (
+                        <li key={n.weekId}>
+                          <span className={r.notaLinha}>
+                            <span>
+                              Semana {n.semana} · {n.tema}
+                              {n.parte ? ` (${n.parte})` : ""}
+                            </span>
+                            <span className="mono">{n.nota}/10</span>
+                          </span>
+                          <BarraProgresso
+                            valor={(n.nota ?? 0) / 10}
+                            rotulo={`Nota da semana ${n.semana}`}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </Cartao>
+          )}
           <Cartao aria-labelledby="progresso">
             <CartaoCabeca
               titulo={<span id="progresso">Progresso por fase</span>}

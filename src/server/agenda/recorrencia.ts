@@ -46,6 +46,10 @@ export type Ocorrencia = {
   recorrente: boolean;
   /** Só para sessões de estudo. */
   feita?: boolean;
+  /** Sessão de estudo que pode cair dentro do estágio sem contar como conflito. */
+  permiteSobreposicao?: boolean;
+  /** A sessão acontece durante o estágio (selo "no estágio" na Agenda). */
+  noEstagio?: boolean;
 };
 
 export type Intervalo = { de: string; ate: string };

@@ -1,10 +1,13 @@
 import type { HorariosEstudo } from "@/lib/dominio";
+import { chaveTurno, type Turno } from "@/lib/estudos";
 import { diaDaSemana, hmParaMin } from "@/lib/tempo";
 import type { FaseTrilha, MarcoTrilha } from "../db/schema";
+import { tituloDaSessao } from "../estudos/trilha";
 import type { EventoIcs } from "./ics";
 
 export type SessaoFeed = {
   data: string;
+  turno: Turno;
   tipo: string;
   conteudo: string;
   horaInicio?: string | null;
@@ -16,7 +19,7 @@ export type SessaoFeed = {
 
 const TOTAL_SEMANAS = 49;
 
-/** Eventos da trilha (sessões nos dias ligados + marcos), com os mesmos textos e UIDs do gerador original. */
+/** Eventos da trilha (sessões nos turnos ligados + marcos), com os mesmos textos e UIDs do gerador original. */
 export function eventosDaTrilha(opcoes: {
   sessoes: SessaoFeed[];
   fases: FaseTrilha[];
@@ -28,16 +31,16 @@ export function eventosDaTrilha(opcoes: {
   const url = opcoes.urlApp ? `\n\nAbrir o app: ${opcoes.urlApp}` : "";
   const eventos: EventoIcs[] = [];
   for (const s of opcoes.sessoes) {
-    const h = opcoes.horarios[String(diaDaSemana(s.data))];
+    const h = opcoes.horarios[chaveTurno(diaDaSemana(s.data), s.turno)];
     if (!h?.ativo) continue;
     const fase = opcoes.fases.find((f) => f.id === s.fase);
     eventos.push({
       tipo: "hora",
-      uid: `sessao-${s.data}@rotina-devops`,
+      uid: `sessao-${s.data}-${s.turno}@rotina-devops`,
       data: s.data,
       inicioMin: hmParaMin(s.horaInicio ?? h.inicio),
       minutos: h.minutos,
-      titulo: `${s.tipo}: ${s.conteudo}`,
+      titulo: tituloDaSessao(s),
       descricao:
         (s.semana ? `Semana ${s.semana} de ${TOTAL_SEMANAS} · ` : "") +
         `Fase ${s.fase}, ${fase?.nome ?? ""}\nTema: ${s.tema}${s.parte ? ` (parte ${s.parte})` : ""}${url}`,

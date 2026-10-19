@@ -90,15 +90,39 @@ export function expandirComRegras(
 
 export type Conflito = { ocorrencia: Ocorrencia; com: Ocorrencia };
 
-/** Choques de horário entre as ocorrências novas e as demais (dia inteiro e sessões feitas não contam). */
+const seSobrepoem = (a: Ocorrencia, b: Ocorrencia) => a.inicio < b.fim && b.inicio < a.fim;
+
+/** Estudo marcado para acontecer durante o estágio (a manhã da trilha): os dois juntos não são choque. */
+function estudoNoEstagio(a: Ocorrencia, b: Ocorrencia) {
+  return (
+    (a.permiteSobreposicao && b.areaId === "estagio") ||
+    (b.permiteSobreposicao && a.areaId === "estagio")
+  );
+}
+
+/**
+ * Choques de horário entre as ocorrências novas e as demais. Dia inteiro, sessões feitas e
+ * estudo marcado para acontecer dentro do estágio não contam.
+ */
 export function encontrarConflitos(novas: Ocorrencia[], outras: Ocorrencia[]): Conflito[] {
   const conta = (o: Ocorrencia) => !o.diaInteiro && !o.feita;
   const saida: Conflito[] = [];
   for (const n of novas.filter(conta)) {
     for (const o of outras.filter(conta)) {
       if (o.eventId === n.eventId && o.origem === n.origem) continue;
-      if (n.inicio < o.fim && o.inicio < n.fim) saida.push({ ocorrencia: n, com: o });
+      if (estudoNoEstagio(n, o)) continue;
+      if (seSobrepoem(n, o)) saida.push({ ocorrencia: n, com: o });
     }
   }
   return saida;
+}
+
+/** Marca as sessões que de fato acontecem durante o estágio (para o selo "no estágio"). */
+export function marcarNoEstagio(ocorrencias: Ocorrencia[]): Ocorrencia[] {
+  const estagio = ocorrencias.filter((o) => o.areaId === "estagio" && !o.diaInteiro);
+  return ocorrencias.map((o) =>
+    o.origem === "sessao" && o.permiteSobreposicao && estagio.some((e) => seSobrepoem(o, e))
+      ? { ...o, noEstagio: true }
+      : o,
+  );
 }

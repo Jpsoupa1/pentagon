@@ -7,15 +7,20 @@ export const ROTINA = (globalThis as unknown as { Rotina: Rotina }).Rotina;
 export const SLUG_TRILHA = "devops";
 export const NOME_TRILHA = "Trilha DevOps";
 
-/** Configuração com todos os dias ligados: o banco guarda todas as sessões, inclusive a Reposição. */
+/** Configuração com todos os turnos ligados: o banco guarda todas as sessões. */
 export const TODOS_OS_DIAS = {
   ...ROTINA.PADRAO,
-  dias: Object.fromEntries(
-    Object.entries(ROTINA.PADRAO.dias).map(([d, slot]) => [d, { ...slot, on: true }]),
+  turnos: Object.fromEntries(
+    Object.entries(ROTINA.PADRAO.turnos).map(([chave, slot]) => [chave, { ...slot, on: true }]),
   ),
 };
 
 /** Número da semana da trilha (0 a 49) de uma data, ou null fora dela. */
 export function semanaDaTrilha(data: string): number | null {
-  return ROTINA.sessao(data, TODOS_OS_DIAS)?.semana ?? null;
+  return ROTINA.semanaDe(data)?.n ?? null;
+}
+
+/** Título da sessão na agenda, no feed e nos avisos ("Aula: ...", "Drill: ..."). */
+export function tituloDaSessao(s: { tipo: string; conteudo: string }) {
+  return ROTINA.titulo(s.tipo, s.conteudo);
 }
