@@ -4,7 +4,7 @@
   padding: 22px;
   border-radius: var(--r-lg);
   /* Verde escuro da área para manter contraste AA com texto branco */
-  background: var(--estudos-text);
+  background: var(--estudos-forte);
   color: #fff;
 }
 .topo {
@@ -45,7 +45,7 @@
 }
 .concluir {
   background: #fff;
-  color: var(--estudos-text);
+  color: var(--estudos-forte);
 }
 .concluir:hover {
   background: #eef8f4;

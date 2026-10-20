@@ -7,6 +7,7 @@ import { SessaoHoje } from "@/components/telas/SessaoHoje";
 import { TrilhaSeguranca } from "@/components/telas/TrilhaSeguranca";
 import r from "@/components/telas/Revisao.module.css";
 import { BarraProgresso } from "@/components/ui/BarraProgresso";
+import { BotaoLink } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
 import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
@@ -322,6 +323,9 @@ export default async function Estudos() {
                 </span>
               }
             />
+            <BotaoLink href={`/trilhas/${trilha.slug}/roadmap`} pequeno style={{ marginBottom: 8 }}>
+              Ver o roadmap da trilha
+            </BotaoLink>
             <ul className={layout.lista} data-area="estudos">
               {trilha.fases.map((f) => {
                 const p = fases.find((x) => x.fase === f.id) ?? { total: 0, feitas: 0 };

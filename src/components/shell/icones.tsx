@@ -65,6 +65,29 @@ const caminhos = {
       <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
     </>
   ),
+  trilhas: (
+    <>
+      <circle cx="5" cy="17" r="2" />
+      <circle cx="12" cy="7" r="2" />
+      <circle cx="19" cy="17" r="2" />
+      <path d="M6.3 15.5 10.7 8.6M13.3 8.6l4.4 6.9" />
+    </>
+  ),
+  externo: (
+    <>
+      <path d="M13.5 4.5h6v6M19.5 4.5 11 13" />
+      <path d="M17.5 14v4a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 18V8A1.5 1.5 0 0 1 6 6.5h4" />
+    </>
+  ),
+  check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  seta: <path d="M5 12h14M13 6l6 6-6 6" />,
+  menos: <path d="M5 12h14" />,
+  bandeira: (
+    <>
+      <path d="M5.5 21V4" />
+      <path d="M5.5 4.5h11l-2 4 2 4h-11" />
+    </>
+  ),
   mais: <path d="M12 5v14M5 12h14" />,
   sair: (
     <>

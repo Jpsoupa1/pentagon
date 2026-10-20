@@ -1,0 +1,663 @@
+{
+  "trail": {
+    "slug": "devops",
+    "name": "Trilha DevOps",
+    "title": "Do primeiro pod à primeira vaga",
+    "intro": "Quatro fases, cada uma fechada por um portão: uma prova ou uma entrega. Aqui está tudo o que falta para passar por cada um, com o que estudar, onde treinar e quando cada prova acontece.",
+    "starts_on": "2026-10-19",
+    "goal_label": "Primeira vaga",
+    "goal_note": "candidaturas desde 08/03/2027",
+    "week_zero": { "label": "Semana zero", "starts_on": "2026-10-19", "ends_on": "2026-10-25" }
+  },
+  "phases": [
+    {
+      "slug": "kubernetes",
+      "name": "Kubernetes e fundamentos",
+      "short_name": "Kubernetes",
+      "weeks_label": "Semanas 1 a 19",
+      "starts_on": "2026-10-26",
+      "ends_on": "2027-03-07",
+      "color": "#3056D3",
+      "color_ink": "#2442A8",
+      "color_soft": "#E9EEFC",
+      "gate_name": "CKA",
+      "gate_full_name": "Certified Kubernetes Administrator",
+      "gate_date": "2027-03-05",
+      "gate_kind": "exam",
+      "gate_format": "Prova prática no terminal, 2 h, nota de corte 66%",
+      "cost_note": "US$ 267 a 445 na prova + KodeKloud",
+      "tip": "Compre o voucher na Black Friday (27/11). Ele vale por 12 meses e já inclui a segunda tentativa e duas sessões do killer.sh.",
+      "domains_title": "O que a prova cobra",
+      "domains": [
+        ["Troubleshooting", 30],
+        ["Arquitetura, instalação e configuração", 25],
+        ["Services e Networking", 20],
+        ["Workloads e Scheduling", 15],
+        ["Storage", 10]
+      ],
+      "requirements": [
+        { "label": "Core Concepts a Application Lifecycle estudados", "done": true },
+        { "label": "BookStack instalado sem container (20/10)", "done": true },
+        { "label": "Revisão das semanas 1 e 2" },
+        { "label": "Simulado diagnóstico de 15 tarefas (05/11)" },
+        { "label": "Cluster Maintenance e backup do etcd" },
+        { "label": "Security e RBAC" },
+        { "label": "Storage com PV, PVC e StorageClass" },
+        { "label": "Networking, CoreDNS e Ingress" },
+        { "label": "Helm, Kustomize e CRDs" },
+        { "label": "Cluster com kubeadm em VMs locais" },
+        { "label": "Troubleshooting de app, control plane e nó" },
+        { "label": "Voucher da CKA comprado (27/11)" },
+        { "label": "Dois simulados killer.sh acima de 66%" },
+        { "label": "Projeto 1 publicado no GitHub" }
+      ],
+      "resources": [
+        {
+          "title": "Documentação do Kubernetes",
+          "provider": "kubernetes.io",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "A única consulta liberada na prova. Treine achar cada página em menos de 30 segundos.",
+          "url": "https://kubernetes.io/docs/home/"
+        },
+        {
+          "title": "Cenários CKA no navegador",
+          "provider": "Killercoda",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Labs curtos para treinar um domínio por vez, sem montar nada na sua máquina.",
+          "url": "https://killercoda.com/"
+        },
+        {
+          "title": "Challenges de Linux, rede e Kubernetes",
+          "provider": "iximiuz Labs",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Problemas práticos com correção automática do estado final. Ótimo para troubleshooting.",
+          "url": "https://labs.iximiuz.com/challenges"
+        },
+        {
+          "title": "Descomplicando o Kubernetes",
+          "provider": "LINUXtips",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Reforço em português, do básico a Helm e Network Policies.",
+          "url": "https://github.com/badtuxx/descomplicandokubernetes"
+        },
+        {
+          "title": "Kubernetes the Hard Way",
+          "provider": "Kelsey Hightower",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Monta o cluster peça por peça. Faça antes das semanas de Install e HA.",
+          "url": "https://github.com/kelseyhightower/kubernetes-the-hard-way"
+        },
+        {
+          "title": "CKA com labs e mocks",
+          "provider": "KodeKloud",
+          "pricing": "paid",
+          "price_label": "US$ 15/mês",
+          "lang": "EN",
+          "note": "O curso que você já usa. Termine na ordem dos blocos e guarde os mocks para as 3 semanas finais.",
+          "url": "https://kodekloud.com/"
+        },
+        {
+          "title": "Formação DevOps",
+          "provider": "Alura",
+          "pricing": "paid",
+          "price_label": "≈ R$ 2.400 por 2 anos",
+          "lang": "PT",
+          "note": "Alternativa em português, se quiser conteúdo estruturado além da KodeKloud.",
+          "url": "https://www.alura.com.br/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2026-11-05",
+          "kind": "simulado",
+          "title": "Simulado diagnóstico",
+          "format": "15 tarefas, 1 h, só com a documentação",
+          "price_label": "Grátis",
+          "note": "O resultado define os 3 pontos fracos que ganham reforço nas tardes."
+        },
+        {
+          "date": "2027-02-15",
+          "kind": "simulado",
+          "title": "killer.sh, sessão 1",
+          "format": "Ambiente liberado por 36 h",
+          "price_label": "Incluso no voucher",
+          "note": "É mais difícil que a prova real. Corrija tudo no dia seguinte."
+        },
+        {
+          "date": "2027-02-22",
+          "kind": "simulado",
+          "title": "killer.sh, sessão 2",
+          "format": "Ambiente liberado por 36 h",
+          "price_label": "Incluso no voucher",
+          "note": "Antes de abrir, refaça só as questões que errou na sessão 1."
+        },
+        {
+          "date": "2027-03-01",
+          "kind": "simulado",
+          "title": "Mocks da KodeKloud",
+          "format": "Cronometrados, 2 h cada",
+          "price_label": "Na assinatura",
+          "note": "Um por semana nas 3 semanas finais."
+        },
+        {
+          "date": "2027-03-05",
+          "kind": "prova",
+          "title": "Prova CKA",
+          "format": "Prática no terminal, 2 h, nota de corte 66%",
+          "price_label": "US$ 445 (≈ 267 em promoção)",
+          "note": "Inclui uma segunda tentativa. Vale por 2 anos."
+        }
+      ],
+      "practice": [
+        {
+          "title": "Bateria de 10 exercícios na tarde",
+          "cadence": "4 por semana, de segunda a quinta",
+          "target": 76,
+          "source": "sessoes:pratica"
+        },
+        {
+          "title": "Revisão de sexta com nota",
+          "cadence": "1 por semana",
+          "target": 19,
+          "source": "revisoes"
+        },
+        {
+          "title": "Flashcards da CKA",
+          "cadence": "Todo dia, na academia e antes da tarde",
+          "target": 133,
+          "source": "cards:CKA"
+        },
+        {
+          "title": "Drills das lacunas",
+          "cadence": "Static pod, seletor do ReplicaSet e tarefas longas",
+          "target": 3
+        },
+        { "title": "Cluster kubeadm do zero", "cadence": "Semanas 13 e 14", "target": 2 },
+        {
+          "title": "Sábados do Projeto 1 (BookStack)",
+          "cadence": "3 h por sábado",
+          "target": 15,
+          "done": 1
+        }
+      ]
+    },
+    {
+      "slug": "aws",
+      "name": "AWS e CI/CD",
+      "short_name": "AWS e CI/CD",
+      "weeks_label": "Semanas 20 a 32",
+      "starts_on": "2027-03-08",
+      "ends_on": "2027-06-06",
+      "color": "#E07A12",
+      "color_ink": "#9A4A06",
+      "color_soft": "#FDF0E1",
+      "gate_name": "AWS SAA",
+      "gate_full_name": "AWS Solutions Architect Associate",
+      "gate_date": "2027-06-04",
+      "gate_kind": "exam",
+      "gate_format": "65 questões, 130 min, nota de corte 720 de 1000",
+      "cost_note": "US$ 175 nas duas provas, com voucher",
+      "tip": "Faça a Cloud Practitioner primeiro (26/03). Passar nela dá 50% de desconto na SAA, que sai por US$ 75.",
+      "domains_title": "O que a prova cobra",
+      "domains": [
+        ["Arquiteturas seguras", 30],
+        ["Arquiteturas resilientes", 26],
+        ["Arquiteturas de alto desempenho", 24],
+        ["Arquiteturas com custo otimizado", 20]
+      ],
+      "requirements": [
+        { "label": "Conta AWS com MFA e alerta de orçamento" },
+        { "label": "Cloud Practitioner aprovada (26/03)" },
+        { "label": "IAM e VPC com sub redes públicas e privadas" },
+        { "label": "EC2, ELB e Auto Scaling" },
+        { "label": "S3, RDS e Route 53" },
+        { "label": "Lambda, API Gateway e DynamoDB" },
+        { "label": "Pipeline no GitHub Actions com varredura e deploy" },
+        { "label": "Pipeline do Projeto 1 no GitLab CI" },
+        { "label": "Três simulados Tutorials Dojo acima de 80%" },
+        { "label": "Cloud Resume Challenge publicado" }
+      ],
+      "resources": [
+        {
+          "title": "AWS Skill Builder",
+          "provider": "AWS",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Cloud Practitioner Essentials e a trilha oficial de Solutions Architect.",
+          "url": "https://skillbuilder.aws/"
+        },
+        {
+          "title": "Nível gratuito da AWS",
+          "provider": "AWS",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Para os labs. Crie a conta com MFA e alerta de orçamento no primeiro dia.",
+          "url": "https://aws.amazon.com/free/"
+        },
+        {
+          "title": "Cloud Resume Challenge",
+          "provider": "Forrest Brazeal",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Projeto guiado de ponta a ponta. Vira o Projeto 2 do portfólio.",
+          "url": "https://cloudresumechallenge.dev/docs/the-challenge/aws/"
+        },
+        {
+          "title": "AWS Well Architected",
+          "provider": "AWS",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Os seis pilares que a SAA usa para montar as questões de cenário.",
+          "url": "https://aws.amazon.com/architecture/well-architected/"
+        },
+        {
+          "title": "Documentação do GitHub Actions",
+          "provider": "GitHub",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Base do pipeline de build, testes, varredura e deploy.",
+          "url": "https://docs.github.com/actions"
+        },
+        {
+          "title": "Solutions Architect Associate",
+          "provider": "Adrian Cantrill",
+          "pricing": "paid",
+          "price_label": "≈ US$ 40",
+          "lang": "EN",
+          "note": "Curso profundo, com cerca de 80 h de vídeo e demos práticas.",
+          "url": "https://learn.cantrill.io/"
+        },
+        {
+          "title": "Labs de nuvem prontos",
+          "provider": "KodeKloud Pro",
+          "pricing": "paid",
+          "price_label": "US$ 30/mês",
+          "lang": "EN",
+          "note": "Contas temporárias para praticar sem risco de cobrança.",
+          "url": "https://kodekloud.com/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-03-18",
+          "kind": "simulado",
+          "title": "Simulado Cloud Practitioner",
+          "format": "Questões oficiais do Skill Builder",
+          "price_label": "Grátis",
+          "note": "Marque a prova quando passar de 80%."
+        },
+        {
+          "date": "2027-03-26",
+          "kind": "prova",
+          "title": "Prova AWS Cloud Practitioner",
+          "format": "Múltipla escolha, online",
+          "price_label": "US$ 100",
+          "note": "Gera o voucher de 50% para a SAA."
+        },
+        {
+          "date": "2027-05-17",
+          "kind": "simulado",
+          "title": "Tutorials Dojo, simulado 1",
+          "format": "65 questões, 130 min",
+          "price_label": "≈ US$ 15 o pacote",
+          "note": "Revise cada erro pela explicação, não pela letra certa."
+        },
+        {
+          "date": "2027-05-24",
+          "kind": "simulado",
+          "title": "Tutorials Dojo, simulados 2 e 3",
+          "format": "65 questões, 130 min cada",
+          "price_label": "No mesmo pacote",
+          "note": "Meta de 80% em ambos antes da prova."
+        },
+        {
+          "date": "2027-06-04",
+          "kind": "prova",
+          "title": "Prova AWS SAA",
+          "format": "65 questões, 130 min, corte 720",
+          "price_label": "US$ 75 com voucher",
+          "note": "Vale por 3 anos."
+        }
+      ],
+      "practice": [
+        {
+          "title": "Bateria de 10 exercícios na tarde",
+          "cadence": "4 por semana",
+          "target": 52,
+          "source": "sessoes:pratica"
+        },
+        {
+          "title": "Revisão de sexta com nota",
+          "cadence": "1 por semana",
+          "target": 13,
+          "source": "revisoes"
+        },
+        { "title": "Etapas do Cloud Resume Challenge", "cadence": "Aos sábados", "target": 8 },
+        { "title": "Pipelines completos", "cadence": "GitHub Actions e GitLab CI", "target": 2 },
+        { "title": "Simulados cronometrados", "cadence": "Semanas 30 a 32", "target": 4 },
+        { "title": "Entrevistas simuladas em inglês", "cadence": "1 por semana", "target": 13 }
+      ]
+    },
+    {
+      "slug": "terraform",
+      "name": "Infraestrutura como Código",
+      "short_name": "Terraform",
+      "weeks_label": "Semanas 33 a 40",
+      "starts_on": "2027-06-07",
+      "ends_on": "2027-08-01",
+      "color": "#7B4FD6",
+      "color_ink": "#5A35A8",
+      "color_soft": "#F0EAFB",
+      "gate_name": "Terraform",
+      "gate_full_name": "HashiCorp Terraform Associate (004)",
+      "gate_date": "2027-07-30",
+      "gate_kind": "exam",
+      "gate_format": "57 questões, 60 min, online",
+      "cost_note": "US$ 70,50 na prova",
+      "tip": "Reescreva a infra do Cloud Resume Challenge em Terraform. É a melhor prática para a prova e ainda melhora o Projeto 2.",
+      "domains_title": "Objetivos da prova 004",
+      "domains": [
+        ["Conceitos de IaC", null],
+        ["Fundamentos e providers", null],
+        ["Fluxo init, plan e apply", null],
+        ["Configuração e módulos", null],
+        ["Gestão de state", null],
+        ["HCP Terraform", null]
+      ],
+      "requirements": [
+        { "label": "Ciclo plan, apply e destroy no automático" },
+        { "label": "VPC da AWS escrita em Terraform" },
+        { "label": "State remoto no S3 com lock" },
+        { "label": "Módulo próprio reutilizável" },
+        { "label": "Workspaces dev e prod" },
+        { "label": "HCP Terraform e Terraform no CI" },
+        { "label": "Ansible: playbook e roles" },
+        { "label": "Infra do Projeto 2 reescrita em Terraform" },
+        { "label": "Dois simulados acima de 80%" }
+      ],
+      "resources": [
+        {
+          "title": "Tutoriais oficiais de Terraform",
+          "provider": "HashiCorp Developer",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Trilha oficial que cobre todos os domínios da prova 004.",
+          "url": "https://developer.hashicorp.com/terraform/tutorials"
+        },
+        {
+          "title": "Página e guia da prova 004",
+          "provider": "HashiCorp",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Lista oficial de objetivos. Use como checklist de revisão.",
+          "url": "https://developer.hashicorp.com/certifications/infrastructure-automation"
+        },
+        {
+          "title": "Ansible: primeiros passos",
+          "provider": "Ansible Docs",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Inventário, playbooks e roles, no nível que as vagas pedem.",
+          "url": "https://docs.ansible.com/ansible/latest/getting_started/index.html"
+        },
+        {
+          "title": "GitHub Student Developer Pack",
+          "provider": "GitHub Education",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Créditos de nuvem para praticar sem gastar do seu bolso.",
+          "url": "https://education.github.com/pack"
+        },
+        {
+          "title": "Terraform Associate 004",
+          "provider": "KodeKloud",
+          "pricing": "paid",
+          "price_label": "Na assinatura",
+          "lang": "EN",
+          "note": "Labs na nuvem, quizzes por seção e um simulado completo.",
+          "url": "https://kodekloud.com/courses/hashicorp-certified-terraform-associate-004"
+        },
+        {
+          "title": "Simulados da prova 004",
+          "provider": "Udemy",
+          "pricing": "paid",
+          "price_label": "≈ US$ 15 a 20",
+          "lang": "EN",
+          "note": "Para a reta final, depois de fechar os tutoriais oficiais.",
+          "url": "https://www.udemy.com/course/terraform-associate-004-practice-exams/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-07-08",
+          "kind": "simulado",
+          "title": "Simulado da KodeKloud",
+          "format": "Formato da prova 004",
+          "price_label": "Na assinatura",
+          "note": "Primeira medição. Anote os domínios abaixo de 70%."
+        },
+        {
+          "date": "2027-07-19",
+          "kind": "simulado",
+          "title": "Simulado Udemy 1",
+          "format": "57 questões, 60 min",
+          "price_label": "≈ US$ 15",
+          "note": "Cronometrado, sem consulta."
+        },
+        {
+          "date": "2027-07-26",
+          "kind": "simulado",
+          "title": "Simulado Udemy 2",
+          "format": "57 questões, 60 min",
+          "price_label": "No mesmo pacote",
+          "note": "Meta de 80% antes da prova."
+        },
+        {
+          "date": "2027-07-30",
+          "kind": "prova",
+          "title": "Prova Terraform Associate",
+          "format": "57 questões, 60 min, online",
+          "price_label": "US$ 70,50",
+          "note": "Vale por 2 anos."
+        }
+      ],
+      "practice": [
+        {
+          "title": "Bateria de 10 exercícios na tarde",
+          "cadence": "4 por semana",
+          "target": 32,
+          "source": "sessoes:pratica"
+        },
+        {
+          "title": "Revisão de sexta com nota",
+          "cadence": "1 por semana",
+          "target": 8,
+          "source": "revisoes"
+        },
+        {
+          "title": "Labs com apply e destroy",
+          "cadence": "Um por tema, infra destruída no fim",
+          "target": 12
+        },
+        { "title": "Sábados do Projeto 3", "cadence": "Rede, cluster e deploy da API", "target": 6 }
+      ]
+    },
+    {
+      "slug": "observabilidade",
+      "name": "Observabilidade, GitOps e segurança",
+      "short_name": "Observabilidade",
+      "weeks_label": "Semanas 41 a 48",
+      "starts_on": "2027-08-02",
+      "ends_on": "2027-09-26",
+      "color": "#0F8A7E",
+      "color_ink": "#0B6B62",
+      "color_soft": "#E2F4F1",
+      "gate_name": "Projeto 3",
+      "gate_full_name": "Plataforma completa publicada no GitHub",
+      "gate_date": "2027-09-24",
+      "gate_kind": "project",
+      "gate_format": "Sem prova. O portão é o projeto principal no ar.",
+      "cost_note": "≈ US$ 10 por mês de nuvem",
+      "tip": "Simule uma falha de verdade, registre o alerta disparando e escreva um pós incidente curto. Vira história pronta para a entrevista.",
+      "domains_title": "O que o projeto precisa provar",
+      "domains": [
+        ["Infra em Terraform na AWS", null],
+        ["Entrega com GitOps e Argo CD", null],
+        ["Métricas, logs e alertas", null],
+        ["Segurança no pipeline", null],
+        ["Confiabilidade com SLO", null]
+      ],
+      "requirements": [
+        { "label": "kube prometheus stack instalado com Helm" },
+        { "label": "Painéis do Grafana para a API" },
+        { "label": "Loki e alertas no Alertmanager" },
+        { "label": "SLO e orçamento de erro definidos" },
+        { "label": "Deploy via Argo CD" },
+        { "label": "Trivy no pipeline" },
+        { "label": "Menor privilégio no IAM e no RBAC" },
+        { "label": "Alertas de custo na AWS" },
+        { "label": "Falha simulada e pós incidente escrito" },
+        { "label": "README final e post no LinkedIn" }
+      ],
+      "resources": [
+        {
+          "title": "Livros de SRE do Google",
+          "provider": "sre.google",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Três livros completos. Comece pelos capítulos 3 a 6.",
+          "url": "https://sre.google/books/"
+        },
+        {
+          "title": "Documentação do Prometheus",
+          "provider": "prometheus.io",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Métricas, PromQL e regras de alerta.",
+          "url": "https://prometheus.io/docs/introduction/overview/"
+        },
+        {
+          "title": "Tutoriais do Grafana",
+          "provider": "Grafana Labs",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Painéis que respondem perguntas, não só gráficos bonitos.",
+          "url": "https://grafana.com/tutorials/"
+        },
+        {
+          "title": "Argo CD: primeiros passos",
+          "provider": "Argo Project",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Aplicações, sincronização e deploy por Git.",
+          "url": "https://argo-cd.readthedocs.io/en/stable/getting_started/"
+        },
+        {
+          "title": "Trivy",
+          "provider": "Aqua Security",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Varredura de imagens e configurações dentro do pipeline.",
+          "url": "https://trivy.dev/"
+        },
+        {
+          "title": "OpenTelemetry",
+          "provider": "opentelemetry.io",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Noções de traces para fechar a parte de observabilidade.",
+          "url": "https://opentelemetry.io/docs/"
+        },
+        {
+          "title": "Prometheus e Argo CD com labs",
+          "provider": "KodeKloud",
+          "pricing": "paid",
+          "price_label": "Na assinatura",
+          "lang": "EN",
+          "note": "Se ainda tiver a assinatura, os labs prontos aceleram a fase.",
+          "url": "https://kodekloud.com/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-08-12",
+          "kind": "simulado",
+          "title": "Entrevista técnica simulada",
+          "format": "Troubleshooting em voz alta, 45 min",
+          "price_label": "Grátis",
+          "note": "Uma por semana. Use os projetos no formato problema, decisão e resultado."
+        },
+        {
+          "date": "2027-09-15",
+          "kind": "entrega",
+          "title": "Pós incidente escrito",
+          "format": "Falha simulada no Projeto 3",
+          "price_label": "Grátis",
+          "note": "Alerta disparando, causa, correção e o que muda."
+        },
+        {
+          "date": "2027-09-24",
+          "kind": "entrega",
+          "title": "Projeto principal publicado",
+          "format": "README, diagrama, custo mensal",
+          "price_label": "≈ US$ 10/mês",
+          "note": "Post no LinkedIn no mesmo dia."
+        },
+        {
+          "date": null,
+          "optional": true,
+          "kind": "prova",
+          "title": "Prometheus Certified Associate",
+          "format": "Múltipla escolha, online",
+          "price_label": "US$ 250",
+          "note": "Fora do plano. Inclui uma nova tentativa grátis, se sobrar fôlego."
+        }
+      ],
+      "practice": [
+        {
+          "title": "Bateria de 10 exercícios na tarde",
+          "cadence": "4 por semana",
+          "target": 32,
+          "source": "sessoes:pratica"
+        },
+        {
+          "title": "Revisão de sexta com nota",
+          "cadence": "1 por semana",
+          "target": 8,
+          "source": "revisoes"
+        },
+        {
+          "title": "Consultas PromQL escritas",
+          "cadence": "Painéis e alertas da API",
+          "target": 20
+        },
+        { "title": "Posts de registro no LinkedIn", "cadence": "A cada duas semanas", "target": 4 }
+      ]
+    }
+  ]
+}

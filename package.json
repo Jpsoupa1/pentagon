@@ -23,6 +23,7 @@
     "seed:trilha": "tsx scripts/seed-trilha.ts",
     "seed:rotina": "tsx scripts/seed-rotina.ts",
     "seed:seguranca": "tsx scripts/seed-seguranca.ts",
+    "seed:roadmap": "tsx scripts/seed-roadmap.ts",
     "test:integracao": "vitest run --config vitest.integracao.config.mts",
     "assistente:real": "tsx --conditions=react-server scripts/assistente-real.ts"
   },

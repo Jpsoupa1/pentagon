@@ -18,7 +18,7 @@
   stroke-width: 1;
 }
 .valor {
-  fill: rgb(21 23 28 / 0.07);
+  fill: color-mix(in srgb, var(--ink) 7%, transparent);
   stroke: var(--ink);
   stroke-width: 1.5;
   stroke-linejoin: round;

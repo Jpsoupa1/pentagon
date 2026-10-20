@@ -3,6 +3,7 @@ import "../scripts/env";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { semearTrilha } from "../src/server/estudos/seed";
+import { semearRoadmap } from "../src/server/roadmap/seed";
 import { semearSeguranca } from "../src/server/estudos/seguranca";
 import { semearRotina } from "../src/server/rotina/seed";
 import { iniciarClaudeFalso } from "./claude-falso";
@@ -18,6 +19,7 @@ export default async function globalSetup() {
     await semearTrilha(drizzle(pool), userId);
     await semearRotina(drizzle(pool), userId);
     await semearSeguranca(drizzle(pool), userId);
+    await semearRoadmap(drizzle(pool), [userId]);
   } finally {
     await pool.end();
   }

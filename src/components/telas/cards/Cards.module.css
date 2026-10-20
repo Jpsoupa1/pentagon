@@ -4,7 +4,7 @@
   gap: 12px;
   padding: 22px;
   border-radius: var(--r-lg);
-  background: var(--estudos-text);
+  background: var(--estudos-forte);
   color: #fff;
 }
 .destaqueRotulo {
@@ -39,7 +39,7 @@
 }
 .comecar {
   background: #fff;
-  color: var(--estudos-text);
+  color: var(--estudos-forte);
 }
 .comecar:hover {
   background: #eef8f4;
@@ -205,7 +205,7 @@
   max-width: 100%;
   padding: 14px;
   border-radius: var(--r-sm);
-  background: var(--ink);
+  background: var(--destaque);
   color: #e8eaef;
   font-family: var(--font-mono);
   font-size: 13px;
@@ -227,7 +227,7 @@
   padding: 10px;
   margin: 0 -10px;
   border-radius: calc(var(--r-lg) + 4px);
-  background: rgb(243 244 246 / 0.9);
+  background: var(--vidro-fundo);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -258,11 +258,11 @@
   background: var(--provas-bg);
 }
 .acertei {
-  background: var(--estudos-text);
+  background: var(--estudos-forte);
   color: #fff;
 }
 .acertei:hover {
-  background: #096a4f;
+  background: var(--estudos-forte-2);
 }
 .fim {
   display: grid;
