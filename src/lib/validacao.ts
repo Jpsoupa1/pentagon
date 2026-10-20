@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { areaIds, assessmentKinds, repeticoes } from "./dominio";
+import {
+  areaIds,
+  assessmentKinds,
+  modosCard,
+  origensCard,
+  repeticoes,
+  resultadosCard,
+} from "./dominio";
 import { CHAVES_TURNO } from "./estudos";
 
 // Esquemas compartilhados entre formulários (cliente) e API (servidor).
@@ -136,6 +143,7 @@ export const ajustesSchema = z
     periodoFim: dataSchema.nullable(),
     horariosEstudo: z.record(z.enum(CHAVES_TURNO), horarioEstudo).nullable(),
     areasNoFeed: z.array(areaSchema),
+    limiteCards: z.number().int().min(1, "No mínimo 1 card").max(500, "No máximo 500 cards"),
   })
   .partial()
   .refine((a) => !a.periodoInicio || !a.periodoFim || a.periodoFim >= a.periodoInicio, {
@@ -181,3 +189,49 @@ export const feriadoSchema = z.object({
 });
 
 export const feriadosNacionaisSchema = z.object({ ano: z.number().int().min(2024).max(2100) });
+
+// ---------------------------------------------------------------- Flashcards
+
+/** Código (YAML, comandos): mantém a indentação; só tira linhas em branco do começo e espaços do fim. */
+const codigoCard = z
+  .string()
+  .max(8000, "Código longo demais (máximo de 8000 caracteres)")
+  .nullish()
+  .transform((v) => {
+    const limpo = (v ?? "").replace(/^(?:[ \t]*\r?\n)+/, "").trimEnd();
+    return limpo ? limpo : null;
+  });
+
+const camposCard = {
+  trilha: texto(60),
+  tema: texto(120),
+  frente: texto(2000),
+  verso: texto(4000),
+  codigo: codigoCard,
+  origem: z.enum(origensCard, { message: 'Use "aula" ou "erro"' }),
+};
+
+/** Um card no formato de importação (o JSON colado). */
+export const cardImportadoSchema = z.object({
+  id: z
+    .string({ message: "Obrigatório" })
+    .trim()
+    .min(1, "Obrigatório")
+    .max(80, "Id longo demais (máximo de 80 caracteres)"),
+  ...camposCard,
+  criado_em: dataSchema,
+});
+export type CardImportado = z.output<typeof cardImportadoSchema>;
+
+/** Editar um card ou suspendê-lo. */
+export const cardEdicaoSchema = z.object({ ...camposCard, suspenso: z.boolean() }).partial();
+
+/** Uma resposta dada no aparelho. O id nasce lá, para a fila offline não gravar duas vezes. */
+export const respostaCardSchema = z.object({
+  id: z.uuid(),
+  cardId: z.uuid(),
+  resultado: z.enum(resultadosCard),
+  modo: z.enum(modosCard),
+  data: dataSchema,
+  respondidaEm: z.iso.datetime({ offset: true }),
+});

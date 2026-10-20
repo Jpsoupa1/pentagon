@@ -19,3 +19,13 @@ export type Repeticao = (typeof repeticoes)[number];
 export type HorarioEstudo = { ativo: boolean; inicio: string; minutos: number };
 /** Chave = dia da semana (0 = domingo). */
 export type HorariosEstudo = Record<string, HorarioEstudo>;
+
+export const origensCard = ["aula", "erro"] as const;
+export type OrigemCard = (typeof origensCard)[number];
+
+export const resultadosCard = ["acertou", "errou"] as const;
+export type ResultadoCard = (typeof resultadosCard)[number];
+
+/** "dia" é a sessão do dia (agenda pelas caixas); "aleatorio" sorteia do acervo inteiro. */
+export const modosCard = ["dia", "aleatorio"] as const;
+export type ModoCard = (typeof modosCard)[number];

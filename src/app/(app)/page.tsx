@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CartaoAgora, type OcorrenciaCliente } from "@/components/telas/CartaoAgora";
 import { ListaLembretes } from "@/components/telas/ListaLembretes";
 import { ListaSessoes } from "@/components/telas/ListaSessoes";
+import { CartaoCardsHoje } from "@/components/telas/cards/CartaoCardsHoje";
 import { Icone } from "@/components/shell/icones";
 import { BotaoLink } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
@@ -73,6 +74,7 @@ export default async function Hoje() {
             fuso={p.fuso}
             agoraServidor={Math.floor(agora.getTime() / 60_000) * 60_000}
           />
+          <CartaoCardsHoje inicial={p.cards} />
           <Cartao aria-labelledby="linha-do-dia">
             <CartaoCabeca
               titulo={<span id="linha-do-dia">Linha do dia</span>}

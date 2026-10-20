@@ -1,0 +1,53 @@
+{
+  "cards": [
+    {
+      "id": "cka-arq-001",
+      "trilha": "CKA",
+      "tema": "Arquitetura do cluster",
+      "frente": "Qual é o único componente que lê e grava no etcd?",
+      "verso": "O kube-apiserver. Todos os outros (scheduler, controller-manager, kubelet) passam por ele.",
+      "codigo": "kubectl get pods -n kube-system",
+      "origem": "aula",
+      "criado_em": "2026-10-20"
+    },
+    {
+      "id": "cka-arq-002",
+      "trilha": "CKA",
+      "tema": "Arquitetura do cluster",
+      "frente": "Onde ficam os manifests dos static pods do control plane num cluster kubeadm?",
+      "verso": "Em /etc/kubernetes/manifests. O kubelet observa a pasta e recria o pod quando o arquivo muda.",
+      "codigo": "ls /etc/kubernetes/manifests\n# etcd.yaml  kube-apiserver.yaml  kube-controller-manager.yaml  kube-scheduler.yaml",
+      "origem": "aula",
+      "criado_em": "2026-10-20"
+    },
+    {
+      "id": "cka-wl-001",
+      "trilha": "CKA",
+      "tema": "Workloads",
+      "frente": "Como criar rápido o YAML de um Deployment nginx com 3 réplicas, sem aplicar?",
+      "verso": "Gerar com --dry-run=client -o yaml e salvar num arquivo para editar.",
+      "codigo": "kubectl create deployment web --image=nginx --replicas=3 \\\n  --dry-run=client -o yaml > web.yaml",
+      "origem": "aula",
+      "criado_em": "2026-10-20"
+    },
+    {
+      "id": "cka-wl-002",
+      "trilha": "CKA",
+      "tema": "Workloads",
+      "frente": "Qual campo do Pod garante que ele só rode em nós com o label disco=ssd?",
+      "verso": "spec.nodeSelector (ou nodeAffinity, para regras mais ricas).",
+      "codigo": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\nspec:\n  nodeSelector:\n    disco: ssd\n  containers:\n    - name: web\n      image: nginx:1.27\n      ports:\n        - containerPort: 80",
+      "origem": "aula",
+      "criado_em": "2026-10-21"
+    },
+    {
+      "id": "cka-erro-001",
+      "trilha": "CKA",
+      "tema": "Rede",
+      "frente": "Errei no simulado: um Service do tipo ClusterIP pode ser acessado de fora do cluster?",
+      "verso": "Não. ClusterIP só é alcançável dentro do cluster. Para fora: NodePort, LoadBalancer ou Ingress.",
+      "origem": "erro",
+      "criado_em": "2026-10-21"
+    }
+  ]
+}

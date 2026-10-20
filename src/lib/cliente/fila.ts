@@ -15,11 +15,19 @@ const BANCO = "pentagon";
 const LOJA = "fila";
 export const EVENTO_FILA = "pentagon:fila";
 
-function abrir(): Promise<IDBDatabase> {
+/** Versão 2: lojas da cópia offline dos flashcards (ver ./cards.ts). */
+export function abrirBanco(): Promise<IDBDatabase> {
   return new Promise((ok, erro) => {
-    const req = indexedDB.open(BANCO, 1);
-    req.onupgradeneeded = () =>
-      req.result.createObjectStore(LOJA, { keyPath: "id", autoIncrement: true });
+    const req = indexedDB.open(BANCO, 2);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(LOJA))
+        db.createObjectStore(LOJA, { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("cards")) db.createObjectStore("cards", { keyPath: "id" });
+      if (!db.objectStoreNames.contains("respostas"))
+        db.createObjectStore("respostas", { keyPath: "id" });
+      if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
+    };
     req.onsuccess = () => ok(req.result);
     req.onerror = () => erro(req.error);
   });
@@ -29,7 +37,7 @@ async function transacao<T>(
   modo: IDBTransactionMode,
   fn: (loja: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
-  const db = await abrir();
+  const db = await abrirBanco();
   return new Promise((ok, erro) => {
     const tx = db.transaction(LOJA, modo);
     const req = fn(tx.objectStore(LOJA));

@@ -18,3 +18,6 @@ export class LimiteExcedido extends Error {}
 
 /** A API do Claude respondeu que os créditos do mês acabaram. */
 export class SemCreditos extends Error {}
+
+/** Pedido que não dá para atender como veio (ex.: JSON de importação sem a lista de cards). */
+export class EntradaInvalida extends Error {}

@@ -9,7 +9,12 @@ import f from "../shell/Form.module.css";
 export function FormAjustes({
   inicial,
 }: {
-  inicial: { avisoMin: number; periodoInicio: string | null; periodoFim: string | null };
+  inicial: {
+    avisoMin: number;
+    periodoInicio: string | null;
+    periodoFim: string | null;
+    limiteCards: number;
+  };
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -24,6 +29,7 @@ export function FormAjustes({
       avisoMin: Number(txt("aviso") || 0),
       periodoInicio: txt("inicio") || null,
       periodoFim: txt("fim") || null,
+      limiteCards: Number(txt("limiteCards") || 0),
     });
     setSalvando(false);
     if (!r.ok) {
@@ -72,6 +78,17 @@ export function FormAjustes({
           min={0}
           max={1440}
           defaultValue={inicial.avisoMin}
+          className={`${f.entrada} mono`}
+        />
+      </label>
+      <label className={f.campo}>
+        <span className={f.rotulo}>Cards por dia na sessão de flashcards</span>
+        <input
+          type="number"
+          name="limiteCards"
+          min={1}
+          max={500}
+          defaultValue={inicial.limiteCards}
           className={`${f.entrada} mono`}
         />
       </label>

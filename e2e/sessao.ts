@@ -28,6 +28,7 @@ export async function criarSessaoDeTeste(url: string) {
       "notifications",
       "holidays",
       "assistant_runs",
+      "flashcards",
     ]) {
       await pool.query(`delete from ${t} where user_id = $1`, [userId]);
     }

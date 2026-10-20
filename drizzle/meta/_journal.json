@@ -29,6 +29,13 @@
       "when": 1792411311498,
       "tag": "0003_trilha-v2",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792498308849,
+      "tag": "0004_cards",
+      "breakpoints": true
     }
   ]
 }
