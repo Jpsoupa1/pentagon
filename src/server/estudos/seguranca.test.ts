@@ -18,9 +18,8 @@ describe("trilha de Segurança e SecOps", () => {
     }
   });
 
-  it("é leve: de 2 a 3 sessões por semana, uma delas opcional", () => {
-    expect(SESSOES_SEGURANCA).toHaveLength(3);
-    expect(SESSOES_SEGURANCA.filter((s) => !s.opcional)).toHaveLength(2);
+  it("é leve: 3 sessões por semana, só em dias úteis", () => {
+    expect(SESSOES_SEGURANCA.map((s) => s.dia)).toEqual([2, 4, 5]);
   });
 
   it("não cruza com estágio, academia, aulas nem com a trilha DevOps", () => {

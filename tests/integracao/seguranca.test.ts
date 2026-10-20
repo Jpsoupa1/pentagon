@@ -23,7 +23,7 @@ describe("trilha de Segurança", () => {
     expect(t.faseAtual).toBe(1);
     expect(t.fim).toBeNull();
     expect(t.fases).toHaveLength(4);
-    expect(t.sessoes.map((s) => s.diasSemana)).toEqual([[5], [6], [0]]);
+    expect(t.sessoes.flatMap((s) => s.diasSemana ?? []).sort()).toEqual([2, 4, 5]);
 
     await mudarFase(userId, "seguranca", 2);
     expect(await semearSeguranca(db(), userId, AGORA)).toEqual({ criada: false });
@@ -36,7 +36,7 @@ describe("trilha de Segurança", () => {
     await semearSeguranca(db(), userId, AGORA);
     const semana = await ocorrencias(userId, { de: "2026-10-19", ate: "2026-10-25" });
     const seg = semana.filter((o) => o.titulo.startsWith("Segurança e SecOps"));
-    expect(seg.map((o) => o.dataOriginal)).toEqual(["2026-10-23", "2026-10-24", "2026-10-25"]);
+    expect(seg.map((o) => o.dataOriginal)).toEqual(["2026-10-22", "2026-10-23"]);
     expect(seg.every((o) => o.origem === "evento" && o.areaId === "estudos")).toBe(true);
 
     const pendentes = await sessoesPendentes(userId, "2026-10-26", 50);

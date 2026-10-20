@@ -79,13 +79,13 @@ export const FASES_SEGURANCA: FaseTrilha[] = [
 export const LABS_SEGURANCA = ["PortSwigger", "TryHackMe", "Hack The Box"];
 
 /**
- * Sessões semanais nos horários livres: a tarde de sexta (entre o estágio e a academia), a tarde
- * de sábado (depois do projeto DevOps) e uma manhã de domingo opcional. Cerca de 4 h por semana.
+ * Sessões semanais só em dias úteis, nos horários livres: terça e quinta no fim da tarde (entre
+ * a academia e a aula das 19:10) e a tarde de sexta (entre o estágio e a academia). Cerca de 3 h.
  */
 export const SESSOES_SEGURANCA = [
-  { dia: 5, hora: "14:00", minutos: 90, opcional: false },
-  { dia: 6, hora: "15:00", minutos: 90, opcional: false },
-  { dia: 0, hora: "10:00", minutos: 60, opcional: true },
+  { dia: 2, hora: "17:45", minutos: 45 },
+  { dia: 4, hora: "17:45", minutos: 45 },
+  { dia: 5, hora: "14:00", minutos: 90 },
 ] as const;
 
 const NOTAS =
@@ -138,9 +138,9 @@ export async function semearSeguranca(db: QualquerDb, userId: string, agora = ne
         return {
           userId,
           trackId: trilha.id,
-          titulo: s.opcional ? `${NOME_SEGURANCA} (opcional)` : NOME_SEGURANCA,
+          titulo: NOME_SEGURANCA,
           areaId: "estudos" as const,
-          notas: s.opcional ? `${NOTAS} Se a semana estiver cheia, pule sem culpa.` : NOTAS,
+          notas: NOTAS,
           inicio: paraUtc(data, s.hora, fuso),
           duracaoMin: s.minutos,
           fuso,

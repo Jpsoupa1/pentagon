@@ -4,15 +4,15 @@ Trilha leve, ao lado da trilha DevOps. Não tem datas, prazos nem meta diária: 
 
 ## Sessões semanais
 
-Cerca de 4 h por semana, nos horários livres da rotina (estágio de manhã, academia às 16:00 nos dias úteis, aulas de segunda a sexta das 19:10 às 22:00):
+Cerca de 3 h por semana, só em dias úteis, nos horários livres da rotina (estágio de manhã, prática DevOps às 14:00 de segunda a quinta, academia às 16:00, aulas de segunda a sexta das 19:10 às 22:00). O fim de semana fica sem Segurança.
 
-| Dia     | Horário        | Por que aqui                                                       |
-| ------- | -------------- | ------------------------------------------------------------------ |
-| Sexta   | 14:00 às 15:30 | A tarde de sexta não tem prática DevOps; termina antes da academia |
-| Sábado  | 15:00 às 16:30 | Depois do projeto DevOps da manhã                                  |
-| Domingo | 10:00 às 11:00 | Opcional: se a semana estiver cheia, pule sem culpa                |
+| Dia    | Horário        | Por que aqui                                                       |
+| ------ | -------------- | ------------------------------------------------------------------ |
+| Terça  | 17:45 às 18:30 | Depois da academia, com tempo para o deslocamento até a aula       |
+| Quinta | 17:45 às 18:30 | Idem                                                               |
+| Sexta  | 14:00 às 15:30 | A tarde de sexta não tem prática DevOps; termina antes da academia |
 
-As sessões são compromissos recorrentes comuns da área Estudos: mudar o horário, cancelar um dia ou apagar a sessão de domingo se faz pela própria agenda. Elas não entram nas sessões pendentes da trilha DevOps.
+As sessões são compromissos recorrentes comuns da área Estudos: mudar o horário, cancelar um dia ou apagar uma sessão se faz pela própria agenda. Elas não entram nas sessões pendentes da trilha DevOps.
 
 ## Fases
 
