@@ -41,7 +41,9 @@ export function ProximoPortao({
           className={s.proximoIcone}
         />
       </span>
-      {pausa && <span className={`${s.emPausa} mono`}>Em pausa até {dataNumerica(pausa.fim)}</span>}
+      {pausa && (
+        <span className={`${s.emPausa} mono`}>Semana leve até {dataNumerica(pausa.fim)}</span>
+      )}
       <div className={s.proximoNome}>
         <strong>{fase.portao}</strong>
         <span>{fase.portaoNome}</span>

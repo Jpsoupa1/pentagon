@@ -1,0 +1,1 @@
+ALTER TYPE "public"."study_session_kind" ADD VALUE 'reposicao';

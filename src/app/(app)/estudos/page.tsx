@@ -78,7 +78,7 @@ export default async function Estudos() {
     domingo ? errosParaRevisar(usuario.id, hoje) : Promise.resolve([]),
     errosDaSemanaAnotados(usuario.id, semana.de),
   ]);
-  // Sessões semanais da trilha de Segurança (compromissos ligados a ela).
+  // Bloco diário da trilha de Segurança (compromisso ligado a ela).
   const idsSeguranca = new Set(seguranca?.sessoes.map((x) => x.id));
   const linha = (o: (typeof agendaDaSemana)[number]) => (
     <LinhaAgenda
@@ -91,6 +91,7 @@ export default async function Estudos() {
           ? "Dia inteiro"
           : `${horaLocal(o.inicio, fuso)} – ${horaLocal(o.fim, fuso)}${o.local ? ` · ${o.local}` : ""}`
       }
+      detalhe={o.detalhe}
       passada={o.fim < agora}
       editar={alvoDeEdicao(o)}
     />

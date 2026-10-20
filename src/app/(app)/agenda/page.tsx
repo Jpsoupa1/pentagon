@@ -43,6 +43,7 @@ export default async function PaginaAgenda({ searchParams }: PageProps<"/agenda"
           diaInteiro: o.diaInteiro,
           movida: o.movida,
           noEstagio: o.noEstagio,
+          detalhe: o.detalhe,
         }))}
         prazos={dados.prazos.map((p) => ({
           id: p.id,

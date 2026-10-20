@@ -27,6 +27,8 @@ export type OcorrenciaAgenda = {
   movida: boolean;
   /** Sessão de estudo que acontece durante o estágio, de propósito. */
   noEstagio?: boolean;
+  /** A tarefa do dia, no bloco da Segurança. */
+  detalhe?: string;
 };
 export type PrazoAgenda = {
   id: string;
@@ -313,10 +315,16 @@ export function Agenda({
                         width: `calc(${100 / b.faixas}% - 4px)`,
                       }}
                     >
-                      <span className={s.blocoTitulo}>{b.titulo}</span>
+                      <span
+                        className={s.blocoTitulo}
+                        title={b.detalhe ? `${b.titulo}: ${b.detalhe}` : undefined}
+                      >
+                        {b.titulo}
+                      </span>
                       <span className={`${s.blocoHora} mono`}>
                         {hm(b.ini)}–{hm(b.fimMin % 1440)}
                       </span>
+                      {b.detalhe && <span className={s.blocoDetalhe}>{b.detalhe}</span>}
                       {b.noEstagio && <span className={s.selo}>no estágio</span>}
                     </Tag>
                   );
@@ -426,6 +434,7 @@ function LinhaDoTempo({
                 {b.local ? ` · ${b.local}` : ""}
                 {b.movida ? " · mudado neste dia" : ""}
               </span>
+              {b.detalhe && <span className={s.tempoDetalhe}>{b.detalhe}</span>}
               {b.noEstagio && <span className={s.selo}>no estágio</span>}
             </Tag>
           </li>

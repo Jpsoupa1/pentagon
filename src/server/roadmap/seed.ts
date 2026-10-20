@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, gte, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { z } from "zod";
@@ -147,15 +147,20 @@ async function sincronizar<T extends PgTable>(
   linhas: Record<string, unknown>[],
   atualizar: string[],
 ) {
+  // O `set` do Drizzle usa o nome da propriedade (portaoData), não o da coluna (portao_data).
+  const set = Object.fromEntries(
+    Object.entries(getTableColumns(tabela))
+      .filter(([, coluna]) => atualizar.includes(coluna.name))
+      .map(([prop, coluna]) => [prop, sql.raw(`excluded."${coluna.name}"`)]),
+  );
+  if (Object.keys(set).length !== atualizar.length)
+    throw new Error(`Colunas desconhecidas em ${atualizar.join(", ")}.`);
   let ids: { id: string; posicao: number }[] = [];
   if (linhas.length) {
     ids = (await db
       .insert(tabela)
       .values(linhas as never)
-      .onConflictDoUpdate({
-        target: [colunas.pai, colunas.posicao],
-        set: Object.fromEntries(atualizar.map((c) => [c, sql.raw(`excluded."${c}"`)])) as never,
-      })
+      .onConflictDoUpdate({ target: [colunas.pai, colunas.posicao], set: set as never })
       .returning({ id: colunas.id, posicao: colunas.posicao })) as typeof ids;
   }
   await db.delete(tabela).where(and(eq(colunas.pai, paiId), gte(colunas.posicao, linhas.length)));

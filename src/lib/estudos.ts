@@ -12,19 +12,21 @@ export const categoriasSessao = [
   "revisao_semanal",
   "projeto",
   "revisao_espacada",
+  "reposicao",
 ] as const;
 export type CategoriaSessao = (typeof categoriasSessao)[number];
 
 /** Um horário editável em Ajustes: chave `<dia>-<turno>` (0 = domingo). */
 export type TurnoEstudo = { chave: string; dia: number; turno: Turno; rotulo: string };
 
-/** Na ordem da semana: as duas sessões de segunda a quinta, a sexta, o sábado e o domingo. */
+/** Na ordem da semana: as duas sessões de segunda a quinta, as duas da sexta, o sábado e o domingo. */
 export const TURNOS_ESTUDO: TurnoEstudo[] = [
   ...[1, 2, 3, 4].flatMap((dia) => [
     { chave: `${dia}-manha`, dia, turno: "manha" as const, rotulo: "Conteúdo, no estágio" },
     { chave: `${dia}-tarde`, dia, turno: "tarde" as const, rotulo: "Prática" },
   ]),
   { chave: "5-manha", dia: 5, turno: "manha", rotulo: "Revisão da semana, no estágio" },
+  { chave: "5-tarde", dia: 5, turno: "tarde", rotulo: "Reposição do que atrasou" },
   { chave: "6-manha", dia: 6, turno: "manha", rotulo: "Projeto" },
   { chave: "0-noite", dia: 0, turno: "noite", rotulo: "Revisão espaçada" },
 ];
@@ -38,9 +40,9 @@ export function chaveTurno(diaSemana: number, turno: string) {
 const sessao = (inicio: string, minutos: number) => ({ ativo: true, inicio, minutos });
 
 /**
- * Horários padrão (cerca de 17 h 30 por semana): conteúdo às 08:00 durante o estágio e prática
- * às 14:00 de segunda a quinta, revisão da semana às 08:00 na sexta, projeto no sábado às 09:00
- * e revisão espaçada no domingo às 19:00.
+ * Horários padrão (cerca de 19 h por semana): conteúdo às 08:00 durante o estágio e prática
+ * às 14:00 de segunda a quinta, revisão da semana às 08:00 e reposição do que atrasou às 14:00 na
+ * sexta, projeto no sábado às 09:00 e revisão espaçada no domingo às 19:00.
  */
 export const HORARIOS_PADRAO: HorariosEstudo = {
   "1-manha": sessao("08:00", 90),
@@ -52,6 +54,7 @@ export const HORARIOS_PADRAO: HorariosEstudo = {
   "2-tarde": sessao("14:00", 90),
   "3-tarde": sessao("14:00", 90),
   "4-tarde": sessao("14:00", 90),
+  "5-tarde": sessao("14:00", 90),
   "6-manha": sessao("09:00", 180),
   "0-noite": sessao("19:00", 60),
 };
@@ -68,7 +71,8 @@ const TURNO_ANTIGO: Record<string, string> = {
 
 /**
  * Horários de Ajustes com o padrão no que faltar. Os horários gravados na versão 1 (um por dia,
- * à tarde) continuam valendo para o turno equivalente; a sexta da versão 1 (Reposição) não existe mais.
+ * à tarde) continuam valendo para o turno equivalente; a sexta da versão 1 (Reposição) não volta
+ * para a tarde de sexta: ela começa no horário padrão.
  */
 export function horariosComPadrao(h: HorariosEstudo | null | undefined): HorariosEstudo {
   const saida = { ...HORARIOS_PADRAO };

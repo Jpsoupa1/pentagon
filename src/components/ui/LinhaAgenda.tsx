@@ -9,6 +9,7 @@ export function LinhaAgenda({
   area,
   titulo,
   meta,
+  detalhe,
   fim,
   passada,
   editar,
@@ -17,6 +18,8 @@ export function LinhaAgenda({
   area: AreaId;
   titulo: ReactNode;
   meta?: ReactNode;
+  /** O que fazer (a tarefa do dia no bloco da Segurança), numa linha abaixo do horário. */
+  detalhe?: ReactNode;
   fim?: ReactNode;
   passada?: boolean;
   /** Se informado, o título vira botão que abre a edição do compromisso. */
@@ -35,6 +38,7 @@ export function LinhaAgenda({
           <span className={s.linhaTitulo}>{titulo}</span>
         )}
         {meta && <span className={s.linhaMeta}>{meta}</span>}
+        {detalhe && <span className={s.linhaDetalhe}>{detalhe}</span>}
       </span>
       {fim ?? <span />}
     </li>

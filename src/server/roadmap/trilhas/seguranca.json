@@ -4,38 +4,31 @@
     "name": "Trilha Segurança",
     "subtitle": "SecOps e Cibersegurança",
     "icon": "escudo",
-    "starts_on": "2026-10-19",
+    "starts_on": "2026-10-20",
     "goal_label": "Escolher o lado",
     "goal_note": "SOC, AppSec e DevSecOps ou Cloud Security",
     "start_label": "Começo",
     "hero_title": "Do primeiro pacote ao primeiro incidente",
-    "hero_text": "Base geral de SecOps e cibersegurança em paralelo à DevOps, nas tardes de terça e quinta e no sábado à tarde. Cada fase termina num portão, e a trilha fecha com a Security+.",
-    "stats": ["4 fases", "1 certificação no núcleo", "53 semanas", "5 h por semana"]
+    "hero_text": "Base geral de SecOps e cibersegurança em paralelo à DevOps, de segunda a sexta, das 17:30 às 18:40, com uma tarefa por dia. Cada fase termina num portão, e a trilha fecha com a Security+.",
+    "stats": ["4 fases", "1 certificação no núcleo", "264 sessões", "5 h 50 por semana"]
   },
   "breaks": [
     {
-      "label": "Revisão CKA",
-      "starts_on": "2026-10-26",
-      "ends_on": "2026-11-08",
-      "color": "#3056D3",
-      "linked_trail": "devops"
-    },
-    {
-      "label": "Pausa CKA",
+      "label": "Semanas leves da CKA",
       "starts_on": "2027-02-15",
       "ends_on": "2027-03-07",
       "color": "#3056D3",
       "linked_trail": "devops"
     },
     {
-      "label": "Pausa AWS SAA",
+      "label": "Semanas leves da AWS SAA",
       "starts_on": "2027-05-17",
       "ends_on": "2027-06-06",
       "color": "#E07A12",
       "linked_trail": "devops"
     },
     {
-      "label": "Pausa Terraform",
+      "label": "Semanas leves do Terraform",
       "starts_on": "2027-07-19",
       "ends_on": "2027-08-01",
       "color": "#7B4FD6",
@@ -48,18 +41,18 @@
       "name": "Fundamentos de segurança",
       "short_name": "Fundamentos",
       "weeks_label": "Semanas 1 a 17",
-      "starts_on": "2026-10-19",
+      "starts_on": "2026-10-20",
       "ends_on": "2027-02-14",
       "color": "#2F7D58",
       "color_ink": "#22603F",
       "color_soft": "#E5F2EA",
       "gate_name": "Base",
       "gate_full_name": "Portão de fundamentos",
-      "gate_date": "2027-02-13",
+      "gate_date": "2027-02-12",
       "gate_kind": "milestone",
       "gate_format": "Sem prova paga: cursos concluídos, badge da Cisco e simulado acima de 75%",
       "cost_note": "≈ US$ 100 por ano no TryHackMe (estudante)",
-      "tip": "Monte o lab numa rede isolada no primeiro sábado. Máquina vulnerável nunca fica exposta na sua rede de casa nem na internet.",
+      "tip": "Monte o lab numa rede isolada na sexta, 23/10. Máquina vulnerável nunca fica exposta na sua rede de casa nem na internet.",
       "domains_title": "O que a fase precisa provar",
       "domains": [
         ["Redes e protocolos", null],
@@ -71,14 +64,14 @@
       "requirements": [
         { "label": "Lab isolado montado (Kali e VM alvo)" },
         { "label": "Pre Security concluído (TryHackMe)" },
-        { "label": "Cisco Introdução à Cibersegurança com badge (05/12)" },
+        { "label": "Cisco Introdução à Cibersegurança com badge (02/12)" },
         { "label": "OverTheWire Bandit até o nível 20" },
         { "label": "Captura lida no Wireshark: TCP, DNS e HTTP" },
         { "label": "VM Linux endurecida (SSH por chave, firewall, fail2ban)" },
         { "label": "CA própria e certificado com openssl" },
         { "label": "Varredura com Nmap e Greenbone lida e explicada" },
         { "label": "Trivy na imagem do BookStack" },
-        { "label": "Simulado de fundamentos acima de 75% (30/01)" },
+        { "label": "Simulado de fundamentos acima de 75% (27/01)" },
         { "label": "Cyber Security 101 concluído (TryHackMe)" }
       ],
       "resources": [
@@ -106,7 +99,7 @@
           "pricing": "free",
           "price_label": "Grátis",
           "lang": "EN",
-          "note": "CTFs para iniciantes. Ótimos para os sábados leves.",
+          "note": "CTFs para iniciantes. Ótimos para as quartas de CTF e as semanas leves.",
           "url": "https://picoctf.org/"
         },
         {
@@ -139,7 +132,7 @@
       ],
       "assessments": [
         {
-          "date": "2026-12-05",
+          "date": "2026-12-02",
           "kind": "prova",
           "title": "Prova final Cisco",
           "format": "Online, ao fim do curso",
@@ -147,20 +140,20 @@
           "note": "Dá o badge digital de Introdução à Cibersegurança."
         },
         {
-          "date": "2027-01-30",
+          "date": "2027-01-27",
           "kind": "simulado",
           "title": "Simulado de fundamentos",
           "format": "40 questões, 1 h",
           "price_label": "Grátis",
-          "note": "Meta de 75%. Os erros viram a revisão da semana 17."
+          "note": "Meta de 75%. Os erros viram a revisão da quarta da semana 16."
         },
         {
-          "date": "2027-02-13",
+          "date": "2027-02-12",
           "kind": "entrega",
           "title": "Portão de fundamentos",
           "format": "Checklist completo da fase",
           "price_label": "Grátis",
-          "note": "Confira item por item no sábado antes da pausa da CKA."
+          "note": "Confira item por item na sexta, antes das semanas leves da CKA."
         },
         {
           "date": null,
@@ -173,18 +166,22 @@
         }
       ],
       "practice": [
-        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 15 },
+        { "title": "Labs de terça", "cadence": "Toda terça, 17:30 às 18:40", "target": 17 },
         {
-          "title": "Sábados de projeto ou CTF",
-          "cadence": "Sábado, 14:00 às 16:00",
+          "title": "Projeto ou CTF",
+          "cadence": "Quarta e quinta, 17:30 às 18:40",
+          "target": 30
+        },
+        { "title": "Níveis do Bandit", "cadence": "Semanas 2 e 3", "target": 20 },
+        {
+          "title": "Desafios do picoCTF",
+          "cadence": "Quartas de CTF e semanas leves",
           "target": 15
         },
-        { "title": "Níveis do Bandit", "cadence": "Sábados de 31/10 e 07/11", "target": 20 },
-        { "title": "Desafios do picoCTF", "cadence": "Sábados leves", "target": 15 },
         {
           "title": "Flashcards de portas e siglas",
           "cadence": "Todo dia, junto com os da CKA",
-          "target": 119,
+          "target": 118,
           "source": "cards:SEG"
         }
       ]
@@ -201,7 +198,7 @@
       "color_soft": "#E4EFF9",
       "gate_name": "SOC",
       "gate_full_name": "Projeto SOC em casa",
-      "gate_date": "2027-05-15",
+      "gate_date": "2027-05-14",
       "gate_kind": "project",
       "gate_format": "Sem prova: Wazuh, Suricata e Sysmon com regras próprias e um relatório de incidente",
       "cost_note": "Grátis, dentro da assinatura do TryHackMe",
@@ -288,13 +285,13 @@
           "pricing": "free",
           "price_label": "Grátis",
           "lang": "EN",
-          "note": "Desafios curtos para os sábados.",
+          "note": "Desafios curtos para as quartas e quintas.",
           "url": "https://blueteamlabs.online/"
         }
       ],
       "assessments": [
         {
-          "date": "2027-05-13",
+          "date": "2027-05-11",
           "kind": "simulado",
           "title": "Turno simulado de SOC",
           "format": "LetsDefend ou Blue Team Labs Online, 1 h 30",
@@ -302,7 +299,7 @@
           "note": "Trie os alertas e escreva a conclusão de cada um."
         },
         {
-          "date": "2027-05-15",
+          "date": "2027-05-14",
           "kind": "entrega",
           "title": "Projeto SOC publicado",
           "format": "README, diagrama, regras e relatório",
@@ -320,14 +317,14 @@
         }
       ],
       "practice": [
-        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 10 },
+        { "title": "Labs de terça", "cadence": "Toda terça, 17:30 às 18:40", "target": 10 },
         { "title": "Regras de detecção próprias", "cadence": "No Wazuh do lab", "target": 3 },
         {
           "title": "Relatórios de incidente",
-          "cadence": "Sábados das semanas 27 e 28",
+          "cadence": "Semanas 27 e 28",
           "target": 2
         },
-        { "title": "Labs do CyberDefenders", "cadence": "Sábados livres", "target": 4 },
+        { "title": "Labs do CyberDefenders", "cadence": "Semana 28 e semanas leves", "target": 4 },
         {
           "title": "Alertas triados no LetsDefend",
           "cadence": "Quando sobrar tempo",
@@ -347,7 +344,7 @@
       "color_soft": "#FBE8EB",
       "gate_name": "Web",
       "gate_full_name": "Labs e relatórios",
-      "gate_date": "2027-07-17",
+      "gate_date": "2027-07-16",
       "gate_kind": "project",
       "gate_format": "Sem prova: labs Apprentice da PortSwigger e dois relatórios de pentest",
       "cost_note": "Grátis, dentro da assinatura do TryHackMe",
@@ -429,7 +426,7 @@
       ],
       "assessments": [
         {
-          "date": "2027-07-03",
+          "date": "2027-06-30",
           "kind": "entrega",
           "title": "Relatório da máquina 1",
           "format": "Achados, evidências, como detectar e como corrigir",
@@ -437,7 +434,7 @@
           "note": "Escreva como se fosse entregar a um cliente."
         },
         {
-          "date": "2027-07-10",
+          "date": "2027-07-07",
           "kind": "entrega",
           "title": "Relatório da máquina 2",
           "format": "Mesmo formato, máquina diferente",
@@ -445,7 +442,7 @@
           "note": "Inclua a escalação de privilégio."
         },
         {
-          "date": "2027-07-17",
+          "date": "2027-07-16",
           "kind": "entrega",
           "title": "Portão: labs e relatórios",
           "format": "Checklist completo da fase",
@@ -463,13 +460,13 @@
         }
       ],
       "practice": [
-        { "title": "Labs da PortSwigger", "cadence": "Sábados da fase", "target": 25 },
+        { "title": "Labs da PortSwigger", "cadence": "Quartas da fase", "target": 25 },
         {
           "title": "Máquinas com relatório",
-          "cadence": "Sábados das semanas 37 e 38",
+          "cadence": "Quartas das semanas 37 e 38",
           "target": 2
         },
-        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 6 }
+        { "title": "Labs de terça", "cadence": "Toda terça, 17:30 às 18:40", "target": 6 }
       ]
     },
     {
@@ -499,7 +496,7 @@
       ],
       "requirements": [
         { "label": "Voucher acadêmico comprado e prova marcada" },
-        { "label": "Simulado diagnóstico (07/08)" },
+        { "label": "Simulado diagnóstico (04/08)" },
         { "label": "Domínio 1 revisado" },
         { "label": "Domínio 2 revisado" },
         { "label": "Domínio 3 revisado" },
@@ -549,7 +546,7 @@
       ],
       "assessments": [
         {
-          "date": "2027-08-07",
+          "date": "2027-08-04",
           "kind": "simulado",
           "title": "Simulado diagnóstico",
           "format": "Prova completa, 90 min",
@@ -557,15 +554,15 @@
           "note": "Define a ordem de revisão dos domínios."
         },
         {
-          "date": "2027-09-25",
+          "date": "2027-09-22",
           "kind": "simulado",
           "title": "Simulado completo 1",
           "format": "90 min cronometrados",
           "price_label": "Nos simulados",
-          "note": "Corrija domínio por domínio na terça."
+          "note": "Corrija domínio por domínio na quinta."
         },
         {
-          "date": "2027-10-02",
+          "date": "2027-09-29",
           "kind": "simulado",
           "title": "Simulado completo 2",
           "format": "90 min cronometrados",
@@ -573,7 +570,7 @@
           "note": "Meta de 85%."
         },
         {
-          "date": "2027-10-09",
+          "date": "2027-10-06",
           "kind": "simulado",
           "title": "Simulado completo 3",
           "format": "90 min cronometrados",
@@ -594,7 +591,7 @@
         { "title": "Questões de desempenho (PBQs)", "cadence": "Semanas 49 a 51", "target": 30 },
         {
           "title": "Simulados completos",
-          "cadence": "Sábados de agosto a outubro",
+          "cadence": "Diagnóstico e quartas de setembro e outubro",
           "target": 4
         },
         {

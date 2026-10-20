@@ -9,8 +9,9 @@ import p from "../ui/Pagina.module.css";
 import s from "./TrilhaSeguranca.module.css";
 
 /**
- * Trilha Segurança em Estudos: a fase do Roadmap em que hoje cai (com as pausas para a DevOps),
- * o portão dela e as sessões desta semana. O detalhe (requisitos, cursos, provas) fica no Roadmap.
+ * Trilha Segurança em Estudos: a fase do Roadmap em que hoje cai (com as semanas leves da DevOps),
+ * o portão dela e os blocos desta semana com a tarefa de cada dia. O detalhe (requisitos, cursos,
+ * provas) fica no Roadmap.
  */
 export function TrilhaSeguranca({
   slug,
@@ -23,7 +24,7 @@ export function TrilhaSeguranca({
   nome: string;
   estado: ReturnType<typeof segurancaEm>;
   hoje: string;
-  /** Linhas da agenda (LinhaAgenda) com as sessões desta semana. */
+  /** Linhas da agenda (LinhaAgenda) com os blocos desta semana. */
   sessoes: ReactNode[];
 }) {
   const dias = difDias(hoje, estado.portaoData);
@@ -39,15 +40,15 @@ export function TrilhaSeguranca({
       />
       <div className={p.pilha} style={{ gap: 14 }}>
         <div className={s.fase}>
-          <Rotulo>{estado.pausa ? "Em pausa" : "Fase atual"}</Rotulo>
+          <Rotulo>{estado.pausa ? "Semana leve" : "Fase atual"}</Rotulo>
           <span className={s.nome}>
             <span className={s.ponto} style={{ background: estado.cor }} aria-hidden />
             {estado.nome}
           </span>
           {estado.pausa && (
             <p className={p.meta}>
-              {estado.pausa.rotulo}: as tardes de terça e quinta voltam para a DevOps até{" "}
-              <span className="mono">{dataNumerica(estado.pausa.fim)}</span>. O sábado continua.
+              {estado.pausa.rotulo}: o bloco das 17:30 fica leve, com o foco na prova da DevOps, até{" "}
+              <span className="mono">{dataNumerica(estado.pausa.fim)}</span>.
             </p>
           )}
           <p className={p.meta}>
@@ -59,7 +60,7 @@ export function TrilhaSeguranca({
           {sessoes.length ? (
             <ul className={p.lista}>{sessoes}</ul>
           ) : (
-            <EstadoVazio>Nenhuma sessão nesta semana.</EstadoVazio>
+            <EstadoVazio>Nenhum bloco nesta semana.</EstadoVazio>
           )}
         </div>
         <BotaoLink href={`/trilhas/${slug}/roadmap`} pequeno>

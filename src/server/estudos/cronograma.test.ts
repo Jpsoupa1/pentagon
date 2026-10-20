@@ -86,8 +86,7 @@ describe("cronograma da trilha (versão 2)", () => {
           continue;
         }
         esperado.push(`${data} ${l.manha}`);
-        // A tarde de sexta é livre (reposição, se precisar): não vira sessão.
-        if (l.tarde && l.dia !== "Sexta") esperado.push(`${data} ${l.tarde}`);
+        if (l.tarde) esperado.push(`${data} ${l.tarde}`);
       }
       expect(
         sessoes.map((x) => `${x.data} ${x.texto}`),
@@ -96,7 +95,7 @@ describe("cronograma da trilha (versão 2)", () => {
     }
   });
 
-  it("segunda a quinta têm duas sessões, sexta a revisão às 08:00, domingo a revisão espaçada", () => {
+  it("segunda a quinta têm duas sessões, sexta a revisão às 08:00 e a reposição às 14:00, domingo a revisão espaçada", () => {
     const semana = ROTINA.sessoesEntre("2026-11-09", "2026-11-15");
     const porDia = (d: string) => semana.filter((s) => s.data === d);
     for (const d of ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12"]) {
@@ -105,8 +104,14 @@ describe("cronograma da trilha (versão 2)", () => {
         ["tarde", "pratica", "14:00"],
       ]);
     }
-    expect(porDia("2026-11-13").map((s) => [s.categoria, s.ini, s.fim])).toEqual([
-      ["revisao_semanal", "08:00", "09:30"],
+    expect(porDia("2026-11-13").map((s) => [s.categoria, s.ini, s.fim, s.titulo])).toEqual([
+      [
+        "revisao_semanal",
+        "08:00",
+        "09:30",
+        "Revisão da semana: Cluster Maintenance (parte 1 de 2)",
+      ],
+      ["reposicao", "14:00", "15:30", "Reposição do que atrasou"],
     ]);
     expect(porDia("2026-11-14").map((s) => [s.categoria, s.ini, s.fim])).toEqual([
       ["projeto", "09:00", "12:00"],
@@ -114,7 +119,7 @@ describe("cronograma da trilha (versão 2)", () => {
     expect(porDia("2026-11-15").map((s) => [s.categoria, s.ini, s.texto])).toEqual([
       ["revisao_espacada", "19:00", "Revisão espaçada e planejamento"],
     ]);
-    expect(semana.reduce((t, s) => t + s.min, 0)).toBe(17 * 60 + 30);
+    expect(semana.reduce((t, s) => t + s.min, 0)).toBe(19 * 60);
   });
 
   it("semana 1 é a revisão da CKA e a semana 3 é Cluster Maintenance em manhã e tarde", () => {

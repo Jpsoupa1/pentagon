@@ -29,7 +29,7 @@ describe("semana da trilha", () => {
     ]);
   });
 
-  it("a semana zero continua com uma sessão por dia, à tarde, como antes", () => {
+  it("a semana zero continua com uma sessão por dia, à tarde, e ganha a reposição de sexta", () => {
     const zero = ROTINA.sessoesEntre("2026-10-19", "2026-10-25", TODOS_OS_DIAS);
     expect(zero.map((s) => [s.data, s.turno, s.ini, s.titulo])).toEqual([
       ["2026-10-19", "tarde", "14:00", "Aula: Ler o plano de estudos completo"],
@@ -41,6 +41,7 @@ describe("semana da trilha", () => {
         "14:00",
         "Base: Configurar o app, o calendário e o widget da tela bloqueada",
       ],
+      ["2026-10-23", "tarde", "14:00", "Reposição do que atrasou"],
       [
         "2026-10-24",
         "manha",
@@ -89,19 +90,23 @@ describe("sessões na agenda", () => {
     }));
   const semana3 = paraAgenda("2026-11-09", "2026-11-15");
 
-  it("ficam no horário de cada turno e contam 17 h 30 em Estudos", () => {
+  it("ficam no horário de cada turno e contam 19 h em Estudos", () => {
     const oc = ocorrenciasDeSessoes(semana3, HORARIOS_PADRAO, "America/Sao_Paulo");
-    expect(oc).toHaveLength(11);
+    expect(oc).toHaveLength(12);
     expect(oc[0].inicio).toEqual(paraUtc("2026-11-09", "08:00"));
     expect(oc[0].fim).toEqual(paraUtc("2026-11-09", "09:30"));
     expect(oc[1].inicio).toEqual(paraUtc("2026-11-09", "14:00"));
     expect(oc[0].titulo).toBe("Aula: Drain, cordon e atualização do sistema dos nós");
     expect(oc[0].chave).toBe("sessao:2026-11-09:manha");
-    expect(minutosPorArea(oc).estudos).toBe(17 * 60 + 30);
+    expect(minutosPorArea(oc).estudos).toBe(19 * 60);
   });
 
   it("turno desligado some da agenda", () => {
-    const h = { ...HORARIOS_PADRAO, "5-manha": { ativo: false, inicio: "08:00", minutos: 90 } };
+    const h = {
+      ...HORARIOS_PADRAO,
+      "5-manha": { ativo: false, inicio: "08:00", minutos: 90 },
+      "5-tarde": { ativo: false, inicio: "14:00", minutos: 90 },
+    };
     const oc = ocorrenciasDeSessoes(semana3, h, "America/Sao_Paulo");
     expect(oc.map((o) => o.dataOriginal)).not.toContain("2026-11-13");
   });

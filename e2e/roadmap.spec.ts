@@ -114,7 +114,7 @@ test("Roadmap no iPhone e no iPad: uma coluna, pílulas e só 5 requisitos de in
   );
 });
 
-test("Trocar de trilha mantém a aba; a Segurança mostra pausas e portão de marco", async ({
+test("Trocar de trilha mantém a aba; a Segurança mostra semanas leves e portão de marco", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 860 });
@@ -135,10 +135,10 @@ test("Trocar de trilha mantém a aba; a Segurança mostra pausas e portão de ma
   await expect(page.getByText("Flashcards de portas e siglas")).toBeVisible();
   await semRolagemHorizontal(page);
 
-  const pausas = page.getByRole("region", { name: "Pausas para a DevOps" });
-  await expect(pausas.getByRole("listitem")).toHaveCount(4);
-  await expect(pausas).toContainText("Revisão CKA");
-  await expect(pausas).toContainText("26/10 a 08/11");
+  const pausas = page.getByRole("region", { name: "Semanas leves para a DevOps" });
+  await expect(pausas.getByRole("listitem")).toHaveCount(3);
+  await expect(pausas).toContainText("Semanas leves da CKA");
+  await expect(pausas).toContainText("15/02 a 07/03");
 
   const portao = page.getByRole("region", { name: /Fase 1: Fundamentos/ });
   await expect(portao.getByText("Portão: marco")).toBeVisible();

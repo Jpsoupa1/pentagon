@@ -153,14 +153,15 @@ describe("estudo durante o estágio", () => {
     expect(encontrarConflitos(doEstagio, sessoes)).toEqual([]);
   });
 
-  it("academia às 14:00 continua chocando com a prática da tarde", () => {
+  it("academia às 14:00 continua chocando com a prática da tarde e com a reposição de sexta", () => {
     const academia14 = { ...academia, inicio: paraUtc("2026-08-03", "14:00") };
     const c = encontrarConflitos(expandirComRegras([academia14], [], [], null, semana), sessoes);
-    expect(c.map((x) => x.com.titulo)).toEqual(
-      ["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03"].map(
+    expect(c.map((x) => x.com.titulo)).toEqual([
+      ...["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03"].map(
         () => "Prática do tema da manhã",
       ),
-    );
+      "Reposição do que atrasou",
+    ]);
   });
 
   it("a sessão da manhã ainda choca com o que não é estágio", () => {

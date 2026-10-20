@@ -19,6 +19,8 @@ export type OcorrenciaCliente = {
   titulo: string;
   areaId: AreaId;
   local: string | null;
+  /** A tarefa do dia, no bloco da Segurança. */
+  detalhe: string | null;
   inicio: string;
   fim: string;
 };
@@ -123,6 +125,7 @@ export function CartaoAgora({
         {item.titulo}
       </h2>
       {item.local && <p className={s.meta}>{item.local}</p>}
+      {item.detalhe && <p className={s.detalhe}>{item.detalhe}</p>}
       {atual ? (
         <>
           <BarraProgresso valor={progresso} rotulo="Andamento" escura />

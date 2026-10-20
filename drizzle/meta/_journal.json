@@ -64,6 +64,13 @@
       "when": 1792519445784,
       "tag": "0008_roadmap-sem-semana-zero",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792534207870,
+      "tag": "0009_rotina-ciber",
+      "breakpoints": true
     }
   ]
 }

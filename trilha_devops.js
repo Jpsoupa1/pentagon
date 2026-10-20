@@ -1,6 +1,7 @@
 /* Pentagon: dados da trilha DevOps (49 semanas, marcos) e gerador de calendário .ics.
    Versão 2 (19/10/2026): duas sessões de segunda a quinta (conteúdo de manhã, no estágio, e prática
-   à tarde), revisão da semana na sexta de manhã, projeto no sábado e revisão espaçada no domingo.
+   à tarde), revisão da semana na sexta de manhã, reposição do que atrasou na sexta à tarde, projeto
+   no sábado e revisão espaçada no domingo.
    O conteúdo de cada dia segue docs/trilha/cronograma-semanal-trilha-devops.md.
    Funciona no navegador (window.Rotina) e no Node (globalThis.Rotina). */
 (function (g) {
@@ -215,14 +216,15 @@
 
   // Tipo da sessão de conteúdo por dia (0 = domingo); a tarde de segunda a quinta é Prática.
   var TIPOS = { 1: 'Aula', 2: 'Lab', 3: 'Aprofundar', 4: 'Base', 5: 'Revisão', 6: 'Projeto', 0: 'Revisão' };
-  var CATEGORIAS = ['conteudo', 'pratica', 'revisao_semanal', 'projeto', 'revisao_espacada'];
+  var CATEGORIAS = ['conteudo', 'pratica', 'revisao_semanal', 'projeto', 'revisao_espacada', 'reposicao'];
+  var REPOSICAO = 'Reposição do que atrasou';
   var TURNOS = ['manha', 'tarde', 'noite'];
   var DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   var DIAS_CURTOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   var MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
   // Horário de cada turno, pela chave "<dia>-<turno>". A manhã de segunda a sexta cai dentro do
-  // estágio (07:30 às 12:00) de propósito; a tarde de sexta fica livre.
+  // estágio (07:30 às 12:00) de propósito; a tarde de sexta é a reposição do que atrasou.
   var PADRAO = {
     turnos: {
       '1-manha': { on: true, ini: '08:00', min: 90 },
@@ -234,6 +236,7 @@
       '2-tarde': { on: true, ini: '14:00', min: 90 },
       '3-tarde': { on: true, ini: '14:00', min: 90 },
       '4-tarde': { on: true, ini: '14:00', min: 90 },
+      '5-tarde': { on: true, ini: '14:00', min: 90 },
       '6-manha': { on: true, ini: '09:00', min: 180 },
       '0-noite': { on: true, ini: '19:00', min: 60 }
     },
@@ -297,7 +300,10 @@
         item('tarde', 'pratica', 'Prática', sem.tarde[d - 1], d)
       ];
     }
-    if (d === 5) return sem.n === 0 ? [] : [item('manha', 'revisao_semanal', TIPOS[5], sem.sex, d)];
+    if (d === 5) {
+      var reposicao = item('tarde', 'reposicao', 'Reposição', REPOSICAO, d);
+      return sem.n === 0 ? [reposicao] : [item('manha', 'revisao_semanal', TIPOS[5], sem.sex, d), reposicao];
+    }
     if (d === 6) return [item('manha', 'projeto', TIPOS[6], sem.sab, d)];
     return [item('noite', 'revisao_espacada', TIPOS[0], sem.n === 0 ? 'Planejar a semana 1' : DOMINGO, d)];
   }

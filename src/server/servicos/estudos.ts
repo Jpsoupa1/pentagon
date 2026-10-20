@@ -20,7 +20,16 @@ export async function obterTrilha(userId: string) {
   return t ?? null;
 }
 
-/** Trilha de Segurança (sem datas) e os compromissos semanais ligados a ela. */
+/** Id da trilha de Segurança do usuário (null se ele não tem). */
+export async function idDaTrilhaSeguranca(userId: string) {
+  const [t] = await db()
+    .select({ id: studyTracks.id })
+    .from(studyTracks)
+    .where(and(eq(studyTracks.userId, userId), eq(studyTracks.slug, SLUG_SEGURANCA)));
+  return t?.id ?? null;
+}
+
+/** Trilha de Segurança e os compromissos ligados a ela (o bloco diário). */
 export async function obterTrilhaSeguranca(userId: string) {
   const [t] = await db()
     .select()
