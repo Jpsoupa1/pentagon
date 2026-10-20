@@ -143,6 +143,7 @@ export function AbasFlutuantes() {
             aria-current={
               ativo(pathname, "/areas") ||
               ativo(pathname, "/cards") ||
+              ativo(pathname, "/trilhas") ||
               ativo(pathname, "/estagio") ||
               ativo(pathname, "/ajustes")
                 ? "page"
@@ -168,7 +169,7 @@ export function AbasFlutuantes() {
   );
 }
 
-/** iPhone: abas fixas com o "+" no centro. */
+/** iPhone: abas fixas com o "+" no centro (Lembretes fica em Áreas). */
 export function AbasIphone() {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
@@ -179,6 +180,7 @@ export function AbasIphone() {
     "/estudos",
     "/cards",
     "/estagio",
+    "/lembretes",
     "/ajustes",
   ].some((h) => ativo(pathname, h));
   const itens = [
@@ -190,13 +192,13 @@ export function AbasIphone() {
       atual: ativo(pathname, "/agenda"),
     },
     null,
-    { href: "/areas", rotulo: "Áreas", icone: "areas" as const, atual: areasAtivo },
     {
-      href: "/lembretes",
-      rotulo: "Lembretes",
-      icone: "lembretes" as const,
-      atual: ativo(pathname, "/lembretes"),
+      href: "/trilhas",
+      rotulo: "Trilhas",
+      icone: "trilhas" as const,
+      atual: ativo(pathname, "/trilhas"),
     },
+    { href: "/areas", rotulo: "Áreas", icone: "areas" as const, atual: areasAtivo },
   ];
   return (
     <nav className={s.abas} aria-label="Principal">

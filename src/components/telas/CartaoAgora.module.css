@@ -3,8 +3,8 @@
   gap: 10px;
   padding: 22px;
   border-radius: var(--r-lg);
-  background: var(--ink);
-  color: var(--on-ink);
+  background: var(--destaque);
+  color: var(--on-destaque);
   min-width: 0;
 }
 .topo {
@@ -18,7 +18,7 @@
   font-size: var(--fs-tiny);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--on-ink-2);
+  color: var(--on-destaque-2);
 }
 .chip {
   display: inline-flex;
@@ -39,7 +39,7 @@
 }
 .horario {
   font-size: var(--fs-small);
-  color: var(--on-ink-2);
+  color: var(--on-destaque-2);
 }
 .titulo {
   font-size: 24px;
@@ -49,7 +49,7 @@
 }
 .meta {
   font-size: var(--fs-small);
-  color: var(--on-ink-2);
+  color: var(--on-destaque-2);
 }
 .acoes {
   display: flex;
@@ -58,9 +58,9 @@
   margin-top: 6px;
 }
 .concluir {
-  background: var(--on-ink);
-  color: var(--ink);
+  background: var(--on-destaque);
+  color: var(--destaque);
 }
 .concluir:hover {
-  background: #e9eaee;
+  background: color-mix(in srgb, var(--on-destaque) 90%, var(--destaque));
 }

@@ -17,6 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { categoriasSessao, turnos } from "../../lib/estudos";
+import { precosRecurso, tiposAvaliacaoRoadmap, tiposPortao } from "../../lib/roadmap";
 import {
   areaIds,
   assessmentKinds,
@@ -399,6 +400,169 @@ export const flashcardAnswers = pgTable(
     createdAt: criadoEm(),
   },
   (t) => [index("flashcard_answers_user_data_idx").on(t.userId, t.data)],
+);
+
+// ---------------------------------------------------------------- Roadmap das trilhas
+
+/**
+ * Catálogo do Roadmap: igual para todos os usuários e regravado pelo seed a cada deploy.
+ * O progresso de cada um fica em roadmap_requirement_progress e roadmap_practice_progress.
+ */
+export const roadmapTrails = pgTable("roadmap_trails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  nome: text("nome").notNull(),
+  /** Título grande da página e o parágrafo abaixo dele. */
+  titulo: text("titulo").notNull(),
+  sobre: text("sobre").notNull(),
+  inicio: date("inicio").notNull(),
+  /** Estação final do mapa (ex.: "Primeira vaga") e a nota dela. */
+  meta: text("meta").notNull(),
+  metaNota: text("meta_nota"),
+  semanaZeroRotulo: text("semana_zero_rotulo"),
+  semanaZeroInicio: date("semana_zero_inicio"),
+  semanaZeroFim: date("semana_zero_fim"),
+  createdAt: criadoEm(),
+});
+
+export const portaoEnum = pgEnum("roadmap_gate_kind", tiposPortao);
+export const precoRecursoEnum = pgEnum("roadmap_pricing", precosRecurso);
+export const avaliacaoRoadmapEnum = pgEnum("roadmap_assessment_kind", tiposAvaliacaoRoadmap);
+
+export const roadmapPhases = pgTable(
+  "roadmap_phases",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    trailId: uuid("trail_id")
+      .notNull()
+      .references(() => roadmapTrails.id, { onDelete: "cascade" }),
+    posicao: smallint("posicao").notNull(),
+    slug: text("slug").notNull(),
+    nome: text("nome").notNull(),
+    curto: text("curto").notNull(),
+    semanas: text("semanas").notNull(),
+    inicio: date("inicio").notNull(),
+    fim: date("fim").notNull(),
+    /** Cores da fase (marca, texto e fundo suave). O modo escuro deriva destas três no CSS. */
+    cor: text("cor").notNull(),
+    corTexto: text("cor_texto").notNull(),
+    corSuave: text("cor_suave").notNull(),
+    portao: text("portao").notNull(),
+    portaoNome: text("portao_nome").notNull(),
+    portaoData: date("portao_data").notNull(),
+    portaoFormato: text("portao_formato").notNull(),
+    portaoTipo: portaoEnum("portao_tipo").notNull(),
+    custo: text("custo"),
+    dica: text("dica"),
+    dominiosTitulo: text("dominios_titulo").notNull(),
+  },
+  (t) => [uniqueIndex("roadmap_phases_trail_posicao_uq").on(t.trailId, t.posicao)],
+);
+
+const daFase = () =>
+  uuid("phase_id")
+    .notNull()
+    .references(() => roadmapPhases.id, { onDelete: "cascade" });
+
+export const roadmapDomains = pgTable(
+  "roadmap_domains",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phaseId: daFase(),
+    posicao: smallint("posicao").notNull(),
+    rotulo: text("rotulo").notNull(),
+    /** Peso oficial na prova (%). Nulo quando a prova não publica pesos. */
+    peso: smallint("peso"),
+  },
+  (t) => [uniqueIndex("roadmap_domains_phase_posicao_uq").on(t.phaseId, t.posicao)],
+);
+
+export const roadmapRequirements = pgTable(
+  "roadmap_requirements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phaseId: daFase(),
+    posicao: smallint("posicao").notNull(),
+    rotulo: text("rotulo").notNull(),
+  },
+  (t) => [uniqueIndex("roadmap_requirements_phase_posicao_uq").on(t.phaseId, t.posicao)],
+);
+
+export const roadmapResources = pgTable(
+  "roadmap_resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phaseId: daFase(),
+    posicao: smallint("posicao").notNull(),
+    titulo: text("titulo").notNull(),
+    fornecedor: text("fornecedor").notNull(),
+    preco: precoRecursoEnum("preco").notNull(),
+    precoTexto: text("preco_texto").notNull(),
+    idioma: text("idioma").notNull(),
+    nota: text("nota").notNull(),
+    url: text("url").notNull(),
+  },
+  (t) => [uniqueIndex("roadmap_resources_phase_posicao_uq").on(t.phaseId, t.posicao)],
+);
+
+export const roadmapAssessments = pgTable(
+  "roadmap_assessments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phaseId: daFase(),
+    posicao: smallint("posicao").notNull(),
+    /** Nula quando a prova é opcional e ainda sem data. */
+    data: date("data"),
+    tipo: avaliacaoRoadmapEnum("tipo").notNull(),
+    titulo: text("titulo").notNull(),
+    formato: text("formato").notNull(),
+    precoTexto: text("preco_texto").notNull(),
+    nota: text("nota").notNull(),
+    opcional: boolean("opcional").notNull().default(false),
+  },
+  (t) => [uniqueIndex("roadmap_assessments_phase_posicao_uq").on(t.phaseId, t.posicao)],
+);
+
+export const roadmapPractice = pgTable(
+  "roadmap_practice",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phaseId: daFase(),
+    posicao: smallint("posicao").notNull(),
+    titulo: text("titulo").notNull(),
+    cadencia: text("cadencia").notNull(),
+    meta: smallint("meta").notNull(),
+    /** De onde o contador soma sozinho (FontePratica em lib/roadmap). Nulo: só o "+". */
+    fonte: text("fonte"),
+  },
+  (t) => [uniqueIndex("roadmap_practice_phase_posicao_uq").on(t.phaseId, t.posicao)],
+);
+
+export const roadmapRequirementProgress = pgTable(
+  "roadmap_requirement_progress",
+  {
+    userId: dono(),
+    requirementId: uuid("requirement_id")
+      .notNull()
+      .references(() => roadmapRequirements.id, { onDelete: "cascade" }),
+    feito: boolean("feito").notNull().default(false),
+    feitoEm: timestamp("feito_em", tz),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.requirementId] })],
+);
+
+export const roadmapPracticeProgress = pgTable(
+  "roadmap_practice_progress",
+  {
+    userId: dono(),
+    practiceId: uuid("practice_id")
+      .notNull()
+      .references(() => roadmapPractice.id, { onDelete: "cascade" }),
+    /** Só o que foi marcado no "+"; o automático é contado na hora da leitura. */
+    contagem: integer("contagem").notNull().default(0),
+    updatedAt: atualizadoEm(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.practiceId] })],
 );
 
 // ---------------------------------------------------------------- Lembretes e avisos

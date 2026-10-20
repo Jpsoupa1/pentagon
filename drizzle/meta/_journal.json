@@ -43,6 +43,13 @@
       "when": 1792506915787,
       "tag": "0005_trilha-seguranca",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792513102825,
+      "tag": "0006_roadmap",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-/* Tokens do Pentagon. Só tema claro por enquanto; o escuro entra redefinindo estas variáveis. */
+/* Tokens do Pentagon. O tema escuro (prefers-color-scheme) redefine as mesmas variáveis no fim. */
 :root {
   --bg: #f3f4f6;
   --surface: #ffffff;
@@ -33,6 +33,17 @@
   --pessoal: #e0a100;
   --pessoal-bg: #fbf3dc;
   --pessoal-text: #8a6300;
+  /* Verde para fundo com texto branco (o --estudos-text clareia no escuro). */
+  --estudos-forte: #0b7a5b;
+  --estudos-forte-2: #096a4f;
+
+  /* Card de destaque escuro (sessão agora, próximo portão, blocos de código). */
+  --destaque: #15171c;
+  --on-destaque: #ffffff;
+  --on-destaque-2: #b9bdc7;
+  /* Barras translúcidas sobre o conteúdo. */
+  --vidro: rgb(255 255 255 / 0.94);
+  --vidro-fundo: rgb(243 244 246 / 0.9);
 
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
@@ -59,6 +70,56 @@
   --safe-right: env(safe-area-inset-right, 0px);
 
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --sidebar: #1c1f26;
+    --line: #2a2e37;
+    --line-soft: #23262e;
+    --line-strong: #363b46;
+    --ink: #eceef2;
+    --on-ink: #15171c;
+    --on-ink-2: #4a4f5c;
+    --ink-2: #d4d7de;
+    --text-2: #b4b9c4;
+    --muted: #8f95a2;
+    --faint: #666c79;
+    --active: #262a33;
+    --focus: #8fa3ff;
+    --danger: #ff8a5c;
+
+    --aulas: #6b84f5;
+    --aulas-bg: #1e2542;
+    --aulas-text: #a9b8ff;
+    --provas: #f47a58;
+    --provas-bg: #3b2119;
+    --provas-text: #ffab90;
+    --estudos: #2bbd91;
+    --estudos-bg: #12302a;
+    --estudos-text: #6fd3b0;
+    --estagio: #a777e6;
+    --estagio-bg: #2c2141;
+    --estagio-text: #cfb2f5;
+    --pessoal: #e8b52c;
+    --pessoal-bg: #352c12;
+    --pessoal-text: #f1cd6b;
+    --estudos-forte: #0e6b51;
+    --estudos-forte-2: #0c5c46;
+
+    --destaque: #262a34;
+    --on-destaque: #f5f6f8;
+    --on-destaque-2: #a9aebb;
+    --vidro: rgb(24 27 33 / 0.92);
+    --vidro-fundo: rgb(15 17 21 / 0.88);
+
+    --shadow-float: 0 8px 30px rgb(0 0 0 / 0.5), 0 1px 3px rgb(0 0 0 / 0.4);
+    --shadow-sheet: 0 -10px 40px rgb(0 0 0 / 0.55);
+
+    color-scheme: dark;
+  }
 }
 
 /* Cada elemento com data-area recebe as cores da sua área em variáveis genéricas. */
