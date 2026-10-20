@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
 import { users } from "../src/server/db/schema";
+import { recebeConteudoPessoal } from "../src/server/permissao";
 import { semearRotina } from "../src/server/rotina/seed";
 
 export async function semearRotinaParaTodos(db: ReturnType<typeof drizzle>, email?: string) {
@@ -14,7 +15,8 @@ export async function semearRotinaParaTodos(db: ReturnType<typeof drizzle>, emai
         .from(users)
         .where(eq(users.email, email))
     : await db.select({ id: users.id, email: users.email }).from(users);
-  for (const u of alvo) {
+  // Só o dono (OWNER_EMAILS) recebe a rotina e as trilhas; os outros usuários ficam vazios.
+  for (const u of alvo.filter((x) => recebeConteudoPessoal(x.email))) {
     const r = await semearRotina(db, u.id);
     console.log(`Rotina pessoal de ${u.email}: ${r.criada ? "criada" : "já existia, nada mudou"}.`);
   }

@@ -5,18 +5,24 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
 import { users } from "../src/server/db/schema";
+import { recebeConteudoPessoal } from "../src/server/permissao";
 import { semearRoadmap } from "../src/server/roadmap/seed";
 
 export async function semearRoadmapParaTodos(db: ReturnType<typeof drizzle>, email?: string) {
   const alvo = email
-    ? await db.select({ id: users.id }).from(users).where(eq(users.email, email))
-    : await db.select({ id: users.id }).from(users);
+    ? await db
+        .select({ id: users.id, email: users.email })
+        .from(users)
+        .where(eq(users.email, email))
+    : await db.select({ id: users.id, email: users.email }).from(users);
+  // O catálogo é de todos; o progresso inicial ("done") só vai para o dono (OWNER_EMAILS).
+  const donos = alvo.filter((u) => recebeConteudoPessoal(u.email));
   const resumo = await semearRoadmap(
     db,
-    alvo.map((u) => u.id),
+    donos.map((u) => u.id),
   );
   for (const r of resumo)
-    console.log(`Roadmap ${r.slug}: ${r.fases} fases, ${alvo.length} usuário(s).`);
+    console.log(`Roadmap ${r.slug}: ${r.fases} fases, ${donos.length} usuário(s).`);
 }
 
 if (process.argv[1]?.endsWith("seed-roadmap.ts")) {
