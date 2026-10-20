@@ -4,6 +4,7 @@ import GitHub from "next-auth/providers/github";
 import { db } from "./db";
 import { accounts, sessions, users } from "./db/schema";
 import { semearTrilha } from "./estudos/seed";
+import { semearSeguranca } from "./estudos/seguranca";
 import { emailPermitido } from "./permissao";
 import { semearRotina } from "./rotina/seed";
 
@@ -25,11 +26,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   pages: { signIn: "/login", error: "/login" },
   trustHost: true,
   events: {
-    // Primeiro login: grava a trilha DevOps e a rotina pessoal.
+    // Primeiro login: grava a trilha DevOps, a rotina pessoal e a trilha de Segurança.
     async createUser({ user }) {
       if (!user.id) return;
       await semearTrilha(db(), user.id);
       await semearRotina(db(), user.id);
+      await semearSeguranca(db(), user.id);
     },
   },
   callbacks: {

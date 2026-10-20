@@ -22,6 +22,7 @@
     "icons": "node scripts/gerar-icones.mjs",
     "seed:trilha": "tsx scripts/seed-trilha.ts",
     "seed:rotina": "tsx scripts/seed-rotina.ts",
+    "seed:seguranca": "tsx scripts/seed-seguranca.ts",
     "test:integracao": "vitest run --config vitest.integracao.config.mts",
     "assistente:real": "tsx --conditions=react-server scripts/assistente-real.ts"
   },

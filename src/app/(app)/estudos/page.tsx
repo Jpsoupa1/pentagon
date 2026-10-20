@@ -4,6 +4,7 @@ import { ListaSessoes } from "@/components/telas/ListaSessoes";
 import { RevisaoEspacada } from "@/components/telas/RevisaoEspacada";
 import { RevisaoSexta } from "@/components/telas/RevisaoSexta";
 import { SessaoHoje } from "@/components/telas/SessaoHoje";
+import { TrilhaSeguranca } from "@/components/telas/TrilhaSeguranca";
 import r from "@/components/telas/Revisao.module.css";
 import { BarraProgresso } from "@/components/ui/BarraProgresso";
 import { Cartao, CartaoCabeca, Rotulo } from "@/components/ui/Cartao";
@@ -11,6 +12,7 @@ import { Contagem } from "@/components/ui/Contagem";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { LinhaAgenda } from "@/components/ui/LinhaAgenda";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
+import { alvoDeEdicao } from "@/lib/alvo";
 import { chaveTurno, domingoDe, horariosComPadrao } from "@/lib/estudos";
 import {
   dataCurta,
@@ -28,7 +30,12 @@ import { tituloDaSessao } from "@/server/estudos/trilha";
 import { exigirUsuario } from "@/server/sessao";
 import { ocorrencias, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
-import { obterTrilha, progressoPorFase, sessoesEntre } from "@/server/servicos/estudos";
+import {
+  obterTrilha,
+  obterTrilhaSeguranca,
+  progressoPorFase,
+  sessoesEntre,
+} from "@/server/servicos/estudos";
 import {
   errosDaSemanaAnotados,
   errosParaRevisar,
@@ -48,19 +55,51 @@ export default async function Estudos() {
   const semana = semanaDe(hoje);
   const domingo = diaDaSemana(hoje) === 0;
   const horarios = horariosComPadrao(ajustes.horariosEstudo);
-  const [trilha, daSemana, fases, agendaDaSemana, notas, caderno, paraRevisar, anotados] =
-    await Promise.all([
-      obterTrilha(usuario.id),
-      sessoesEntre(usuario.id, semana.de, semana.ate),
-      progressoPorFase(usuario.id),
-      ocorrencias(usuario.id, semana),
-      notasDasRevisoes(usuario.id, hoje),
-      resumoDoCaderno(usuario.id),
-      domingo ? errosParaRevisar(usuario.id, hoje) : Promise.resolve([]),
-      errosDaSemanaAnotados(usuario.id, semana.de),
-    ]);
-  // Compromissos de Estudos criados pelo usuário (fora da trilha).
-  const proprios = agendaDaSemana.filter((o) => o.origem === "evento" && o.areaId === "estudos");
+  const [
+    trilha,
+    seguranca,
+    daSemana,
+    fases,
+    agendaDaSemana,
+    notas,
+    caderno,
+    paraRevisar,
+    anotados,
+  ] = await Promise.all([
+    obterTrilha(usuario.id),
+    obterTrilhaSeguranca(usuario.id),
+    sessoesEntre(usuario.id, semana.de, semana.ate),
+    progressoPorFase(usuario.id),
+    ocorrencias(usuario.id, semana),
+    notasDasRevisoes(usuario.id, hoje),
+    resumoDoCaderno(usuario.id),
+    domingo ? errosParaRevisar(usuario.id, hoje) : Promise.resolve([]),
+    errosDaSemanaAnotados(usuario.id, semana.de),
+  ]);
+  // Sessões semanais da trilha de Segurança (compromissos ligados a ela).
+  const idsSeguranca = new Set(seguranca?.sessoes.map((x) => x.id));
+  const linha = (o: (typeof agendaDaSemana)[number]) => (
+    <LinhaAgenda
+      key={o.chave}
+      hora={DIAS_CURTOS[partesLocais(o.inicio, fuso).diaSemana]}
+      area="estudos"
+      titulo={o.titulo}
+      meta={
+        o.diaInteiro
+          ? "Dia inteiro"
+          : `${horaLocal(o.inicio, fuso)} – ${horaLocal(o.fim, fuso)}${o.local ? ` · ${o.local}` : ""}`
+      }
+      passada={o.fim < agora}
+      editar={alvoDeEdicao(o)}
+    />
+  );
+  const sessoesSeguranca = agendaDaSemana.filter(
+    (o) => o.origem === "evento" && idsSeguranca.has(o.eventId),
+  );
+  // Compromissos de Estudos criados pelo usuário (fora das trilhas).
+  const proprios = agendaDaSemana.filter(
+    (o) => o.origem === "evento" && o.areaId === "estudos" && !idsSeguranca.has(o.eventId),
+  );
   const noEstagio = new Set(
     agendaDaSemana.filter((o) => o.origem === "sessao" && o.noEstagio).map((o) => o.eventId),
   );
@@ -189,22 +228,7 @@ export default async function Estudos() {
                 <h3 className={layout.meta} style={{ margin: "16px 0 4px", fontWeight: 600 }}>
                   Seus estudos fora da trilha
                 </h3>
-                <ul className={layout.lista}>
-                  {proprios.map((o) => (
-                    <LinhaAgenda
-                      key={o.chave}
-                      hora={DIAS_CURTOS[partesLocais(o.inicio, fuso).diaSemana]}
-                      area="estudos"
-                      titulo={o.titulo}
-                      meta={
-                        o.diaInteiro
-                          ? "Dia inteiro"
-                          : `${horaLocal(o.inicio, fuso)} – ${horaLocal(o.fim, fuso)}${o.local ? ` · ${o.local}` : ""}`
-                      }
-                      passada={o.fim < agora}
-                    />
-                  ))}
-                </ul>
+                <ul className={layout.lista}>{proprios.map(linha)}</ul>
               </>
             )}
           </Cartao>
@@ -279,6 +303,15 @@ export default async function Estudos() {
                 )}
               </div>
             </Cartao>
+          )}
+          {seguranca?.faseAtual != null && (
+            <TrilhaSeguranca
+              slug={seguranca.slug}
+              nome={seguranca.nome}
+              fases={seguranca.fases}
+              faseAtual={seguranca.faseAtual}
+              sessoes={sessoesSeguranca.map(linha)}
+            />
           )}
           <Cartao aria-labelledby="progresso">
             <CartaoCabeca

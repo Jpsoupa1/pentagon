@@ -1,0 +1,34 @@
+.fase {
+  display: grid;
+  gap: 4px;
+}
+.nome {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.itens {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.fases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.fases li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-2);
+}
+.fases li[aria-current="step"] {
+  color: inherit;
+  font-weight: 650;
+}

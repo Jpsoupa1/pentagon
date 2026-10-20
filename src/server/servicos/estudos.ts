@@ -5,9 +5,10 @@ import type { HorariosEstudo } from "@/lib/dominio";
 import { diaDaSemana } from "@/lib/tempo";
 import type { Intervalo, Ocorrencia } from "../agenda/recorrencia";
 import { db } from "../db";
-import { studySessions, studyTracks, studyWeeks } from "../db/schema";
-import { NaoEncontrado } from "../erros";
+import { events, studySessions, studyTracks, studyWeeks } from "../db/schema";
+import { EntradaInvalida, NaoEncontrado } from "../erros";
 import { ocorrenciasDeMarcos, ocorrenciasDeSessoes } from "../estudos/ocorrencias";
+import { SLUG_SEGURANCA } from "../estudos/seguranca";
 import { SLUG_TRILHA } from "../estudos/trilha";
 import { obterAjustes } from "./ajustes";
 
@@ -17,6 +18,43 @@ export async function obterTrilha(userId: string) {
     .from(studyTracks)
     .where(and(eq(studyTracks.userId, userId), eq(studyTracks.slug, SLUG_TRILHA)));
   return t ?? null;
+}
+
+/** Trilha de Segurança (sem datas) e os compromissos semanais ligados a ela. */
+export async function obterTrilhaSeguranca(userId: string) {
+  const [t] = await db()
+    .select()
+    .from(studyTracks)
+    .where(and(eq(studyTracks.userId, userId), eq(studyTracks.slug, SLUG_SEGURANCA)));
+  if (!t) return null;
+  const sessoes = await db()
+    .select({
+      id: events.id,
+      titulo: events.titulo,
+      inicio: events.inicio,
+      duracaoMin: events.duracaoMin,
+      fuso: events.fuso,
+      diasSemana: events.diasSemana,
+    })
+    .from(events)
+    .where(and(eq(events.userId, userId), eq(events.trackId, t.id)));
+  return { ...t, sessoes };
+}
+
+/** Muda a fase em estudo de uma trilha sem datas (avançar quando a anterior está consolidada). */
+export async function mudarFase(userId: string, slug: string, fase: number) {
+  const [t] = await db()
+    .select()
+    .from(studyTracks)
+    .where(and(eq(studyTracks.userId, userId), eq(studyTracks.slug, slug)));
+  if (!t || t.faseAtual === null) throw new NaoEncontrado("Trilha");
+  if (!t.fases.some((f) => f.id === fase)) throw new EntradaInvalida("Fase inexistente.");
+  const [salva] = await db()
+    .update(studyTracks)
+    .set({ faseAtual: fase })
+    .where(eq(studyTracks.id, t.id))
+    .returning({ slug: studyTracks.slug, faseAtual: studyTracks.faseAtual });
+  return salva;
 }
 
 /** Trilhas com o total de sessões (nos dias ligados) e quantas foram feitas. */
