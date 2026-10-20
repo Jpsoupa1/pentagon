@@ -10,7 +10,8 @@ import { obterAjustes } from "./ajustes";
 import { cardsDeHoje } from "./cards";
 import { eventosNoIntervalo } from "./eventos";
 import { feriadosEntre } from "./feriados";
-import { ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
+import { tarefaDaSeguranca } from "../estudos/seguranca";
+import { idDaTrilhaSeguranca, ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
 import { lembretesDeHoje } from "./lembretes";
 import { proximosPrazos } from "./prazos";
 
@@ -19,18 +20,26 @@ import { proximosPrazos } from "./prazos";
  * `excluirEvento` deixa um compromisso de fora (para comparar a versão nova dele com o resto).
  */
 export async function compromissos(userId: string, intervalo: Intervalo, excluirEvento?: string) {
-  const [{ eventos, excecoes }, feriados, ajustes] = await Promise.all([
+  const [{ eventos, excecoes }, feriados, ajustes, seguranca] = await Promise.all([
     eventosNoIntervalo(userId, intervalo.de, intervalo.ate),
     feriadosEntre(userId, intervalo.de, intervalo.ate),
     obterAjustes(userId),
+    idDaTrilhaSeguranca(userId),
   ]);
   const lista = excluirEvento ? eventos.filter((e) => e.id !== excluirEvento) : eventos;
   const periodo = { inicio: ajustes.periodoInicio, fim: ajustes.periodoFim };
+  // O bloco da Segurança mostra a tarefa da trilha diária daquele dia.
+  const blocosSeguranca = new Set(
+    lista.filter((e) => seguranca && e.trackId === seguranca).map((e) => e.id),
+  );
   return {
     eventos: lista,
     feriados,
     periodo,
-    ocorrencias: expandirComRegras(lista, excecoes, feriados, periodo, intervalo),
+    ocorrencias: expandirComRegras(lista, excecoes, feriados, periodo, intervalo).map((o) => {
+      const tarefa = blocosSeguranca.has(o.eventId) ? tarefaDaSeguranca(o.dataOriginal) : null;
+      return tarefa ? { ...o, detalhe: tarefa.tarefa } : o;
+    }),
   };
 }
 

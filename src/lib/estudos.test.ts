@@ -22,10 +22,10 @@ describe("caderno de erros", () => {
 });
 
 describe("horários de estudo", () => {
-  it("sem nada gravado, vale o padrão de 17 h 30 por semana", () => {
+  it("sem nada gravado, vale o padrão de 19 h por semana", () => {
     const h = horariosComPadrao(null);
     expect(h).toEqual(HORARIOS_PADRAO);
-    expect(Object.values(h).reduce((t, x) => t + (x.ativo ? x.minutos : 0), 0)).toBe(1050);
+    expect(Object.values(h).reduce((t, x) => t + (x.ativo ? x.minutos : 0), 0)).toBe(1140);
   });
 
   it("horários da versão 1 (um por dia) continuam valendo no turno equivalente", () => {
@@ -37,7 +37,9 @@ describe("horários de estudo", () => {
     expect(h["1-tarde"]).toEqual({ ativo: true, inicio: "15:00", minutos: 60 });
     expect(h["1-manha"]).toEqual(HORARIOS_PADRAO["1-manha"]);
     expect(h["5-manha"]).toEqual(HORARIOS_PADRAO["5-manha"]);
+    // A sexta da versão 1 (desligada) não desliga a reposição nova da tarde de sexta.
+    expect(h["5-tarde"]).toEqual(HORARIOS_PADRAO["5-tarde"]);
     expect(h["0-noite"].inicio).toBe("20:00");
-    expect(Object.keys(h)).toHaveLength(11);
+    expect(Object.keys(h)).toHaveLength(12);
   });
 });

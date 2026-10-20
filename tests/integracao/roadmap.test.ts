@@ -51,10 +51,10 @@ describe("Roadmap", () => {
     expect(r.fases.map((f) => f.portao)).toEqual(["CKA", "AWS SAA", "Terraform", "Projeto 3"]);
     expect(r.atual).toBe(0);
     expect(r.inicio).toEqual({ tipo: "aqui" });
-    expect(r.trilha.numeros).toContain("17 h 30 por semana");
+    expect(r.trilha.numeros).toContain("19 h por semana");
     expect(r.trilhas.map((t) => t.slug)).toEqual(["devops", "seguranca"]);
-    // Meta da bateria pelo calendário: segundas e quartas, mais terças e quintas nas pausas.
-    expect(r.fases[0].pratica[0].meta).toBe(48);
+    // Meta da bateria pelo calendário: as tardes de segunda a quinta (a reposição de sexta não conta).
+    expect(r.fases[0].pratica[0].meta).toBe(76);
     expect(r.fases[0].requisitos.filter((x) => x.feito)).toHaveLength(2);
     expect((await praticaPorTitulo(eu, "Sábados do Projeto 1 (BookStack)")).manual).toBe(1);
     expect(r.fases[3].avaliacoes.at(-1)).toMatchObject({ data: null, opcional: true });
@@ -114,19 +114,24 @@ describe("Roadmap", () => {
     expect((await POST(pedido({ delta: 5 }), ctx("devops", drills.id))).status).toBe(400);
   });
 
-  it("Segurança: pausas ligadas à DevOps, portão de marco e fase atual durante uma pausa", async () => {
+  it("Segurança: semanas leves ligadas à DevOps, portão de marco e fase atual numa delas", async () => {
     const r = await obterRoadmap(eu, "seguranca", AGORA);
     expect(r.trilha.icone).toBe("escudo");
     expect(r.pausas.map((p) => [p.rotulo, p.trilhaLigada?.slug])).toEqual([
-      ["Revisão CKA", "devops"],
-      ["Pausa CKA", "devops"],
-      ["Pausa AWS SAA", "devops"],
-      ["Pausa Terraform", "devops"],
+      ["Semanas leves da CKA", "devops"],
+      ["Semanas leves da AWS SAA", "devops"],
+      ["Semanas leves do Terraform", "devops"],
+    ]);
+    expect(r.fases.map((f) => f.portaoData)).toEqual([
+      "2027-02-12",
+      "2027-05-14",
+      "2027-07-16",
+      "2027-10-22",
     ]);
     expect(r.fases[0].portaoTipo).toBe("milestone");
     expect(r.fases[0].requisitos.every((x) => !x.feito)).toBe(true);
     expect(r.inicio).toEqual({ tipo: "aqui" });
-    // 20/02/2027: Pausa CKA, depois do fim da Fase 1 — a Fase 1 continua atual.
+    // 20/02/2027: semanas leves da CKA, depois do fim da Fase 1 — a Fase 1 continua atual.
     const pausa = await obterRoadmap(eu, "seguranca", new Date("2027-02-20T15:00:00Z"));
     expect(pausa.atual).toBe(0);
     const depois = await obterRoadmap(eu, "seguranca", new Date("2027-03-08T15:00:00Z"));

@@ -30,6 +30,7 @@ function paraCliente(o: Ocorrencia | null): OcorrenciaCliente | null {
     titulo: o.titulo,
     areaId: o.areaId,
     local: o.local,
+    detalhe: o.detalhe ?? null,
     inicio: o.inicio.toISOString(),
     fim: o.fim.toISOString(),
   };
@@ -93,6 +94,7 @@ export default async function Hoje() {
                         ? "Dia inteiro"
                         : `${horaLocal(o.inicio, p.fuso)} – ${horaLocal(o.fim, p.fuso)}${o.local ? ` · ${o.local}` : ""}${o.movida ? " · horário mudado hoje" : ""}${o.noEstagio ? " · no estágio" : ""}${o.feita ? " · feita" : ""}`
                     }
+                    detalhe={o.detalhe}
                     passada={o.fim < agora || o.feita}
                     editar={alvoDeEdicao(o)}
                   />

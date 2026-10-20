@@ -1,5 +1,4 @@
 import "../../../trilha_devops.js";
-import { turnoCedidoASeguranca } from "../roadmap/compartilhamento";
 import type { Rotina } from "./rotina";
 
 /** Dados da trilha DevOps, lidos do arquivo original `trilha_devops.js` (fonte única). */
@@ -16,14 +15,9 @@ export const TODOS_OS_DIAS = {
   ),
 };
 
-/**
- * Sessões que a trilha DevOps grava entre duas datas: tudo o que o cronograma prevê, menos as
- * tardes de terça e quinta cedidas à Segurança nas semanas compartilhadas.
- */
+/** Sessões que a trilha DevOps grava entre duas datas: tudo o que o cronograma prevê. */
 export function sessoesDaDevops(de: string = ROTINA.INICIO, ate: string = ROTINA.FIM) {
-  return ROTINA.sessoesEntre(de, ate, TODOS_OS_DIAS).filter(
-    (s) => !turnoCedidoASeguranca(s.data, s.turno),
-  );
+  return ROTINA.sessoesEntre(de, ate, TODOS_OS_DIAS);
 }
 
 /** Número da semana da trilha (0 a 49) de uma data, ou null fora dela. */

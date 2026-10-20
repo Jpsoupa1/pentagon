@@ -50,6 +50,8 @@ export type Ocorrencia = {
   permiteSobreposicao?: boolean;
   /** A sessão acontece durante o estágio (selo "no estágio" na Agenda). */
   noEstagio?: boolean;
+  /** O que fazer naquele dia (a tarefa da trilha diária da Segurança, no bloco dela). */
+  detalhe?: string;
 };
 
 export type Intervalo = { de: string; ate: string };

@@ -182,6 +182,13 @@
   font-size: 10.5px;
   opacity: 0.9;
 }
+.blocoDetalhe {
+  font-size: 10.5px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .agora {
   position: absolute;
   left: -4px;
@@ -209,7 +216,8 @@
     padding: 4px 3px;
     font-size: 10.5px;
   }
-  .blocoHora {
+  .blocoHora,
+  .blocoDetalhe {
     display: none;
   }
 }
@@ -291,6 +299,10 @@
 }
 .tempoCartao span {
   font-size: var(--fs-small);
+}
+.tempoCartao .tempoDetalhe {
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 button.bloco,

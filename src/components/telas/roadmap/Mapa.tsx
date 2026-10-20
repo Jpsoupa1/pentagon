@@ -113,14 +113,17 @@ export function Pilulas({ fases, atual, selecionada, aoSelecionar }: Selecao) {
   );
 }
 
-/** Períodos em que a trilha para, com a cor da fase da outra trilha que motiva cada pausa. */
+/**
+ * Semanas leves da trilha (as pausas), com a cor da fase da outra trilha que motiva cada uma.
+ * São só informação: a agenda não muda nelas.
+ */
 export function Pausas({ pausas, agora }: { pausas: PausaRoadmap[]; agora: PausaRoadmap | null }) {
   const ligadas = new Set(pausas.map((p) => p.trilhaLigada?.nome).filter(Boolean));
   const outra = ligadas.size === 1 ? [...ligadas][0]!.replace(/^Trilha /, "") : null;
   return (
     <section className={s.pausas} aria-labelledby="pausas-titulo">
       <h2 id="pausas-titulo" className={s.pausasTitulo}>
-        {outra ? `Pausas para a ${outra}` : "Pausas"}
+        {outra ? `Semanas leves para a ${outra}` : "Semanas leves"}
       </h2>
       <ul className={s.pausasLista}>
         {pausas.map((p) => (

@@ -24,6 +24,7 @@
     "seed:rotina": "tsx scripts/seed-rotina.ts",
     "seed:seguranca": "tsx scripts/seed-seguranca.ts",
     "seed:roadmap": "tsx scripts/seed-roadmap.ts",
+    "gerar:trilha-diaria": "node scripts/gerar-trilha-diaria.mjs",
     "test:integracao": "vitest run --config vitest.integracao.config.mts",
     "assistente:real": "tsx --conditions=react-server scripts/assistente-real.ts"
   },

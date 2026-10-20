@@ -1,0 +1,1586 @@
+[
+  {
+    "data": "2026-10-20",
+    "semana": 1,
+    "tema": "O mapa da segurança",
+    "tarefa": "Conta no TryHackMe, módulo 1 do Cisco e caderno de erros"
+  },
+  {
+    "data": "2026-10-21",
+    "semana": 1,
+    "tema": "O mapa da segurança",
+    "tarefa": "Cisco Introdução à Cibersegurança, módulo 2"
+  },
+  {
+    "data": "2026-10-22",
+    "semana": 1,
+    "tema": "O mapa da segurança",
+    "tarefa": "TryHackMe Pre Security: como a web funciona"
+  },
+  {
+    "data": "2026-10-23",
+    "semana": 1,
+    "tema": "O mapa da segurança",
+    "tarefa": "Montar o lab: VMs Kali e Metasploitable 2 em rede isolada"
+  },
+  {
+    "data": "2026-10-26",
+    "semana": 2,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "OverTheWire Bandit, níveis 0 a 3"
+  },
+  {
+    "data": "2026-10-27",
+    "semana": 2,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Bandit, níveis 4 a 6"
+  },
+  {
+    "data": "2026-10-28",
+    "semana": 2,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Bandit, níveis 7 a 10"
+  },
+  {
+    "data": "2026-10-29",
+    "semana": 2,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Anotar no caderno os comandos Linux que o Bandit usou"
+  },
+  {
+    "data": "2026-10-30",
+    "semana": 2,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-11-02",
+    "semana": 3,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Feriado (Finados). Opcional: OverTheWire Bandit, níveis 11 a 14"
+  },
+  {
+    "data": "2026-11-03",
+    "semana": 3,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Bandit, níveis 15 a 17"
+  },
+  {
+    "data": "2026-11-04",
+    "semana": 3,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Bandit, níveis 18 a 20"
+  },
+  {
+    "data": "2026-11-05",
+    "semana": 3,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "TryHackMe Pre Security: terminar o que ficou"
+  },
+  {
+    "data": "2026-11-06",
+    "semana": 3,
+    "tema": "Linux na prática com o Bandit",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-11-09",
+    "semana": 4,
+    "tema": "Ataques e proteção em visão geral",
+    "tarefa": "Cisco Introdução à Cibersegurança, módulos 3 a 5: ataques, proteção de dados e da organização"
+  },
+  {
+    "data": "2026-11-10",
+    "semana": 4,
+    "tema": "Ataques e proteção em visão geral",
+    "tarefa": "TryHackMe Pre Security: fundamentos de redes (OSI, TCP/IP, pacotes)"
+  },
+  {
+    "data": "2026-11-11",
+    "semana": 4,
+    "tema": "Ataques e proteção em visão geral",
+    "tarefa": "Terminar os módulos do Pre Security que ficaram para trás"
+  },
+  {
+    "data": "2026-11-12",
+    "semana": 4,
+    "tema": "Ataques e proteção em visão geral",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-11-13",
+    "semana": 4,
+    "tema": "Ataques e proteção em visão geral",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-11-16",
+    "semana": 5,
+    "tema": "Redes para quem defende",
+    "tarefa": "Portas, protocolos, DNS, HTTP e o que cada um expõe"
+  },
+  {
+    "data": "2026-11-17",
+    "semana": 5,
+    "tema": "Redes para quem defende",
+    "tarefa": "Wireshark: capturar e ler um handshake TCP, uma consulta DNS e um login HTTP sem TLS"
+  },
+  {
+    "data": "2026-11-18",
+    "semana": 5,
+    "tema": "Redes para quem defende",
+    "tarefa": "picoCTF: desafios de General Skills"
+  },
+  {
+    "data": "2026-11-19",
+    "semana": 5,
+    "tema": "Redes para quem defende",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-11-20",
+    "semana": 5,
+    "tema": "Redes para quem defende",
+    "tarefa": "Feriado (Consciência Negra). Opcional: Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-11-23",
+    "semana": 6,
+    "tema": "Linux para segurança",
+    "tarefa": "Usuários, permissões, SUID, sudo, logs em /var/log e no journald"
+  },
+  {
+    "data": "2026-11-24",
+    "semana": 6,
+    "tema": "Linux para segurança",
+    "tarefa": "TryHackMe Linux Fundamentals, partes 1 a 3"
+  },
+  {
+    "data": "2026-11-25",
+    "semana": 6,
+    "tema": "Linux para segurança",
+    "tarefa": "Endurecer uma VM Linux: SSH só por chave, firewall com nftables e fail2ban"
+  },
+  {
+    "data": "2026-11-26",
+    "semana": 6,
+    "tema": "Linux para segurança",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-11-27",
+    "semana": 6,
+    "tema": "Linux para segurança",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-11-30",
+    "semana": 7,
+    "tema": "Windows para segurança",
+    "tarefa": "Feriado (Dia do Evangélico, DF). Opcional: Usuários e grupos, registro, Event Viewer e PowerShell básico"
+  },
+  {
+    "data": "2026-12-01",
+    "semana": 7,
+    "tema": "Windows para segurança",
+    "tarefa": "TryHackMe Windows Fundamentals"
+  },
+  {
+    "data": "2026-12-02",
+    "semana": 7,
+    "tema": "Windows para segurança",
+    "tarefa": "Prova final do curso Cisco Introdução à Cibersegurança e badge no LinkedIn"
+  },
+  {
+    "data": "2026-12-03",
+    "semana": 7,
+    "tema": "Windows para segurança",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-12-04",
+    "semana": 7,
+    "tema": "Windows para segurança",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-12-07",
+    "semana": 8,
+    "tema": "Criptografia na prática",
+    "tarefa": "Hash, criptografia simétrica e assimétrica, TLS e certificados"
+  },
+  {
+    "data": "2026-12-08",
+    "semana": 8,
+    "tema": "Criptografia na prática",
+    "tarefa": "Lab com openssl: criar uma CA, assinar um certificado, conferir hashes e quebrar um hash fraco com John"
+  },
+  {
+    "data": "2026-12-09",
+    "semana": 8,
+    "tema": "Criptografia na prática",
+    "tarefa": "picoCTF: desafios de Cryptography"
+  },
+  {
+    "data": "2026-12-10",
+    "semana": 8,
+    "tema": "Criptografia na prática",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-12-11",
+    "semana": 8,
+    "tema": "Criptografia na prática",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-12-14",
+    "semana": 9,
+    "tema": "Revisão do bloco de novembro",
+    "tarefa": "Folha em branco: redes, Linux e Windows"
+  },
+  {
+    "data": "2026-12-15",
+    "semana": 9,
+    "tema": "Revisão do bloco de novembro",
+    "tarefa": "Refazer os labs que ficaram pela metade"
+  },
+  {
+    "data": "2026-12-16",
+    "semana": 9,
+    "tema": "Revisão do bloco de novembro",
+    "tarefa": "picoCTF: desafios de Web Exploitation, sem pressa"
+  },
+  {
+    "data": "2026-12-17",
+    "semana": 9,
+    "tema": "Revisão do bloco de novembro",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2026-12-18",
+    "semana": 9,
+    "tema": "Revisão do bloco de novembro",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2026-12-21",
+    "semana": 10,
+    "tema": "Semana leve de Natal",
+    "tarefa": "Identidade e acesso: autenticação, MFA, gestão de senhas e menor privilégio"
+  },
+  {
+    "data": "2026-12-22",
+    "semana": 10,
+    "tema": "Semana leve de Natal",
+    "tarefa": "TryHackMe Cyber Security 101: introdução à segurança ofensiva e defensiva"
+  },
+  {
+    "data": "2026-12-23",
+    "semana": 10,
+    "tema": "Semana leve de Natal",
+    "tarefa": "Livre"
+  },
+  {
+    "data": "2026-12-24",
+    "semana": 10,
+    "tema": "Semana leve de Natal",
+    "tarefa": "Livre (véspera)"
+  },
+  {
+    "data": "2026-12-25",
+    "semana": 10,
+    "tema": "Semana leve de Natal",
+    "tarefa": "Feriado (Natal)"
+  },
+  {
+    "data": "2026-12-28",
+    "semana": 11,
+    "tema": "Semana leve de Ano Novo",
+    "tarefa": "Ameaças e malware: tipos, Cyber Kill Chain, engenharia social e phishing"
+  },
+  {
+    "data": "2026-12-29",
+    "semana": 11,
+    "tema": "Semana leve de Ano Novo",
+    "tarefa": "TryHackMe Cyber Security 101: ferramentas de linha de comando"
+  },
+  {
+    "data": "2026-12-30",
+    "semana": 11,
+    "tema": "Semana leve de Ano Novo",
+    "tarefa": "Livre"
+  },
+  {
+    "data": "2026-12-31",
+    "semana": 11,
+    "tema": "Semana leve de Ano Novo",
+    "tarefa": "Livre (véspera)"
+  },
+  {
+    "data": "2027-01-01",
+    "semana": 11,
+    "tema": "Semana leve de Ano Novo",
+    "tarefa": "Feriado (Ano Novo)"
+  },
+  {
+    "data": "2027-01-04",
+    "semana": 12,
+    "tema": "Vulnerabilidades",
+    "tarefa": "CVE, CVSS e como funciona uma varredura de vulnerabilidades"
+  },
+  {
+    "data": "2027-01-05",
+    "semana": 12,
+    "tema": "Vulnerabilidades",
+    "tarefa": "Nmap e Greenbone (OpenVAS) contra a VM alvo; ler o relatório"
+  },
+  {
+    "data": "2027-01-06",
+    "semana": 12,
+    "tema": "Vulnerabilidades",
+    "tarefa": "Revisão do bloco de dezembro com folha em branco"
+  },
+  {
+    "data": "2027-01-07",
+    "semana": 12,
+    "tema": "Vulnerabilidades",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-01-08",
+    "semana": 12,
+    "tema": "Vulnerabilidades",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-01-11",
+    "semana": 13,
+    "tema": "Defesa de perímetro",
+    "tarefa": "Firewalls, IDS e IPS, VPN e segmentação de rede"
+  },
+  {
+    "data": "2027-01-12",
+    "semana": 13,
+    "tema": "Defesa de perímetro",
+    "tarefa": "Suricata básico: instalar e ver um alerta disparar no lab"
+  },
+  {
+    "data": "2027-01-13",
+    "semana": 13,
+    "tema": "Defesa de perímetro",
+    "tarefa": "Diagrama de rede do lab com as zonas e o que cada uma pode acessar"
+  },
+  {
+    "data": "2027-01-14",
+    "semana": 13,
+    "tema": "Defesa de perímetro",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-01-15",
+    "semana": 13,
+    "tema": "Defesa de perímetro",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-01-18",
+    "semana": 14,
+    "tema": "Logs e monitoramento",
+    "tarefa": "Syslog, eventos do Windows e o que é um SIEM"
+  },
+  {
+    "data": "2027-01-19",
+    "semana": 14,
+    "tema": "Logs e monitoramento",
+    "tarefa": "TryHackMe Cyber Security 101: módulos de segurança defensiva"
+  },
+  {
+    "data": "2027-01-20",
+    "semana": 14,
+    "tema": "Logs e monitoramento",
+    "tarefa": "picoCTF: desafios de Forensics"
+  },
+  {
+    "data": "2027-01-21",
+    "semana": 14,
+    "tema": "Logs e monitoramento",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-01-22",
+    "semana": 14,
+    "tema": "Logs e monitoramento",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-01-25",
+    "semana": 15,
+    "tema": "Governança e LGPD",
+    "tarefa": "LGPD, ISO 27001 em linhas gerais, políticas e gestão de risco"
+  },
+  {
+    "data": "2027-01-26",
+    "semana": 15,
+    "tema": "Governança e LGPD",
+    "tarefa": "Cartilha do CERT.br e um caso público de incidente, lido do começo ao fim"
+  },
+  {
+    "data": "2027-01-27",
+    "semana": 15,
+    "tema": "Governança e LGPD",
+    "tarefa": "Simulado de fundamentos: 40 questões, meta de 75%"
+  },
+  {
+    "data": "2027-01-28",
+    "semana": 15,
+    "tema": "Governança e LGPD",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-01-29",
+    "semana": 15,
+    "tema": "Governança e LGPD",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-02-01",
+    "semana": 16,
+    "tema": "Segurança em nuvem e containers",
+    "tarefa": "Responsabilidade compartilhada, imagens, segredos e menor privilégio (ponte com a DevOps)"
+  },
+  {
+    "data": "2027-02-02",
+    "semana": 16,
+    "tema": "Segurança em nuvem e containers",
+    "tarefa": "Trivy na imagem do BookStack: ler as vulnerabilidades e corrigir a base"
+  },
+  {
+    "data": "2027-02-03",
+    "semana": 16,
+    "tema": "Segurança em nuvem e containers",
+    "tarefa": "Revisão dos pontos fracos do simulado"
+  },
+  {
+    "data": "2027-02-04",
+    "semana": 16,
+    "tema": "Segurança em nuvem e containers",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-02-05",
+    "semana": 16,
+    "tema": "Segurança em nuvem e containers",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-02-08",
+    "semana": 17,
+    "tema": "Portão da Fase 1",
+    "tarefa": "Feriado (Carnaval). Opcional: Revisão final dos fundamentos"
+  },
+  {
+    "data": "2027-02-09",
+    "semana": 17,
+    "tema": "Portão da Fase 1",
+    "tarefa": "Feriado (Carnaval). Opcional: Fechar o Cyber Security 101 do TryHackMe"
+  },
+  {
+    "data": "2027-02-10",
+    "semana": 17,
+    "tema": "Portão da Fase 1",
+    "tarefa": "Fechar o que falta na lista de requisitos"
+  },
+  {
+    "data": "2027-02-11",
+    "semana": 17,
+    "tema": "Portão da Fase 1",
+    "tarefa": "Folha em branco da fase inteira"
+  },
+  {
+    "data": "2027-02-12",
+    "semana": 17,
+    "tema": "Portão da Fase 1",
+    "tarefa": "Portão: conferir a lista de requisitos da Fase 1"
+  },
+  {
+    "data": "2027-02-15",
+    "semana": 18,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-02-16",
+    "semana": 18,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-02-17",
+    "semana": 18,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Um desafio leve do picoCTF ou nada"
+  },
+  {
+    "data": "2027-02-18",
+    "semana": 18,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-02-19",
+    "semana": 18,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-02-22",
+    "semana": 19,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-02-23",
+    "semana": 19,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-02-24",
+    "semana": 19,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Um desafio leve do picoCTF ou nada"
+  },
+  {
+    "data": "2027-02-25",
+    "semana": 19,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-02-26",
+    "semana": 19,
+    "tema": "Semana leve: reta final da CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-03-01",
+    "semana": 20,
+    "tema": "Semana leve: prova CKA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-03-02",
+    "semana": 20,
+    "tema": "Semana leve: prova CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-03-03",
+    "semana": 20,
+    "tema": "Semana leve: prova CKA",
+    "tarefa": "Um desafio leve do picoCTF ou nada"
+  },
+  {
+    "data": "2027-03-04",
+    "semana": 20,
+    "tema": "Semana leve: prova CKA",
+    "tarefa": "Livre: foco na CKA"
+  },
+  {
+    "data": "2027-03-05",
+    "semana": 20,
+    "tema": "Semana leve: prova CKA",
+    "tarefa": "Prova CKA: sem estudo de segurança"
+  },
+  {
+    "data": "2027-03-08",
+    "semana": 21,
+    "tema": "O que faz um SOC",
+    "tarefa": "Papéis N1, N2 e N3, triagem de alertas, playbooks e turnos"
+  },
+  {
+    "data": "2027-03-09",
+    "semana": 21,
+    "tema": "O que faz um SOC",
+    "tarefa": "TryHackMe SOC Level 1: Cyber Defence Frameworks (Kill Chain, Pyramid of Pain)"
+  },
+  {
+    "data": "2027-03-10",
+    "semana": 21,
+    "tema": "O que faz um SOC",
+    "tarefa": "Projeto SOC em casa: subir o Wazuh (manager e painel) numa VM"
+  },
+  {
+    "data": "2027-03-11",
+    "semana": 21,
+    "tema": "O que faz um SOC",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-03-12",
+    "semana": 21,
+    "tema": "O que faz um SOC",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-03-15",
+    "semana": 22,
+    "tema": "MITRE ATT&CK e inteligência",
+    "tarefa": "MITRE ATT&CK: táticas e técnicas e como mapear um alerta"
+  },
+  {
+    "data": "2027-03-16",
+    "semana": 22,
+    "tema": "MITRE ATT&CK e inteligência",
+    "tarefa": "TryHackMe SOC Level 1: Cyber Threat Intelligence"
+  },
+  {
+    "data": "2027-03-17",
+    "semana": 22,
+    "tema": "MITRE ATT&CK e inteligência",
+    "tarefa": "Instalar agentes do Wazuh no Linux e no Windows do lab"
+  },
+  {
+    "data": "2027-03-18",
+    "semana": 22,
+    "tema": "MITRE ATT&CK e inteligência",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-03-19",
+    "semana": 22,
+    "tema": "MITRE ATT&CK e inteligência",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-03-22",
+    "semana": 23,
+    "tema": "Phishing",
+    "tarefa": "Análise de phishing: cabeçalhos, links, anexos e reputação"
+  },
+  {
+    "data": "2027-03-23",
+    "semana": 23,
+    "tema": "Phishing",
+    "tarefa": "TryHackMe SOC Level 1: Phishing"
+  },
+  {
+    "data": "2027-03-24",
+    "semana": 23,
+    "tema": "Phishing",
+    "tarefa": "Analisar 3 mensagens de phishing de amostra e escrever o relatório"
+  },
+  {
+    "data": "2027-03-25",
+    "semana": 23,
+    "tema": "Phishing",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-03-26",
+    "semana": 23,
+    "tema": "Phishing",
+    "tarefa": "Feriado (Sexta Santa). Opcional: Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-03-29",
+    "semana": 24,
+    "tema": "Detecção na rede",
+    "tarefa": "Snort e Suricata, Zeek e análise de fluxo"
+  },
+  {
+    "data": "2027-03-30",
+    "semana": 24,
+    "tema": "Detecção na rede",
+    "tarefa": "TryHackMe SOC Level 1: Network Security and Traffic Analysis"
+  },
+  {
+    "data": "2027-03-31",
+    "semana": 24,
+    "tema": "Detecção na rede",
+    "tarefa": "Integrar o Suricata ao Wazuh"
+  },
+  {
+    "data": "2027-04-01",
+    "semana": 24,
+    "tema": "Detecção na rede",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-04-02",
+    "semana": 24,
+    "tema": "Detecção na rede",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-04-05",
+    "semana": 25,
+    "tema": "Detecção no endpoint",
+    "tarefa": "Sysmon, EDR e processos suspeitos"
+  },
+  {
+    "data": "2027-04-06",
+    "semana": 25,
+    "tema": "Detecção no endpoint",
+    "tarefa": "TryHackMe SOC Level 1: Endpoint Security Monitoring"
+  },
+  {
+    "data": "2027-04-07",
+    "semana": 25,
+    "tema": "Detecção no endpoint",
+    "tarefa": "Sysmon no Windows do lab enviando eventos para o Wazuh"
+  },
+  {
+    "data": "2027-04-08",
+    "semana": 25,
+    "tema": "Detecção no endpoint",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-04-09",
+    "semana": 25,
+    "tema": "Detecção no endpoint",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-04-12",
+    "semana": 26,
+    "tema": "SIEM na prática",
+    "tarefa": "Consultas e painéis no Splunk e no Elastic"
+  },
+  {
+    "data": "2027-04-13",
+    "semana": 26,
+    "tema": "SIEM na prática",
+    "tarefa": "TryHackMe SOC Level 1: SIEM com Splunk"
+  },
+  {
+    "data": "2027-04-14",
+    "semana": 26,
+    "tema": "SIEM na prática",
+    "tarefa": "Escrever 3 regras de detecção próprias no Wazuh"
+  },
+  {
+    "data": "2027-04-15",
+    "semana": 26,
+    "tema": "SIEM na prática",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-04-16",
+    "semana": 26,
+    "tema": "SIEM na prática",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-04-19",
+    "semana": 27,
+    "tema": "Resposta a incidentes",
+    "tarefa": "NIST SP 800 61: preparação, detecção, contenção, erradicação, recuperação e lições"
+  },
+  {
+    "data": "2027-04-20",
+    "semana": 27,
+    "tema": "Resposta a incidentes",
+    "tarefa": "TryHackMe SOC Level 1: DFIR"
+  },
+  {
+    "data": "2027-04-21",
+    "semana": 27,
+    "tema": "Resposta a incidentes",
+    "tarefa": "Feriado (Tiradentes). Opcional: Simular uma força bruta no SSH e conduzir a resposta"
+  },
+  {
+    "data": "2027-04-22",
+    "semana": 27,
+    "tema": "Resposta a incidentes",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-04-23",
+    "semana": 27,
+    "tema": "Resposta a incidentes",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-04-26",
+    "semana": 28,
+    "tema": "Forense básica",
+    "tarefa": "Memória, disco e linha do tempo"
+  },
+  {
+    "data": "2027-04-27",
+    "semana": 28,
+    "tema": "Forense básica",
+    "tarefa": "CyberDefenders: um lab gratuito de blue team"
+  },
+  {
+    "data": "2027-04-28",
+    "semana": 28,
+    "tema": "Forense básica",
+    "tarefa": "Relatório do incidente da semana passada, no formato de um SOC"
+  },
+  {
+    "data": "2027-04-29",
+    "semana": 28,
+    "tema": "Forense básica",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-04-30",
+    "semana": 28,
+    "tema": "Forense básica",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-05-03",
+    "semana": 29,
+    "tema": "Gestão de vulnerabilidades",
+    "tarefa": "Priorizar por impacto real: CVSS, EPSS e o catálogo KEV da CISA"
+  },
+  {
+    "data": "2027-05-04",
+    "semana": 29,
+    "tema": "Gestão de vulnerabilidades",
+    "tarefa": "Fechar o SOC Level 1 do TryHackMe"
+  },
+  {
+    "data": "2027-05-05",
+    "semana": 29,
+    "tema": "Gestão de vulnerabilidades",
+    "tarefa": "README do Projeto SOC com diagrama e regras"
+  },
+  {
+    "data": "2027-05-06",
+    "semana": 29,
+    "tema": "Gestão de vulnerabilidades",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-05-07",
+    "semana": 29,
+    "tema": "Gestão de vulnerabilidades",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-05-10",
+    "semana": 30,
+    "tema": "Portão da Fase 2",
+    "tarefa": "Revisão dos pontos fracos"
+  },
+  {
+    "data": "2027-05-11",
+    "semana": 30,
+    "tema": "Portão da Fase 2",
+    "tarefa": "Simulação de turno de SOC no LetsDefend ou no Blue Team Labs Online"
+  },
+  {
+    "data": "2027-05-12",
+    "semana": 30,
+    "tema": "Portão da Fase 2",
+    "tarefa": "Fechar o que falta na lista de requisitos"
+  },
+  {
+    "data": "2027-05-13",
+    "semana": 30,
+    "tema": "Portão da Fase 2",
+    "tarefa": "Folha em branco da fase inteira"
+  },
+  {
+    "data": "2027-05-14",
+    "semana": 30,
+    "tema": "Portão da Fase 2",
+    "tarefa": "Portão: publicar o Projeto SOC no GitHub"
+  },
+  {
+    "data": "2027-05-17",
+    "semana": 31,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-05-18",
+    "semana": 31,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-05-19",
+    "semana": 31,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Um lab leve do CyberDefenders ou nada"
+  },
+  {
+    "data": "2027-05-20",
+    "semana": 31,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-05-21",
+    "semana": 31,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-05-24",
+    "semana": 32,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-05-25",
+    "semana": 32,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-05-26",
+    "semana": 32,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Um lab leve do CyberDefenders ou nada"
+  },
+  {
+    "data": "2027-05-27",
+    "semana": 32,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Feriado (Corpus Christi)"
+  },
+  {
+    "data": "2027-05-28",
+    "semana": 32,
+    "tema": "Semana leve: simulados da SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-05-31",
+    "semana": 33,
+    "tema": "Semana leve: prova SAA",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-06-01",
+    "semana": 33,
+    "tema": "Semana leve: prova SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-06-02",
+    "semana": 33,
+    "tema": "Semana leve: prova SAA",
+    "tarefa": "Um desafio leve do picoCTF ou nada"
+  },
+  {
+    "data": "2027-06-03",
+    "semana": 33,
+    "tema": "Semana leve: prova SAA",
+    "tarefa": "Livre: foco na AWS SAA"
+  },
+  {
+    "data": "2027-06-04",
+    "semana": 33,
+    "tema": "Semana leve: prova SAA",
+    "tarefa": "Prova AWS SAA: sem estudo de segurança"
+  },
+  {
+    "data": "2027-06-07",
+    "semana": 34,
+    "tema": "Pensar como atacante",
+    "tarefa": "Metodologia de pentest e ética: escopo, autorização por escrito e relatório"
+  },
+  {
+    "data": "2027-06-08",
+    "semana": 34,
+    "tema": "Pensar como atacante",
+    "tarefa": "TryHackMe Jr Penetration Tester: reconhecimento"
+  },
+  {
+    "data": "2027-06-09",
+    "semana": 34,
+    "tema": "Pensar como atacante",
+    "tarefa": "PortSwigger: labs Apprentice de SQL injection"
+  },
+  {
+    "data": "2027-06-10",
+    "semana": 34,
+    "tema": "Pensar como atacante",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-06-11",
+    "semana": 34,
+    "tema": "Pensar como atacante",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-06-14",
+    "semana": 35,
+    "tema": "OWASP Top 10",
+    "tarefa": "OWASP Top 10: a lista atual e um exemplo real de cada item"
+  },
+  {
+    "data": "2027-06-15",
+    "semana": 35,
+    "tema": "OWASP Top 10",
+    "tarefa": "TryHackMe Jr Penetration Tester: vulnerabilidades web"
+  },
+  {
+    "data": "2027-06-16",
+    "semana": 35,
+    "tema": "OWASP Top 10",
+    "tarefa": "PortSwigger: labs Apprentice de XSS e controle de acesso"
+  },
+  {
+    "data": "2027-06-17",
+    "semana": 35,
+    "tema": "OWASP Top 10",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-06-18",
+    "semana": 35,
+    "tema": "OWASP Top 10",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-06-21",
+    "semana": 36,
+    "tema": "Burp Suite",
+    "tarefa": "Burp Suite: proxy, repeater e intruder"
+  },
+  {
+    "data": "2027-06-22",
+    "semana": 36,
+    "tema": "Burp Suite",
+    "tarefa": "TryHackMe Jr Penetration Tester: Burp Suite"
+  },
+  {
+    "data": "2027-06-23",
+    "semana": 36,
+    "tema": "Burp Suite",
+    "tarefa": "PortSwigger: autenticação e path traversal"
+  },
+  {
+    "data": "2027-06-24",
+    "semana": 36,
+    "tema": "Burp Suite",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-06-25",
+    "semana": 36,
+    "tema": "Burp Suite",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-06-28",
+    "semana": 37,
+    "tema": "Exploração de serviços",
+    "tarefa": "Nmap avançado, enumeração de serviços e Metasploit"
+  },
+  {
+    "data": "2027-06-29",
+    "semana": 37,
+    "tema": "Exploração de serviços",
+    "tarefa": "TryHackMe Jr Penetration Tester: Metasploit"
+  },
+  {
+    "data": "2027-06-30",
+    "semana": 37,
+    "tema": "Exploração de serviços",
+    "tarefa": "Uma máquina fácil do TryHackMe com relatório completo"
+  },
+  {
+    "data": "2027-07-01",
+    "semana": 37,
+    "tema": "Exploração de serviços",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-07-02",
+    "semana": 37,
+    "tema": "Exploração de serviços",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-07-05",
+    "semana": 38,
+    "tema": "Escalação de privilégio",
+    "tarefa": "Escalação de privilégio no Linux e no Windows"
+  },
+  {
+    "data": "2027-07-06",
+    "semana": 38,
+    "tema": "Escalação de privilégio",
+    "tarefa": "TryHackMe Jr Penetration Tester: Privilege Escalation"
+  },
+  {
+    "data": "2027-07-07",
+    "semana": 38,
+    "tema": "Escalação de privilégio",
+    "tarefa": "Segunda máquina fácil com relatório"
+  },
+  {
+    "data": "2027-07-08",
+    "semana": 38,
+    "tema": "Escalação de privilégio",
+    "tarefa": "Terminar a quarta; se sobrar tempo, refazer o lab de terça sem consulta"
+  },
+  {
+    "data": "2027-07-09",
+    "semana": 38,
+    "tema": "Escalação de privilégio",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-07-12",
+    "semana": 39,
+    "tema": "Portão da Fase 3",
+    "tarefa": "Active Directory em linhas gerais: Kerberos e os ataques mais comuns"
+  },
+  {
+    "data": "2027-07-13",
+    "semana": 39,
+    "tema": "Portão da Fase 3",
+    "tarefa": "Fechar o Jr Penetration Tester"
+  },
+  {
+    "data": "2027-07-14",
+    "semana": 39,
+    "tema": "Portão da Fase 3",
+    "tarefa": "Fechar o que falta na lista de requisitos"
+  },
+  {
+    "data": "2027-07-15",
+    "semana": 39,
+    "tema": "Portão da Fase 3",
+    "tarefa": "Folha em branco da fase inteira"
+  },
+  {
+    "data": "2027-07-16",
+    "semana": 39,
+    "tema": "Portão da Fase 3",
+    "tarefa": "Portão: labs Apprentice e 2 relatórios conferidos"
+  },
+  {
+    "data": "2027-07-19",
+    "semana": 40,
+    "tema": "Semana leve: reta final do Terraform",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-07-20",
+    "semana": 40,
+    "tema": "Semana leve: reta final do Terraform",
+    "tarefa": "Livre: foco no Terraform"
+  },
+  {
+    "data": "2027-07-21",
+    "semana": 40,
+    "tema": "Semana leve: reta final do Terraform",
+    "tarefa": "Um desafio leve ou nada"
+  },
+  {
+    "data": "2027-07-22",
+    "semana": 40,
+    "tema": "Semana leve: reta final do Terraform",
+    "tarefa": "Livre: foco no Terraform"
+  },
+  {
+    "data": "2027-07-23",
+    "semana": 40,
+    "tema": "Semana leve: reta final do Terraform",
+    "tarefa": "Livre: foco no Terraform"
+  },
+  {
+    "data": "2027-07-26",
+    "semana": 41,
+    "tema": "Semana leve: prova Terraform",
+    "tarefa": "20 min no caderno de erros"
+  },
+  {
+    "data": "2027-07-27",
+    "semana": 41,
+    "tema": "Semana leve: prova Terraform",
+    "tarefa": "Livre: foco no Terraform"
+  },
+  {
+    "data": "2027-07-28",
+    "semana": 41,
+    "tema": "Semana leve: prova Terraform",
+    "tarefa": "Um desafio leve do picoCTF ou nada"
+  },
+  {
+    "data": "2027-07-29",
+    "semana": 41,
+    "tema": "Semana leve: prova Terraform",
+    "tarefa": "Livre: foco no Terraform"
+  },
+  {
+    "data": "2027-07-30",
+    "semana": 41,
+    "tema": "Semana leve: prova Terraform",
+    "tarefa": "Prova Terraform: sem estudo de segurança"
+  },
+  {
+    "data": "2027-08-02",
+    "semana": 42,
+    "tema": "Plano da Security+",
+    "tarefa": "Objetivos oficiais da SY0 801, marcar a prova e comprar o voucher acadêmico"
+  },
+  {
+    "data": "2027-08-03",
+    "semana": 42,
+    "tema": "Plano da Security+",
+    "tarefa": "Professor Messer: domínio 1, conceitos gerais"
+  },
+  {
+    "data": "2027-08-04",
+    "semana": 42,
+    "tema": "Plano da Security+",
+    "tarefa": "Simulado diagnóstico de Security+"
+  },
+  {
+    "data": "2027-08-05",
+    "semana": 42,
+    "tema": "Plano da Security+",
+    "tarefa": "Corrigir o simulado diagnóstico e anotar os domínios mais fracos"
+  },
+  {
+    "data": "2027-08-06",
+    "semana": 42,
+    "tema": "Plano da Security+",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-08-09",
+    "semana": 43,
+    "tema": "Domínio 2",
+    "tarefa": "Ameaças, vulnerabilidades e ataques"
+  },
+  {
+    "data": "2027-08-10",
+    "semana": 43,
+    "tema": "Domínio 2",
+    "tarefa": "Questões do domínio 2"
+  },
+  {
+    "data": "2027-08-11",
+    "semana": 43,
+    "tema": "Domínio 2",
+    "tarefa": "Revisar os erros do diagnóstico"
+  },
+  {
+    "data": "2027-08-12",
+    "semana": 43,
+    "tema": "Domínio 2",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-08-13",
+    "semana": 43,
+    "tema": "Domínio 2",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-08-16",
+    "semana": 44,
+    "tema": "Domínio 2 (cont.)",
+    "tarefa": "Ameaças, vulnerabilidades e ataques: mitigação"
+  },
+  {
+    "data": "2027-08-17",
+    "semana": 44,
+    "tema": "Domínio 2 (cont.)",
+    "tarefa": "Questões do domínio 2"
+  },
+  {
+    "data": "2027-08-18",
+    "semana": 44,
+    "tema": "Domínio 2 (cont.)",
+    "tarefa": "Ponte com a DevOps: Trivy e segredos no pipeline do Projeto 3"
+  },
+  {
+    "data": "2027-08-19",
+    "semana": 44,
+    "tema": "Domínio 2 (cont.)",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-08-20",
+    "semana": 44,
+    "tema": "Domínio 2 (cont.)",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-08-23",
+    "semana": 45,
+    "tema": "Domínio 3",
+    "tarefa": "Arquitetura de segurança: nuvem, rede, dados e resiliência"
+  },
+  {
+    "data": "2027-08-24",
+    "semana": 45,
+    "tema": "Domínio 3",
+    "tarefa": "Questões do domínio 3"
+  },
+  {
+    "data": "2027-08-25",
+    "semana": 45,
+    "tema": "Domínio 3",
+    "tarefa": "Revisão espaçada dos erros"
+  },
+  {
+    "data": "2027-08-26",
+    "semana": 45,
+    "tema": "Domínio 3",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-08-27",
+    "semana": 45,
+    "tema": "Domínio 3",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-08-30",
+    "semana": 46,
+    "tema": "Domínio 4, parte 1",
+    "tarefa": "Operações de segurança: monitoramento, identidade e acesso"
+  },
+  {
+    "data": "2027-08-31",
+    "semana": 46,
+    "tema": "Domínio 4, parte 1",
+    "tarefa": "Questões do domínio 4"
+  },
+  {
+    "data": "2027-09-01",
+    "semana": 46,
+    "tema": "Domínio 4, parte 1",
+    "tarefa": "Revisão espaçada dos erros"
+  },
+  {
+    "data": "2027-09-02",
+    "semana": 46,
+    "tema": "Domínio 4, parte 1",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-09-03",
+    "semana": 46,
+    "tema": "Domínio 4, parte 1",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-09-06",
+    "semana": 47,
+    "tema": "Domínio 4, parte 2",
+    "tarefa": "Operações de segurança: resposta a incidentes, forense e automação"
+  },
+  {
+    "data": "2027-09-07",
+    "semana": 47,
+    "tema": "Domínio 4, parte 2",
+    "tarefa": "Feriado (Independência). Opcional: Questões do domínio 4"
+  },
+  {
+    "data": "2027-09-08",
+    "semana": 47,
+    "tema": "Domínio 4, parte 2",
+    "tarefa": "Revisão espaçada dos erros"
+  },
+  {
+    "data": "2027-09-09",
+    "semana": 47,
+    "tema": "Domínio 4, parte 2",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-09-10",
+    "semana": 47,
+    "tema": "Domínio 4, parte 2",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-09-13",
+    "semana": 48,
+    "tema": "Domínio 5",
+    "tarefa": "Gestão do programa: governança, risco, terceiros, conformidade e conscientização"
+  },
+  {
+    "data": "2027-09-14",
+    "semana": 48,
+    "tema": "Domínio 5",
+    "tarefa": "Questões do domínio 5"
+  },
+  {
+    "data": "2027-09-15",
+    "semana": 48,
+    "tema": "Domínio 5",
+    "tarefa": "Revisão espaçada dos erros"
+  },
+  {
+    "data": "2027-09-16",
+    "semana": 48,
+    "tema": "Domínio 5",
+    "tarefa": "Mais 30 questões do domínio da semana"
+  },
+  {
+    "data": "2027-09-17",
+    "semana": 48,
+    "tema": "Domínio 5",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-09-20",
+    "semana": 49,
+    "tema": "PBQs e simulado 1",
+    "tarefa": "Como funcionam as PBQs e como administrar o tempo"
+  },
+  {
+    "data": "2027-09-21",
+    "semana": 49,
+    "tema": "PBQs e simulado 1",
+    "tarefa": "Bateria de PBQs"
+  },
+  {
+    "data": "2027-09-22",
+    "semana": 49,
+    "tema": "PBQs e simulado 1",
+    "tarefa": "Simulado completo 1, cronometrado, 17:30 às 19:00"
+  },
+  {
+    "data": "2027-09-23",
+    "semana": 49,
+    "tema": "PBQs e simulado 1",
+    "tarefa": "Corrigir o simulado de quarta"
+  },
+  {
+    "data": "2027-09-24",
+    "semana": 49,
+    "tema": "PBQs e simulado 1",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-09-27",
+    "semana": 50,
+    "tema": "Simulado 2",
+    "tarefa": "Refazer as questões que errou no simulado 1"
+  },
+  {
+    "data": "2027-09-28",
+    "semana": 50,
+    "tema": "Simulado 2",
+    "tarefa": "Drill dos dois domínios mais fracos"
+  },
+  {
+    "data": "2027-09-29",
+    "semana": 50,
+    "tema": "Simulado 2",
+    "tarefa": "Simulado completo 2, cronometrado, 17:30 às 19:00"
+  },
+  {
+    "data": "2027-09-30",
+    "semana": 50,
+    "tema": "Simulado 2",
+    "tarefa": "Corrigir o simulado de quarta"
+  },
+  {
+    "data": "2027-10-01",
+    "semana": 50,
+    "tema": "Simulado 2",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-10-04",
+    "semana": 51,
+    "tema": "Simulado 3",
+    "tarefa": "Refazer as questões que errou no simulado 2"
+  },
+  {
+    "data": "2027-10-05",
+    "semana": 51,
+    "tema": "Simulado 3",
+    "tarefa": "Bateria de PBQs"
+  },
+  {
+    "data": "2027-10-06",
+    "semana": 51,
+    "tema": "Simulado 3",
+    "tarefa": "Simulado completo 3, cronometrado, 17:30 às 19:00"
+  },
+  {
+    "data": "2027-10-07",
+    "semana": 51,
+    "tema": "Simulado 3",
+    "tarefa": "Corrigir o simulado de quarta"
+  },
+  {
+    "data": "2027-10-08",
+    "semana": 51,
+    "tema": "Simulado 3",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-10-11",
+    "semana": 52,
+    "tema": "Reta final",
+    "tarefa": "Refazer as questões que errou no simulado 3"
+  },
+  {
+    "data": "2027-10-12",
+    "semana": 52,
+    "tema": "Reta final",
+    "tarefa": "Feriado (Nossa Senhora Aparecida). Opcional: Revisão leve dos acrônimos"
+  },
+  {
+    "data": "2027-10-13",
+    "semana": 52,
+    "tema": "Reta final",
+    "tarefa": "Revisão final com folha em branco"
+  },
+  {
+    "data": "2027-10-14",
+    "semana": 52,
+    "tema": "Reta final",
+    "tarefa": "Flashcards de siglas e portas"
+  },
+  {
+    "data": "2027-10-15",
+    "semana": 52,
+    "tema": "Reta final",
+    "tarefa": "Revisão: folha em branco, caderno de erros e flashcards"
+  },
+  {
+    "data": "2027-10-18",
+    "semana": 53,
+    "tema": "Prova Security+",
+    "tarefa": "Revisão leve dos pontos fracos"
+  },
+  {
+    "data": "2027-10-19",
+    "semana": 53,
+    "tema": "Prova Security+",
+    "tarefa": "Flashcards de siglas, 30 min"
+  },
+  {
+    "data": "2027-10-20",
+    "semana": 53,
+    "tema": "Prova Security+",
+    "tarefa": "Descanso"
+  },
+  {
+    "data": "2027-10-21",
+    "semana": 53,
+    "tema": "Prova Security+",
+    "tarefa": "Descanso"
+  },
+  {
+    "data": "2027-10-22",
+    "semana": 53,
+    "tema": "Prova Security+",
+    "tarefa": "Prova Security+ (no horário que você agendar)"
+  }
+]

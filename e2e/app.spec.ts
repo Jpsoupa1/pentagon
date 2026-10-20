@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { ROTINA } from "../src/server/estudos/trilha";
+import diaria from "../src/server/roadmap/trilhas/seguranca-diaria.json";
 
 const hojeEmSaoPaulo = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
@@ -22,6 +23,11 @@ const PAGINAS = [
   "/areas",
   "/ajustes",
 ];
+
+async function semRolagemLateral(page: Page, largura: number) {
+  const larguraDoc = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(larguraDoc).toBeLessThanOrEqual(largura);
+}
 
 function vigiarConsole(page: Page) {
   const erros: string[] = [];
@@ -240,7 +246,7 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     ).toBeVisible();
   });
 
-  test("Agenda mostra manhã no estágio, prática à tarde e a Segurança na terça e na quinta", async ({
+  test("Agenda mostra manhã no estágio, prática à tarde e Ciber e SecOps de segunda a sexta", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -253,11 +259,16 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     await expect(manha.getByText("no estágio")).toBeVisible();
     await expect(
       page.locator('[data-area="estudos"]').filter({ hasText: "Prática do tema da manhã" }),
-    ).toHaveCount(2);
-    // Semana compartilhada: as tardes de terça e quinta e o sábado à tarde são da Segurança.
+    ).toHaveCount(4);
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "Reposição do que atrasou" }),
+    ).toContainText("14:00–15:30");
+    const ciber = page.locator('[data-area="estudos"]').filter({ hasText: "Ciber e SecOps" });
+    await expect(ciber).toHaveCount(5);
+    await expect(ciber.first()).toContainText("17:30–18:40");
     await expect(
       page.locator('[data-area="estudos"]').filter({ hasText: "Segurança e SecOps" }),
-    ).toHaveCount(3);
+    ).toHaveCount(0);
     await expect(
       page.locator('[data-area="estudos"]').filter({ hasText: "Revisão da semana: Cluster" }),
     ).toContainText("08:00–09:30");
@@ -271,8 +282,72 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     await expect(page.getByLabel("Início de Sexta (revisão da semana, no estágio)")).toHaveValue(
       "08:00",
     );
+    await expect(page.getByLabel("Início de Sexta (reposição do que atrasou)")).toHaveValue(
+      "14:00",
+    );
     await expect(page.getByLabel("Início de Domingo (revisão espaçada)")).toHaveValue("19:00");
   });
+
+  test("Hoje mostra o bloco Ciber e SecOps com a tarefa do dia", async ({ page }) => {
+    const tarefa = diaria.find((d) => d.data === hojeEmSaoPaulo());
+    test.skip(!tarefa, "Hoje não é dia útil da trilha diária.");
+    await page.goto("/");
+    const linha = page
+      .getByRole("region", { name: "Linha do dia" })
+      .getByRole("listitem")
+      .filter({ hasText: "Ciber e SecOps" });
+    await expect(linha).toContainText("17:30 – 18:40");
+    await expect(linha).toContainText(tarefa!.tarefa);
+  });
+
+  for (const t of [
+    { nome: "notebook", largura: 1440, altura: 900 },
+    { nome: "ipad", largura: 820, altura: 1180 },
+    { nome: "iphone", largura: 390, altura: 844 },
+  ]) {
+    test(`semana que vem no ${t.nome}: terça com CKA, academia, Ciber e SecOps e aula; sábado sem estudo à tarde`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: t.largura, height: t.altura });
+      await page.goto("/agenda?semana=2026-10-26");
+      await page.getByRole("radio", { name: "Dia" }).click();
+      const dias = page.getByRole("tablist", { name: "Dias da semana" });
+
+      await dias.getByRole("tab", { name: /Ter\s*27/ }).click();
+      const terca = page.locator("ol > li").filter({ visible: true });
+      const horarios = await terca.evaluateAll((itens) =>
+        itens.map((li) => li.querySelector("strong")?.textContent + " " + li.textContent),
+      );
+      const ordem = ["14:00", "16:00", "17:30", "19:10"].map((h) =>
+        horarios.findIndex((x) => x.includes(`${h} –`)),
+      );
+      expect(
+        ordem.every((i, k) => i >= 0 && (k === 0 || i > ordem[k - 1])),
+        horarios.join("\n"),
+      ).toBe(true);
+      await expect(terca.nth(ordem[0])).toHaveAttribute("data-area", "estudos");
+      await expect(terca.nth(ordem[1])).toContainText("Academia");
+      await expect(terca.nth(ordem[2])).toContainText("Ciber e SecOps");
+      await expect(terca.nth(ordem[2])).toContainText("17:30 – 18:40");
+      await expect(terca.nth(ordem[2])).toContainText("Bandit, níveis 4 a 6");
+      await expect(terca.nth(ordem[3])).toContainText("Análise e Projeto de Sistemas");
+      await page.screenshot({ path: `test-results/telas/terca-${t.nome}.png`, fullPage: true });
+
+      await dias.getByRole("tab", { name: /Sáb\s*31/ }).click();
+      const sabado = page.locator("ol > li").filter({ visible: true });
+      await expect(sabado.filter({ hasText: "Ciber e SecOps" })).toHaveCount(0);
+      await expect(sabado.filter({ hasText: "Segurança e SecOps" })).toHaveCount(0);
+      const tarde = await sabado.evaluateAll((itens) =>
+        itens
+          .filter((li) => li.getAttribute("data-area") === "estudos")
+          .map((li) => li.querySelector("span")?.textContent ?? "")
+          .filter((h) => h >= "12:00"),
+      );
+      expect(tarde).toEqual([]);
+      await page.screenshot({ path: `test-results/telas/sabado-${t.nome}.png`, fullPage: true });
+      await semRolagemLateral(page, t.largura);
+    });
+  }
 
   test("caderno de erros pela API: anota, revisa e apaga", async ({ request }) => {
     const r = await request.post("/api/estudos/erros", {
@@ -330,6 +405,7 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
           "2-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
           "3-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
           "4-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
+          "5-tarde": { ativo: true, inicio: "14:00", minutos: 90 },
           "6-manha": { ativo: true, inicio: "09:00", minutos: 180 },
           "0-noite": { ativo: true, inicio: "19:00", minutos: 60 },
         },

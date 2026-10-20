@@ -1,4 +1,4 @@
-// npm run seed:seguranca [email]  → registra a trilha de Segurança e as sessões semanais (só para quem ainda não tem).
+// npm run seed:seguranca [email]  → registra a trilha de Segurança e o bloco diário (só para quem ainda não tem).
 import "./env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -19,7 +19,7 @@ export async function semearSegurancaParaTodos(db: ReturnType<typeof drizzle>, e
   for (const u of alvo.filter((x) => recebeConteudoPessoal(x.email))) {
     const r = await semearSeguranca(db, u.id);
     console.log(
-      `Trilha de Segurança de ${u.email}: ${r.criada ? "criada com as sessões semanais" : r.migrada ? "trocada pela versão com datas e sessões novas" : "já existia, fases e pausas atualizadas"}.`,
+      `Trilha de Segurança de ${u.email}: ${r.criada ? "criada com o bloco diário" : r.migrada ? "trocada pelo bloco diário das 17:30" : "já existia, fases atualizadas"}.`,
     );
   }
 }

@@ -12,11 +12,11 @@ Versão 2, de 19/10/2026. As datas das provas continuam as mesmas; as horas a ma
 | Terça | Lab: prática guiada | Prática do tema da manhã |
 | Quarta | Aprofundar: tópico avançado ou simulado | Prática do tema da manhã |
 | Quinta | Base: redes, Linux, Bash ou CI/CD | Prática do tema da manhã |
-| Sexta | **Revisão da semana** (roteiro em `metodo-de-revisao.md`) | Livre: reposição do que atrasou, se precisar |
+| Sexta | **Revisão da semana** (roteiro em `metodo-de-revisao.md`) | Reposição do que atrasou |
 | Sábado | Projeto de portfólio, 09:00 às 12:00 | |
 | Domingo | Revisão espaçada e planejamento, 19:00 às 20:00 | |
 
-Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:30) e as aulas da faculdade (19:10 às 22:00) ficam de fora desses blocos.
+Total: cerca de 19 h por semana (antes eram 10 h), com a reposição de sexta à tarde, que entrou em 20/10/2026. A academia (16:00 às 17:30), a trilha Segurança (17:30 às 18:40, de segunda a sexta) e as aulas da faculdade (19:10 às 22:00) ficam de fora desses blocos.
 
 **Prática da tarde:** bateria de 10 exercícios sobre o tema da manhã, com gabarito no fim, no mesmo formato que você já usa na CKA. Quando a manhã for de lab ou simulado, a tarde corrige e refaz o que deu errado.
 
@@ -44,6 +44,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Separar os horários fixos da semana |
 | Quarta | Revisar o que já foi feito na CKA |
 | Quinta | Configurar o app, o calendário e o widget da tela bloqueada |
+| Sexta | Reposição do que atrasou |
 | Sábado | Montar o lab no CachyOS (minikube e kind) e criar o repositório do Projeto 1 |
 | Domingo | Planejar a semana 1 |
 
@@ -57,7 +58,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisão: Pods, ReplicaSets, Deployments, Namespaces e comandos imperativos | Drill: criar tudo por comando imperativo com `$do`; refazer o seletor imutável do ReplicaSet (lacuna) |
 | Quarta | Revisão: labels e selectors, taints e tolerations, `nodeSelector` e node affinity | Drill: agendar pods em nós específicos no cluster de 2 nós (`cka` e `cka-m02`) |
 | Quinta | Revisão: requests e limits, DaemonSets, static pods e múltiplos schedulers | Drill: criar um static pod do zero pelo `minikube ssh -p cka` (lacuna) |
-| Sexta | Revisão da semana: Core Concepts e Scheduling | Reposição, se precisar |
+| Sexta | Revisão da semana: Core Concepts e Scheduling | Reposição do que atrasou |
 | Sábado | Projeto 1: escolher um app PHP de código aberto para o projeto (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -69,7 +70,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisão: rolling update e rollback, command e args, variáveis de ambiente | Drill: Teste 2 da bateria de ALM (retomar de onde parou) |
 | Quarta | Revisão: ConfigMaps, Secrets, multi container e initContainers | Drill: Teste 3 da bateria de ALM |
 | Quinta | Autoscaling: HPA e noções de VPA (fecha o bloco 1) | Simulado diagnóstico: 15 tarefas de tudo o que foi revisado, 1 h, só com a documentação do Kubernetes |
-| Sexta | Revisão da semana + resultado do simulado diagnóstico: escolher os 3 pontos mais fracos para reforçar | Reposição, se precisar |
+| Sexta | Revisão da semana + resultado do simulado diagnóstico: escolher os 3 pontos mais fracos para reforçar | Reposição do que atrasou |
 | Sábado | Projeto 1: escrever o Dockerfile do app PHP (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -81,7 +82,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Upgrade do cluster com kubeadm | Prática do tema da manhã |
 | Quarta | Backup e restore do etcd | Prática do tema da manhã |
 | Quinta | Redes: HTTP, TLS e certificados | Prática do tema da manhã |
-| Sexta | Revisão da semana: Cluster Maintenance (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Cluster Maintenance (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: compose local com o banco de dados (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -93,7 +94,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Upgrade do cluster com kubeadm | Prática do tema da manhã |
 | Quarta | Backup e restore do etcd | Prática do tema da manhã |
 | Quinta | Redes: HTTP, TLS e certificados | Prática do tema da manhã |
-| Sexta | Revisão da semana: Cluster Maintenance (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Cluster Maintenance (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: compose local com o banco de dados (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -105,7 +106,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Roles, ClusterRoles e ServiceAccounts | Prática do tema da manhã |
 | Quarta | Network Policies e segurança de imagens | Prática do tema da manhã |
 | Quinta | Linux: systemd e journalctl | Prática do tema da manhã |
-| Sexta | Revisão da semana: Security e RBAC (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Security e RBAC (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: manifests básicos (Deployment e Service) (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -117,7 +118,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Roles, ClusterRoles e ServiceAccounts | Prática do tema da manhã |
 | Quarta | Network Policies e segurança de imagens | Prática do tema da manhã |
 | Quinta | Linux: systemd e journalctl | Prática do tema da manhã |
-| Sexta | Revisão da semana: Security e RBAC (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Security e RBAC (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: manifests básicos (Deployment e Service) (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -129,7 +130,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | StorageClass e provisionamento dinâmico | Prática do tema da manhã |
 | Quarta | Revisão em exercícios: Security e Storage | Prática do tema da manhã |
 | Quinta | Linux: permissões, usuários e processos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Storage (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Storage (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: ConfigMap, Secret e volume persistente (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -141,7 +142,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | StorageClass e provisionamento dinâmico | Prática do tema da manhã |
 | Quarta | Revisão em exercícios: Security e Storage | Prática do tema da manhã |
 | Quinta | Linux: permissões, usuários e processos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Storage (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Storage (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: ConfigMap, Secret e volume persistente (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -153,7 +154,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | CoreDNS e Ingress | Prática do tema da manhã |
 | Quarta | Gateway API e troubleshooting de rede | Prática do tema da manhã |
 | Quinta | Redes: CIDR e sub redes | Prática do tema da manhã |
-| Sexta | Revisão da semana: Networking (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Networking (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: Ingress e probes (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -165,7 +166,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | CoreDNS e Ingress | Prática do tema da manhã |
 | Quarta | Gateway API e troubleshooting de rede | Prática do tema da manhã |
 | Quinta | Redes: CIDR e sub redes | Prática do tema da manhã |
-| Sexta | Revisão da semana: Networking (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Networking (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: Ingress e probes (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -177,7 +178,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Kustomize com overlays | Prática do tema da manhã |
 | Quarta | CRDs e Operators | Prática do tema da manhã |
 | Quinta | Bash: variáveis, laços e funções | Prática do tema da manhã |
-| Sexta | Revisão da semana: Extensibility (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Extensibility (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: Helm chart do app (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -189,7 +190,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Kustomize com overlays | Prática do tema da manhã |
 | Quarta | CRDs e Operators | Prática do tema da manhã |
 | Quinta | Bash: variáveis, laços e funções | Prática do tema da manhã |
-| Sexta | Revisão da semana: Extensibility (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Extensibility (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: Helm chart do app (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -201,7 +202,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Cluster com kubeadm em VMs locais | Prática do tema da manhã |
 | Quarta | Alta disponibilidade do control plane | Prática do tema da manhã |
 | Quinta | Redes: balanceadores e proxies reversos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Install e HA (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Install e HA (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: HPA e README com diagrama (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -213,7 +214,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Cluster com kubeadm em VMs locais | Prática do tema da manhã |
 | Quarta | Alta disponibilidade do control plane | Prática do tema da manhã |
 | Quinta | Redes: balanceadores e proxies reversos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Install e HA (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Install e HA (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: HPA e README com diagrama (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -225,7 +226,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Falhas do control plane | Prática do tema da manhã |
 | Quarta | Falhas de nó e de rede | Prática do tema da manhã |
 | Quinta | Revisão geral de Linux e redes | Prática do tema da manhã |
-| Sexta | Revisão da semana: Troubleshooting (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Troubleshooting (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: publicar no GitHub e postar no LinkedIn (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -237,7 +238,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Falhas do control plane | Prática do tema da manhã |
 | Quarta | Falhas de nó e de rede | Prática do tema da manhã |
 | Quinta | Revisão geral de Linux e redes | Prática do tema da manhã |
-| Sexta | Revisão da semana: Troubleshooting (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Troubleshooting (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 1: publicar no GitHub e postar no LinkedIn (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -249,7 +250,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Corrigir o simulado e refazer os erros | Prática do tema da manhã |
 | Quarta | Drill dos domínios mais fracos | Prática do tema da manhã |
 | Quinta | Velocidade: aliases, comandos imperativos e documentação | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados CKA (parte 1 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados CKA (parte 1 de 3) | Reposição do que atrasou |
 | Sábado | Simulado completo cronometrado (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -261,7 +262,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Corrigir o simulado e refazer os erros | Prática do tema da manhã |
 | Quarta | Drill dos domínios mais fracos | Prática do tema da manhã |
 | Quinta | Velocidade: aliases, comandos imperativos e documentação | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados CKA (parte 2 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados CKA (parte 2 de 3) | Reposição do que atrasou |
 | Sábado | Simulado completo cronometrado (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -273,7 +274,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Corrigir o simulado e refazer os erros | Prática do tema da manhã |
 | Quarta | Drill dos domínios mais fracos | Prática do tema da manhã |
 | Quinta | Velocidade: aliases, comandos imperativos e documentação | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados CKA (parte 3 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados CKA (parte 3 de 3) | Reposição do que atrasou |
 | Sábado | Simulado completo cronometrado (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -287,7 +288,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Conta AWS com MFA e alerta de orçamento | Prática do tema da manhã |
 | Quarta | Responsabilidade compartilhada, preços e suporte | Prática do tema da manhã |
 | Quinta | Simulado Cloud Practitioner | Prática do tema da manhã |
-| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 1 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 1 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: site do currículo em React (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -299,7 +300,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Conta AWS com MFA e alerta de orçamento | Prática do tema da manhã |
 | Quarta | Responsabilidade compartilhada, preços e suporte | Prática do tema da manhã |
 | Quinta | Simulado Cloud Practitioner | Prática do tema da manhã |
-| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 2 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 2 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: site do currículo em React (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -311,7 +312,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Conta AWS com MFA e alerta de orçamento | Prática do tema da manhã |
 | Quarta | Responsabilidade compartilhada, preços e suporte | Prática do tema da manhã |
 | Quinta | Simulado Cloud Practitioner | Prática do tema da manhã |
-| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 3 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: AWS Cloud Practitioner (parte 3 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: site do currículo em React (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -323,7 +324,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | VPC com sub redes públicas e privadas | Prática do tema da manhã |
 | Quarta | NAT, security groups e NACLs | Prática do tema da manhã |
 | Quinta | CI/CD: fundamentos de GitHub Actions | Prática do tema da manhã |
-| Sexta | Revisão da semana: IAM e VPC (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: IAM e VPC (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: site no S3 com CloudFront e HTTPS (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -335,7 +336,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | VPC com sub redes públicas e privadas | Prática do tema da manhã |
 | Quarta | NAT, security groups e NACLs | Prática do tema da manhã |
 | Quinta | CI/CD: fundamentos de GitHub Actions | Prática do tema da manhã |
-| Sexta | Revisão da semana: IAM e VPC (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: IAM e VPC (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: site no S3 com CloudFront e HTTPS (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -347,7 +348,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | ELB com Auto Scaling | Prática do tema da manhã |
 | Quarta | Alta disponibilidade entre zonas | Prática do tema da manhã |
 | Quinta | CI/CD: pipeline de build e testes | Prática do tema da manhã |
-| Sexta | Revisão da semana: EC2 e escalabilidade | Reposição, se precisar |
+| Sexta | Revisão da semana: EC2 e escalabilidade | Reposição do que atrasou |
 | Sábado | Projeto 2: domínio no Route 53 (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -359,7 +360,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | RDS com backup e réplica de leitura | Prática do tema da manhã |
 | Quarta | Route 53 e políticas de roteamento | Prática do tema da manhã |
 | Quinta | CI/CD: varredura da imagem e push no registry | Prática do tema da manhã |
-| Sexta | Revisão da semana: Armazenamento e dados | Reposição, se precisar |
+| Sexta | Revisão da semana: Armazenamento e dados | Reposição do que atrasou |
 | Sábado | Projeto 2: API com Lambda e DynamoDB (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -371,7 +372,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | CloudWatch, métricas e alarmes | Prática do tema da manhã |
 | Quarta | Mensageria: SQS e SNS | Prática do tema da manhã |
 | Quinta | CI/CD: deploy automático na AWS | Prática do tema da manhã |
-| Sexta | Revisão da semana: Serverless e monitoramento | Reposição, se precisar |
+| Sexta | Revisão da semana: Serverless e monitoramento | Reposição do que atrasou |
 | Sábado | Projeto 2: contador de visitas no site (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -383,7 +384,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Pipeline do Projeto 1 no GitLab CI | Prática do tema da manhã |
 | Quarta | Estratégias de deploy: rolling, blue green e canary | Prática do tema da manhã |
 | Quinta | AWS Well Architected: os seis pilares | Prática do tema da manhã |
-| Sexta | Revisão da semana: CI/CD de ponta a ponta (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: CI/CD de ponta a ponta (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: pipeline completo no GitHub Actions (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -395,7 +396,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Pipeline do Projeto 1 no GitLab CI | Prática do tema da manhã |
 | Quarta | Estratégias de deploy: rolling, blue green e canary | Prática do tema da manhã |
 | Quinta | AWS Well Architected: os seis pilares | Prática do tema da manhã |
-| Sexta | Revisão da semana: CI/CD de ponta a ponta (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: CI/CD de ponta a ponta (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: pipeline completo no GitHub Actions (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -407,7 +408,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os erros do simulado | Prática do tema da manhã |
 | Quarta | Drill: redes e segurança | Prática do tema da manhã |
 | Quinta | Drill: armazenamento e custos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados SAA (parte 1 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados SAA (parte 1 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: testes e README (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -419,7 +420,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os erros do simulado | Prática do tema da manhã |
 | Quarta | Drill: redes e segurança | Prática do tema da manhã |
 | Quinta | Drill: armazenamento e custos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados SAA (parte 2 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados SAA (parte 2 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: testes e README (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -431,7 +432,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os erros do simulado | Prática do tema da manhã |
 | Quarta | Drill: redes e segurança | Prática do tema da manhã |
 | Quinta | Drill: armazenamento e custos | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados SAA (parte 3 de 3) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados SAA (parte 3 de 3) | Reposição do que atrasou |
 | Sábado | Projeto 2: testes e README (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -445,7 +446,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | A VPC da AWS em Terraform | Prática do tema da manhã |
 | Quarta | Ciclo plan, apply e destroy; data sources | Prática do tema da manhã |
 | Quinta | Ansible: inventário e primeiro playbook | Prática do tema da manhã |
-| Sexta | Revisão da semana: Terraform básico (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Terraform básico (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: reescrever a infra em Terraform (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -457,7 +458,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | A VPC da AWS em Terraform | Prática do tema da manhã |
 | Quarta | Ciclo plan, apply e destroy; data sources | Prática do tema da manhã |
 | Quinta | Ansible: inventário e primeiro playbook | Prática do tema da manhã |
-| Sexta | Revisão da semana: Terraform básico (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Terraform básico (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 2: reescrever a infra em Terraform (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -469,7 +470,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Módulo próprio reutilizável | Prática do tema da manhã |
 | Quarta | Workspaces e ambientes dev e prod | Prática do tema da manhã |
 | Quinta | Ansible: roles e variáveis | Prática do tema da manhã |
-| Sexta | Revisão da semana: State e módulos (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: State e módulos (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: Terraform da rede e do cluster (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -481,7 +482,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Módulo próprio reutilizável | Prática do tema da manhã |
 | Quarta | Workspaces e ambientes dev e prod | Prática do tema da manhã |
 | Quinta | Ansible: roles e variáveis | Prática do tema da manhã |
-| Sexta | Revisão da semana: State e módulos (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: State e módulos (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: Terraform da rede e do cluster (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -493,7 +494,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Terraform dentro do pipeline de CI | Prática do tema da manhã |
 | Quarta | Formatação, validação e segurança do código | Prática do tema da manhã |
 | Quinta | Simulado Terraform Associate | Prática do tema da manhã |
-| Sexta | Revisão da semana: HCP Terraform e boas práticas (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: HCP Terraform e boas práticas (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: cluster Kubernetes na AWS (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -505,7 +506,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Terraform dentro do pipeline de CI | Prática do tema da manhã |
 | Quarta | Formatação, validação e segurança do código | Prática do tema da manhã |
 | Quinta | Simulado Terraform Associate | Prática do tema da manhã |
-| Sexta | Revisão da semana: HCP Terraform e boas práticas (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: HCP Terraform e boas práticas (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: cluster Kubernetes na AWS (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -517,7 +518,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os erros e refazer os labs | Prática do tema da manhã |
 | Quarta | Drill: state e módulos | Prática do tema da manhã |
 | Quinta | Drill: fluxo de trabalho e HCP Terraform | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados Terraform (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados Terraform (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: deploy da API no cluster (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -529,7 +530,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os erros e refazer os labs | Prática do tema da manhã |
 | Quarta | Drill: state e módulos | Prática do tema da manhã |
 | Quinta | Drill: fluxo de trabalho e HCP Terraform | Prática do tema da manhã |
-| Sexta | Revisão da semana: Simulados Terraform (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Simulados Terraform (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: deploy da API no cluster (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -541,7 +542,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Revisar os labs de Kubernetes | Prática do tema da manhã |
 | Quarta | Atualizar currículo e LinkedIn | Prática do tema da manhã |
 | Quinta | Semana leve: só leitura | Prática do tema da manhã |
-| Sexta | Revisão da semana: Revisão e descanso | Reposição, se precisar |
+| Sexta | Revisão da semana: Revisão e descanso | Reposição do que atrasou |
 | Sábado | Projeto 3: README parcial (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -555,7 +556,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Kube prometheus stack com Helm | Prática do tema da manhã |
 | Quarta | Grafana: painéis que respondem perguntas | Prática do tema da manhã |
 | Quinta | Livro de SRE: capítulos 3 e 4 | Prática do tema da manhã |
-| Sexta | Revisão da semana: Prometheus e Grafana (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Prometheus e Grafana (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: métricas da API (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -567,7 +568,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Kube prometheus stack com Helm | Prática do tema da manhã |
 | Quarta | Grafana: painéis que respondem perguntas | Prática do tema da manhã |
 | Quinta | Livro de SRE: capítulos 3 e 4 | Prática do tema da manhã |
-| Sexta | Revisão da semana: Prometheus e Grafana (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Prometheus e Grafana (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: métricas da API (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -579,7 +580,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Alertmanager e regras de alerta | Prática do tema da manhã |
 | Quarta | SLOs e orçamento de erro | Prática do tema da manhã |
 | Quinta | Livro de SRE: capítulos 5 e 6 | Prática do tema da manhã |
-| Sexta | Revisão da semana: Logs, alertas e SLOs (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Logs, alertas e SLOs (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: alerta e SLO da API (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -591,7 +592,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Alertmanager e regras de alerta | Prática do tema da manhã |
 | Quarta | SLOs e orçamento de erro | Prática do tema da manhã |
 | Quinta | Livro de SRE: capítulos 5 e 6 | Prática do tema da manhã |
-| Sexta | Revisão da semana: Logs, alertas e SLOs (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Logs, alertas e SLOs (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: alerta e SLO da API (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -603,7 +604,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Helm chart próprio com Argo CD | Prática do tema da manhã |
 | Quarta | OpenTelemetry: noções de traces | Prática do tema da manhã |
 | Quinta | FinOps: tags, orçamento e alertas de custo | Prática do tema da manhã |
-| Sexta | Revisão da semana: GitOps (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: GitOps (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: deploy via GitOps (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -615,7 +616,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Helm chart próprio com Argo CD | Prática do tema da manhã |
 | Quarta | OpenTelemetry: noções de traces | Prática do tema da manhã |
 | Quinta | FinOps: tags, orçamento e alertas de custo | Prática do tema da manhã |
-| Sexta | Revisão da semana: GitOps (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: GitOps (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: deploy via GitOps (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -627,7 +628,7 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Segredos e menor privilégio no IAM e no RBAC | Prática do tema da manhã |
 | Quarta | Simular uma falha e escrever o pós incidente | Prática do tema da manhã |
 | Quinta | Revisão para entrevistas técnicas | Prática do tema da manhã |
-| Sexta | Revisão da semana: Segurança e fechamento (parte 1 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Segurança e fechamento (parte 1 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: README final e post no LinkedIn (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |
 
@@ -639,6 +640,6 @@ Total: cerca de 17 h 30 por semana (antes eram 10 h). A academia (16:00 às 17:3
 | Terça | Segredos e menor privilégio no IAM e no RBAC | Prática do tema da manhã |
 | Quarta | Simular uma falha e escrever o pós incidente | Prática do tema da manhã |
 | Quinta | Revisão para entrevistas técnicas | Prática do tema da manhã |
-| Sexta | Revisão da semana: Segurança e fechamento (parte 2 de 2) | Reposição, se precisar |
+| Sexta | Revisão da semana: Segurança e fechamento (parte 2 de 2) | Reposição do que atrasou |
 | Sábado | Projeto 3: README final e post no LinkedIn (09:00 às 12:00) | |
 | Domingo | Revisão espaçada e planejamento (19:00 às 20:00) | |

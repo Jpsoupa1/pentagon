@@ -9,7 +9,6 @@ type QualquerDb = NodePgDatabase<any>;
 /**
  * Grava a trilha DevOps para um usuário. Idempotente: rodar de novo atualiza conteúdo e datas,
  * mas preserva o status (pendente ou feita) de cada sessão, identificada pelo dia e pelo turno.
- * As tardes de terça e quinta das semanas compartilhadas com a Segurança não entram.
  */
 export async function semearTrilha(db: QualquerDb, userId: string) {
   const [trilha] = await db
@@ -90,8 +89,8 @@ export async function semearTrilha(db: QualquerDb, userId: string) {
       .returning({ id: studySessions.id });
     gravadas.push(...linhas.map((l) => l.id));
   }
-  // Sessões que a trilha não prevê mais (datas fora do período, turno que deixou de existir ou
-  // tarde cedida à Segurança) saem. As já feitas ficam: são histórico.
+  // Sessões que a trilha não prevê mais (datas fora do período ou turno que deixou de existir)
+  // saem. As já feitas ficam: são histórico.
   const removidas = await db
     .delete(studySessions)
     .where(

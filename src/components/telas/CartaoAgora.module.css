@@ -51,6 +51,12 @@
   font-size: var(--fs-small);
   color: var(--on-destaque-2);
 }
+/* A tarefa do dia no bloco da Segurança: mais legível que a linha de horário. */
+.detalhe {
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .acoes {
   display: flex;
   flex-wrap: wrap;

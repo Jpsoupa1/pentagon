@@ -32,37 +32,39 @@ describe("seed da trilha (versão 2)", () => {
     const [seg, ter] = await sessoesEntre(userId, "2026-11-09", "2026-11-09");
     await marcarSessao(userId, seg.id, true);
     const antes = await sessoesDoUsuario();
-    // 545 do cronograma menos as 80 tardes de terça e quinta cedidas à Segurança.
-    expect(antes).toHaveLength(465);
+    // 545 do cronograma mais as 50 reposições de sexta à tarde.
+    expect(antes).toHaveLength(595);
 
     const r = await semearTrilha(db(), userId);
     expect(r.removidas).toBe(0);
     const depois = await sessoesDoUsuario();
-    expect(depois).toHaveLength(465);
+    expect(depois).toHaveLength(595);
     expect(depois.find((s) => s.id === seg.id)?.status).toBe("feita");
     expect(depois.find((s) => s.id === ter.id)?.status).toBe("pendente");
     expect(depois.filter((s) => s.status === "feita")).toHaveLength(1);
   });
 
-  it("segunda a quinta têm manhã; a tarde de terça e quinta é da Segurança fora das pausas", async () => {
+  it("segunda a quinta têm manhã e tarde; sexta tem a revisão e a reposição", async () => {
     const semana = await sessoesEntre(userId, "2026-11-09", "2026-11-15");
     expect(semana.map((s) => `${s.data} ${s.turno} ${s.categoria}`)).toEqual([
       "2026-11-09 manha conteudo",
       "2026-11-09 tarde pratica",
       "2026-11-10 manha conteudo",
+      "2026-11-10 tarde pratica",
       "2026-11-11 manha conteudo",
       "2026-11-11 tarde pratica",
       "2026-11-12 manha conteudo",
+      "2026-11-12 tarde pratica",
       "2026-11-13 manha revisao_semanal",
+      "2026-11-13 tarde reposicao",
       "2026-11-14 manha projeto",
       "2026-11-15 noite revisao_espacada",
     ]);
     expect(semana[0].tema).toBe("Cluster Maintenance");
     const [semana1] = await sessoesEntre(userId, "2026-10-26", "2026-10-26");
     expect(semana1.tema).toBe("Revisão CKA 1: Core Concepts e Scheduling");
-    // Na Revisão CKA (pausa da Segurança), a tarde de terça volta para a DevOps.
-    const pausa = await sessoesEntre(userId, "2026-10-27", "2026-10-27");
-    expect(pausa.map((x) => x.turno)).toEqual(["manha", "tarde"]);
+    const terca = await sessoesEntre(userId, "2026-10-27", "2026-10-27");
+    expect(terca.map((x) => x.turno)).toEqual(["manha", "tarde"]);
   });
 });
 

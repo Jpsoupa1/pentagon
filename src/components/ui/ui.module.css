@@ -152,6 +152,11 @@
   font-size: var(--fs-small);
   color: var(--muted);
 }
+.linhaDetalhe {
+  font-size: var(--fs-small);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
 .linhaPassada .linhaTitulo,
 .linhaPassada .linhaHora {
   color: var(--muted);

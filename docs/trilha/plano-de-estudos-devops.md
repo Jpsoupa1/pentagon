@@ -217,6 +217,7 @@ Atualizado em 19/10/2026: com o bloco da manhã no estágio, a rotina passa de 1
 | Segunda a quinta, 08:00 às 09:30 (estágio) | 1 h 30 por dia | Conteúdo do dia: aula, lab, aprofundamento ou base |
 | Segunda a quinta, 14:00 às 15:30 | 1 h 30 por dia | Prática: bateria de 10 exercícios sobre o tema da manhã |
 | Sexta, 08:00 às 09:30 (estágio) | 1 h 30 | Revisão da semana |
+| Sexta, 14:00 às 15:30 | 1 h 30 | Reposição do que atrasou |
 | Sábado, 09:00 às 12:00 | 3 h | Projeto de portfólio |
 | Domingo, 19:00 às 20:00 | 1 h | Revisão espaçada dos erros e planejamento da próxima semana |
 
