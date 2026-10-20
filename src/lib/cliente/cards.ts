@@ -77,6 +77,9 @@ const salvarRespostaLocal = (r: RespostaCliente) =>
 
 /** Sobe a cada mudança local: um download que começou antes dela é descartado. */
 let versaoLocal = 0;
+/** Sobe a cada download: o que terminar depois de um mais novo (ex.: o da abertura da tela,
+ * lento, chegando depois do que veio da importação) é descartado. */
+let ultimoDownload = 0;
 
 /**
  * Baixa o acervo do servidor, mas só depois de a fila offline esvaziar: assim a cópia
@@ -87,6 +90,7 @@ async function baixar(): Promise<DadosAcervo | null> {
   await sincronizar();
   if (await contarPendentes()) return null;
   const versao = versaoLocal;
+  const download = ++ultimoDownload;
   let r: Response;
   try {
     r = await fetch("/api/cards", { cache: "no-store" });
@@ -95,7 +99,7 @@ async function baixar(): Promise<DadosAcervo | null> {
   }
   if (!r.ok) return null;
   const json = (await r.json()) as Omit<DadosAcervo, "baixadoEm">;
-  if (versao !== versaoLocal) return null;
+  if (versao !== versaoLocal || download !== ultimoDownload) return null;
   const dados = { ...json, baixadoEm: Date.now() };
   await gravarLocal(dados).catch(() => undefined);
   return dados;
@@ -132,7 +136,7 @@ export function useAcervo() {
       if (remoto) {
         setDados(remoto);
         setEstado("pronto");
-      } else if (!local) setEstado("sem-copia");
+      } else if (!local) setEstado((e) => (e === "pronto" ? e : "sem-copia"));
     })();
     return () => {
       vivo = false;
