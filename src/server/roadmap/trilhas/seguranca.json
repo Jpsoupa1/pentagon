@@ -1,0 +1,609 @@
+{
+  "trail": {
+    "slug": "seguranca",
+    "name": "Trilha Segurança",
+    "subtitle": "SecOps e Cibersegurança",
+    "icon": "escudo",
+    "starts_on": "2026-10-19",
+    "goal_label": "Escolher o lado",
+    "goal_note": "SOC, AppSec e DevSecOps ou Cloud Security",
+    "start_label": "Começo",
+    "hero_title": "Do primeiro pacote ao primeiro incidente",
+    "hero_text": "Base geral de SecOps e cibersegurança em paralelo à DevOps, nas tardes de terça e quinta e no sábado à tarde. Cada fase termina num portão, e a trilha fecha com a Security+.",
+    "stats": ["4 fases", "1 certificação no núcleo", "53 semanas", "5 h por semana"]
+  },
+  "breaks": [
+    {
+      "label": "Revisão CKA",
+      "starts_on": "2026-10-26",
+      "ends_on": "2026-11-08",
+      "color": "#3056D3",
+      "linked_trail": "devops"
+    },
+    {
+      "label": "Pausa CKA",
+      "starts_on": "2027-02-15",
+      "ends_on": "2027-03-07",
+      "color": "#3056D3",
+      "linked_trail": "devops"
+    },
+    {
+      "label": "Pausa AWS SAA",
+      "starts_on": "2027-05-17",
+      "ends_on": "2027-06-06",
+      "color": "#E07A12",
+      "linked_trail": "devops"
+    },
+    {
+      "label": "Pausa Terraform",
+      "starts_on": "2027-07-19",
+      "ends_on": "2027-08-01",
+      "color": "#7B4FD6",
+      "linked_trail": "devops"
+    }
+  ],
+  "phases": [
+    {
+      "slug": "fundamentos",
+      "name": "Fundamentos de segurança",
+      "short_name": "Fundamentos",
+      "weeks_label": "Semanas 1 a 17",
+      "starts_on": "2026-10-19",
+      "ends_on": "2027-02-14",
+      "color": "#2F7D58",
+      "color_ink": "#22603F",
+      "color_soft": "#E5F2EA",
+      "gate_name": "Base",
+      "gate_full_name": "Portão de fundamentos",
+      "gate_date": "2027-02-13",
+      "gate_kind": "milestone",
+      "gate_format": "Sem prova paga: cursos concluídos, badge da Cisco e simulado acima de 75%",
+      "cost_note": "≈ US$ 100 por ano no TryHackMe (estudante)",
+      "tip": "Monte o lab numa rede isolada no primeiro sábado. Máquina vulnerável nunca fica exposta na sua rede de casa nem na internet.",
+      "domains_title": "O que a fase precisa provar",
+      "domains": [
+        ["Redes e protocolos", null],
+        ["Linux e Windows", null],
+        ["Criptografia e identidade", null],
+        ["Ameaças, vulnerabilidades e controles", null],
+        ["Governança e LGPD", null]
+      ],
+      "requirements": [
+        { "label": "Lab isolado montado (Kali e VM alvo)" },
+        { "label": "Pre Security concluído (TryHackMe)" },
+        { "label": "Cisco Introdução à Cibersegurança com badge (05/12)" },
+        { "label": "OverTheWire Bandit até o nível 20" },
+        { "label": "Captura lida no Wireshark: TCP, DNS e HTTP" },
+        { "label": "VM Linux endurecida (SSH por chave, firewall, fail2ban)" },
+        { "label": "CA própria e certificado com openssl" },
+        { "label": "Varredura com Nmap e Greenbone lida e explicada" },
+        { "label": "Trivy na imagem do BookStack" },
+        { "label": "Simulado de fundamentos acima de 75% (30/01)" },
+        { "label": "Cyber Security 101 concluído (TryHackMe)" }
+      ],
+      "resources": [
+        {
+          "title": "Introdução à Cibersegurança",
+          "provider": "Cisco Networking Academy",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Primeiro curso da trilha: 15 h, prova final e badge para o LinkedIn.",
+          "url": "https://www.netacad.com/pt-br/virtual/wr/intro-to-cybersecurity"
+        },
+        {
+          "title": "Bandit",
+          "provider": "OverTheWire",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Linux na prática, nível a nível, direto no terminal.",
+          "url": "https://overthewire.org/wargames/bandit/"
+        },
+        {
+          "title": "picoCTF",
+          "provider": "Carnegie Mellon",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "CTFs para iniciantes. Ótimos para os sábados leves.",
+          "url": "https://picoctf.org/"
+        },
+        {
+          "title": "Cartilha de Segurança",
+          "provider": "CERT.br",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "PT",
+          "note": "Conceitos e golpes do ponto de vista brasileiro.",
+          "url": "https://cartilha.cert.br/"
+        },
+        {
+          "title": "Documentação do Wireshark",
+          "provider": "Wireshark",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Filtros de captura e de exibição para ler tráfego de verdade.",
+          "url": "https://www.wireshark.org/docs/"
+        },
+        {
+          "title": "Pre Security e Cyber Security 101",
+          "provider": "TryHackMe Premium",
+          "pricing": "paid",
+          "price_label": "≈ US$ 100/ano",
+          "lang": "EN",
+          "note": "Plano anual com desconto de estudante. Serve as quatro fases.",
+          "url": "https://tryhackme.com/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2026-12-05",
+          "kind": "prova",
+          "title": "Prova final Cisco",
+          "format": "Online, ao fim do curso",
+          "price_label": "Grátis",
+          "note": "Dá o badge digital de Introdução à Cibersegurança."
+        },
+        {
+          "date": "2027-01-30",
+          "kind": "simulado",
+          "title": "Simulado de fundamentos",
+          "format": "40 questões, 1 h",
+          "price_label": "Grátis",
+          "note": "Meta de 75%. Os erros viram a revisão da semana 17."
+        },
+        {
+          "date": "2027-02-13",
+          "kind": "entrega",
+          "title": "Portão de fundamentos",
+          "format": "Checklist completo da fase",
+          "price_label": "Grátis",
+          "note": "Confira item por item no sábado antes da pausa da CKA."
+        },
+        {
+          "date": null,
+          "optional": true,
+          "kind": "prova",
+          "title": "ISC2 Certified in Cybersecurity",
+          "format": "100 a 125 questões, 2 h",
+          "price_label": "US$ 199",
+          "note": "Deixou de ser gratuita em 2026. Não compensa antes da Security+."
+        }
+      ],
+      "practice": [
+        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 15 },
+        {
+          "title": "Sábados de projeto ou CTF",
+          "cadence": "Sábado, 14:00 às 16:00",
+          "target": 15
+        },
+        { "title": "Níveis do Bandit", "cadence": "Sábados de 31/10 e 07/11", "target": 20 },
+        { "title": "Desafios do picoCTF", "cadence": "Sábados leves", "target": 15 },
+        {
+          "title": "Flashcards de portas e siglas",
+          "cadence": "Todo dia, junto com os da CKA",
+          "target": 119,
+          "source": "cards:SEG"
+        }
+      ]
+    },
+    {
+      "slug": "secops",
+      "name": "SecOps e blue team",
+      "short_name": "SecOps",
+      "weeks_label": "Semanas 21 a 30",
+      "starts_on": "2027-03-08",
+      "ends_on": "2027-05-16",
+      "color": "#1F6FB2",
+      "color_ink": "#175A91",
+      "color_soft": "#E4EFF9",
+      "gate_name": "SOC",
+      "gate_full_name": "Projeto SOC em casa",
+      "gate_date": "2027-05-15",
+      "gate_kind": "project",
+      "gate_format": "Sem prova: Wazuh, Suricata e Sysmon com regras próprias e um relatório de incidente",
+      "cost_note": "Grátis, dentro da assinatura do TryHackMe",
+      "tip": "Registre cada alerta que investigar no formato do SOC: o que disparou, o que você checou, a conclusão e a ação. É o que a entrevista pede.",
+      "domains_title": "O que um SOC N1 precisa saber",
+      "domains": [
+        ["Triagem de alertas", null],
+        ["SIEM e consultas", null],
+        ["Detecção na rede e no endpoint", null],
+        ["Resposta a incidentes", null],
+        ["MITRE ATT&CK e inteligência", null]
+      ],
+      "requirements": [
+        { "label": "Wazuh no ar com painel" },
+        { "label": "Agentes no Linux e no Windows do lab" },
+        { "label": "Sysmon enviando eventos" },
+        { "label": "Suricata integrado ao Wazuh" },
+        { "label": "Três regras de detecção próprias" },
+        { "label": "Três mensagens de phishing analisadas" },
+        { "label": "Força bruta simulada e resposta conduzida" },
+        { "label": "Relatório de incidente no formato do SOC" },
+        { "label": "Dois labs do CyberDefenders" },
+        { "label": "SOC Level 1 concluído (TryHackMe)" },
+        { "label": "README do Projeto SOC com diagrama" }
+      ],
+      "resources": [
+        {
+          "title": "SOC Level 1",
+          "provider": "TryHackMe Premium",
+          "pricing": "paid",
+          "price_label": "Na assinatura",
+          "lang": "EN",
+          "note": "Trilha principal da fase: frameworks, phishing, rede, endpoint, SIEM e DFIR.",
+          "url": "https://tryhackme.com/"
+        },
+        {
+          "title": "MITRE ATT&CK",
+          "provider": "MITRE",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "O mapa de táticas e técnicas usado em todo SOC.",
+          "url": "https://attack.mitre.org/"
+        },
+        {
+          "title": "Documentação do Wazuh",
+          "provider": "Wazuh",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Base do Projeto SOC em casa: manager, agentes e regras.",
+          "url": "https://documentation.wazuh.com/"
+        },
+        {
+          "title": "Labs de blue team",
+          "provider": "CyberDefenders",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Casos reais de investigação, com gabarito.",
+          "url": "https://cyberdefenders.org/"
+        },
+        {
+          "title": "Turno de SOC simulado",
+          "provider": "LetsDefend",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Alertas para triar como se você fosse o N1 do dia.",
+          "url": "https://letsdefend.io/"
+        },
+        {
+          "title": "NIST SP 800 61 (rev. 3)",
+          "provider": "NIST",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "A referência de resposta a incidentes.",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+        },
+        {
+          "title": "Desafios de investigação",
+          "provider": "Blue Team Labs Online",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Desafios curtos para os sábados.",
+          "url": "https://blueteamlabs.online/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-05-13",
+          "kind": "simulado",
+          "title": "Turno simulado de SOC",
+          "format": "LetsDefend ou Blue Team Labs Online, 1 h 30",
+          "price_label": "Grátis",
+          "note": "Trie os alertas e escreva a conclusão de cada um."
+        },
+        {
+          "date": "2027-05-15",
+          "kind": "entrega",
+          "title": "Projeto SOC publicado",
+          "format": "README, diagrama, regras e relatório",
+          "price_label": "Grátis",
+          "note": "Post no LinkedIn no mesmo fim de semana."
+        },
+        {
+          "date": null,
+          "optional": true,
+          "kind": "prova",
+          "title": "SAL1 (TryHackMe)",
+          "format": "80 questões e 2 cenários de SOC, cerca de 5 h",
+          "price_label": "US$ 349",
+          "note": "Só se você escolher o lado de SOC. Inclui uma nova tentativa."
+        }
+      ],
+      "practice": [
+        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 10 },
+        { "title": "Regras de detecção próprias", "cadence": "No Wazuh do lab", "target": 3 },
+        {
+          "title": "Relatórios de incidente",
+          "cadence": "Sábados das semanas 27 e 28",
+          "target": 2
+        },
+        { "title": "Labs do CyberDefenders", "cadence": "Sábados livres", "target": 4 },
+        {
+          "title": "Alertas triados no LetsDefend",
+          "cadence": "Quando sobrar tempo",
+          "target": 20
+        }
+      ]
+    },
+    {
+      "slug": "ofensiva",
+      "name": "Ofensiva e web",
+      "short_name": "Ofensiva",
+      "weeks_label": "Semanas 34 a 39",
+      "starts_on": "2027-06-07",
+      "ends_on": "2027-07-18",
+      "color": "#C8364B",
+      "color_ink": "#A12538",
+      "color_soft": "#FBE8EB",
+      "gate_name": "Web",
+      "gate_full_name": "Labs e relatórios",
+      "gate_date": "2027-07-17",
+      "gate_kind": "project",
+      "gate_format": "Sem prova: labs Apprentice da PortSwigger e dois relatórios de pentest",
+      "cost_note": "Grátis, dentro da assinatura do TryHackMe",
+      "tip": "Ataque só o seu lab e as plataformas feitas para isso. Nada de testar sistemas da Codevasf ou da PGFN sem autorização por escrito.",
+      "domains_title": "O que a fase precisa provar",
+      "domains": [
+        ["Metodologia e ética", null],
+        ["Vulnerabilidades web (OWASP)", null],
+        ["Reconhecimento e enumeração", null],
+        ["Exploração e escalação de privilégio", null],
+        ["Relatório com correção", null]
+      ],
+      "requirements": [
+        { "label": "Metodologia e escopo escritos para o próprio lab" },
+        { "label": "Labs Apprentice de SQL injection" },
+        { "label": "Labs Apprentice de XSS e controle de acesso" },
+        { "label": "Labs de autenticação e path traversal" },
+        { "label": "Burp Suite: proxy, repeater e intruder" },
+        { "label": "Duas máquinas fáceis com relatório" },
+        { "label": "Escalação de privilégio no Linux e no Windows" },
+        { "label": "Noções de Active Directory" },
+        { "label": "Jr Penetration Tester concluído (TryHackMe)" }
+      ],
+      "resources": [
+        {
+          "title": "Web Security Academy",
+          "provider": "PortSwigger",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "O melhor material gratuito de ataques web, com labs para cada tema.",
+          "url": "https://portswigger.net/web-security"
+        },
+        {
+          "title": "OWASP Top 10",
+          "provider": "OWASP",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Os riscos web mais importantes, com exemplos e correções.",
+          "url": "https://owasp.org/www-project-top-ten/"
+        },
+        {
+          "title": "Jr Penetration Tester",
+          "provider": "TryHackMe Premium",
+          "pricing": "paid",
+          "price_label": "Na assinatura",
+          "lang": "EN",
+          "note": "Trilha principal da fase, do reconhecimento à escalação.",
+          "url": "https://tryhackme.com/"
+        },
+        {
+          "title": "Ethical Hacker",
+          "provider": "Cisco Networking Academy",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Reforço da metodologia, com badge.",
+          "url": "https://www.netacad.com/courses/ethical-hacker"
+        },
+        {
+          "title": "GTFOBins",
+          "provider": "Comunidade",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Referência de escalação de privilégio no Linux.",
+          "url": "https://gtfobins.github.io/"
+        },
+        {
+          "title": "eJPT com treino",
+          "provider": "INE",
+          "pricing": "paid",
+          "price_label": "US$ 249",
+          "lang": "EN",
+          "note": "Opcional: prova prática de pentest júnior, com uma nova tentativa.",
+          "url": "https://ine.com/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-07-03",
+          "kind": "entrega",
+          "title": "Relatório da máquina 1",
+          "format": "Achados, evidências, como detectar e como corrigir",
+          "price_label": "Grátis",
+          "note": "Escreva como se fosse entregar a um cliente."
+        },
+        {
+          "date": "2027-07-10",
+          "kind": "entrega",
+          "title": "Relatório da máquina 2",
+          "format": "Mesmo formato, máquina diferente",
+          "price_label": "Grátis",
+          "note": "Inclua a escalação de privilégio."
+        },
+        {
+          "date": "2027-07-17",
+          "kind": "entrega",
+          "title": "Portão: labs e relatórios",
+          "format": "Checklist completo da fase",
+          "price_label": "Grátis",
+          "note": "Publique os relatórios no GitHub."
+        },
+        {
+          "date": null,
+          "optional": true,
+          "kind": "prova",
+          "title": "eJPT (INE)",
+          "format": "48 h, 35 questões sobre um lab",
+          "price_label": "US$ 249",
+          "note": "Só se você escolher o lado ofensivo."
+        }
+      ],
+      "practice": [
+        { "title": "Labs da PortSwigger", "cadence": "Sábados da fase", "target": 25 },
+        {
+          "title": "Máquinas com relatório",
+          "cadence": "Sábados das semanas 37 e 38",
+          "target": 2
+        },
+        { "title": "Labs de quinta", "cadence": "Toda quinta, 14:00 às 15:30", "target": 6 }
+      ]
+    },
+    {
+      "slug": "security-plus",
+      "name": "Consolidação e Security+",
+      "short_name": "Security+",
+      "weeks_label": "Semanas 42 a 53",
+      "starts_on": "2027-08-02",
+      "ends_on": "2027-10-24",
+      "color": "#6B4FD1",
+      "color_ink": "#5036AE",
+      "color_soft": "#EEEAFB",
+      "gate_name": "Security+",
+      "gate_full_name": "CompTIA Security+",
+      "gate_date": "2027-10-22",
+      "gate_kind": "exam",
+      "gate_format": "SY0 801: até 90 questões com PBQs, 90 min, corte 750 de 900 na versão atual",
+      "cost_note": "≈ US$ 220 no voucher acadêmico (US$ 439 cheio)",
+      "tip": "Compre o voucher na loja acadêmica da CompTIA enquanto o email do CEUB estiver ativo. Ele vale 12 meses.",
+      "domains_title": "O que a prova cobra (pesos provisórios)",
+      "domains": [
+        ["Operações de segurança", 27],
+        ["Ameaças, vulnerabilidades e ataques", 24],
+        ["Arquitetura de segurança", 19],
+        ["Conceitos gerais", 16],
+        ["Gestão do programa de segurança", 14]
+      ],
+      "requirements": [
+        { "label": "Voucher acadêmico comprado e prova marcada" },
+        { "label": "Simulado diagnóstico (07/08)" },
+        { "label": "Domínio 1 revisado" },
+        { "label": "Domínio 2 revisado" },
+        { "label": "Domínio 3 revisado" },
+        { "label": "Domínio 4 revisado" },
+        { "label": "Domínio 5 revisado" },
+        { "label": "Bateria de PBQs" },
+        { "label": "Três simulados completos acima de 85%" },
+        { "label": "Security+ aprovada (22/10)" }
+      ],
+      "resources": [
+        {
+          "title": "Security+ SY0 801 em vídeo",
+          "provider": "Professor Messer",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "Curso completo, com notas e lives mensais de revisão.",
+          "url": "https://www.professormesser.com/"
+        },
+        {
+          "title": "Objetivos oficiais da prova",
+          "provider": "CompTIA",
+          "pricing": "free",
+          "price_label": "Grátis",
+          "lang": "EN",
+          "note": "O checklist do que cai. Marque item por item.",
+          "url": "https://www.comptia.org/certifications/security"
+        },
+        {
+          "title": "Simulados de Security+",
+          "provider": "Jason Dion",
+          "pricing": "paid",
+          "price_label": "≈ US$ 15 a 20",
+          "lang": "EN",
+          "note": "Simulados completos com explicação de cada alternativa.",
+          "url": "https://www.diontraining.com/"
+        },
+        {
+          "title": "Voucher acadêmico",
+          "provider": "CompTIA Academic Store",
+          "pricing": "paid",
+          "price_label": "≈ US$ 220",
+          "lang": "EN",
+          "note": "Cerca de metade do preço cheio, com verificação de estudante.",
+          "url": "https://www.comptia.org/"
+        }
+      ],
+      "assessments": [
+        {
+          "date": "2027-08-07",
+          "kind": "simulado",
+          "title": "Simulado diagnóstico",
+          "format": "Prova completa, 90 min",
+          "price_label": "Nos simulados",
+          "note": "Define a ordem de revisão dos domínios."
+        },
+        {
+          "date": "2027-09-25",
+          "kind": "simulado",
+          "title": "Simulado completo 1",
+          "format": "90 min cronometrados",
+          "price_label": "Nos simulados",
+          "note": "Corrija domínio por domínio na terça."
+        },
+        {
+          "date": "2027-10-02",
+          "kind": "simulado",
+          "title": "Simulado completo 2",
+          "format": "90 min cronometrados",
+          "price_label": "Nos simulados",
+          "note": "Meta de 85%."
+        },
+        {
+          "date": "2027-10-09",
+          "kind": "simulado",
+          "title": "Simulado completo 3",
+          "format": "90 min cronometrados",
+          "price_label": "Nos simulados",
+          "note": "Meta de 85%. Se ficar abaixo, remarque com calma."
+        },
+        {
+          "date": "2027-10-22",
+          "kind": "prova",
+          "title": "Prova Security+",
+          "format": "Até 90 questões, 90 min, corte 750",
+          "price_label": "US$ 439 (≈ 220 acadêmico)",
+          "note": "Vale 3 anos. Renova com créditos de educação ou certificação maior."
+        }
+      ],
+      "practice": [
+        { "title": "Questões de simulado", "cadence": "Terças e quintas", "target": 600 },
+        { "title": "Questões de desempenho (PBQs)", "cadence": "Semanas 49 a 51", "target": 30 },
+        {
+          "title": "Simulados completos",
+          "cadence": "Sábados de agosto a outubro",
+          "target": 4
+        },
+        {
+          "title": "Flashcards de siglas",
+          "cadence": "Todo dia",
+          "target": 84,
+          "source": "cards:SEG"
+        }
+      ]
+    }
+  ]
+}

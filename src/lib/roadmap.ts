@@ -1,7 +1,8 @@
 // Cálculos do Roadmap das trilhas (sem dependências de servidor): fase atual, percentuais e prazos.
-import { difDias, FUSO_PADRAO, hojeLocal } from "./tempo";
+import { addDias, difDias, FUSO_PADRAO, hojeLocal } from "./tempo";
 
-export const tiposPortao = ["exam", "project"] as const;
+/** Portão: prova, projeto publicado ou marco (só o checklist da fase). */
+export const tiposPortao = ["exam", "project", "milestone"] as const;
 export type TipoPortao = (typeof tiposPortao)[number];
 
 export const precosRecurso = ["free", "paid"] as const;
@@ -19,21 +20,47 @@ export type FontePratica = `cards:${string}` | "sessoes:pratica" | "revisoes";
 
 export type Periodo = { inicio: string; fim: string };
 
+export const dentro = (data: string, p: Periodo) => p.inicio <= data && data <= p.fim;
+
+/** A pausa da trilha em que hoje cai, se houver. */
+export function pausaEm<T extends Periodo>(pausas: T[], hoje: string): T | null {
+  return pausas.find((p) => dentro(hoje, p)) ?? null;
+}
+
 /**
- * A fase em que hoje cai. Antes da primeira, é a primeira; depois da última, a última;
- * num intervalo entre duas fases, a próxima.
+ * A fase em que hoje cai. Durante uma pausa, continua a fase que começou antes dela; antes da
+ * primeira, é a primeira; depois da última, a última; num intervalo entre duas fases, a próxima.
  */
-export function indiceFaseAtual(fases: Periodo[], hoje: string): number {
+export function indiceFaseAtual(fases: Periodo[], hoje: string, pausas: Periodo[] = []): number {
   if (!fases.length) return -1;
-  const dentro = fases.findIndex((f) => f.inicio <= hoje && hoje <= f.fim);
-  if (dentro >= 0) return dentro;
+  const pausa = pausaEm(pausas, hoje);
+  if (pausa) {
+    const antes = fases.findLastIndex((f) => f.inicio < pausa.inicio);
+    if (antes >= 0) return antes;
+  }
+  const atual = fases.findIndex((f) => dentro(hoje, f));
+  if (atual >= 0) return atual;
   const proxima = fases.findIndex((f) => hoje < f.inicio);
   return proxima >= 0 ? proxima : fases.length - 1;
 }
 
-/** "Você está aqui" na estação Semana zero: só enquanto hoje estiver dentro dela. */
-export function naSemanaZero(semanaZero: Periodo | null, hoje: string): boolean {
-  return !!semanaZero && semanaZero.inicio <= hoje && hoje <= semanaZero.fim;
+export type EstacaoInicial = { tipo: "antes"; dias: number } | { tipo: "aqui" } | null;
+
+/**
+ * Etiqueta da estação inicial do mapa: "em N dias" antes do começo da trilha e "Você está aqui"
+ * do começo até a véspera da primeira fase. Se a primeira fase começa no mesmo dia que a trilha,
+ * o "Você está aqui" vale para a primeira semana.
+ */
+export function estacaoInicial(inicio: string, primeiraFase: string, hoje: string): EstacaoInicial {
+  if (hoje < inicio) return { tipo: "antes", dias: difDias(hoje, inicio) };
+  const ate = primeiraFase > inicio ? addDias(primeiraFase, -1) : addDias(inicio, 6);
+  return hoje <= ate ? { tipo: "aqui" } : null;
+}
+
+/** "17 h 30 por semana" → número "17 h 30" e rótulo "por semana". */
+export function separarNumero(texto: string): { numero: string; rotulo: string } {
+  const m = /^(\d+(?:[.,]\d+)?(?:\s*h(?:\s*\d+)?)?)\s+(.+)$/.exec(texto.trim());
+  return m ? { numero: m[1], rotulo: m[2] } : { numero: "", rotulo: texto };
 }
 
 /** Percentual inteiro de 0 a 100 (0 quando não há nada para fazer). */

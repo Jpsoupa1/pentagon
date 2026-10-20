@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   dataNumerica,
   diasAte,
+  estacaoInicial,
   indiceFaseAtual,
-  naSemanaZero,
+  pausaEm,
   percentual,
   periodoTexto,
   semanasDoPeriodo,
+  separarNumero,
   textoFaltam,
 } from "./roadmap";
 
@@ -16,7 +18,20 @@ const FASES = [
   { inicio: "2027-06-07", fim: "2027-08-01" },
   { inicio: "2027-08-02", fim: "2027-09-26" },
 ];
-const SEMANA_ZERO = { inicio: "2026-10-19", fim: "2026-10-25" };
+
+// Trilha Segurança: quatro fases e quatro pausas para as provas da DevOps.
+const SEG = [
+  { inicio: "2026-10-19", fim: "2027-02-14" },
+  { inicio: "2027-03-08", fim: "2027-05-16" },
+  { inicio: "2027-06-07", fim: "2027-07-18" },
+  { inicio: "2027-08-02", fim: "2027-10-24" },
+];
+const PAUSAS = [
+  { inicio: "2026-10-26", fim: "2026-11-08" },
+  { inicio: "2027-02-15", fim: "2027-03-07" },
+  { inicio: "2027-05-17", fim: "2027-06-06" },
+  { inicio: "2027-07-19", fim: "2027-08-01" },
+];
 
 describe("fase atual", () => {
   it("antes da primeira fase, a atual é a primeira", () => {
@@ -38,13 +53,71 @@ describe("fase atual", () => {
     expect(indiceFaseAtual(comBuraco, "2027-03-10")).toBe(1);
     expect(indiceFaseAtual([], "2027-03-10")).toBe(-1);
   });
+});
 
-  it("'Você está aqui' só dentro da semana zero", () => {
-    expect(naSemanaZero(SEMANA_ZERO, "2026-10-18")).toBe(false);
-    expect(naSemanaZero(SEMANA_ZERO, "2026-10-19")).toBe(true);
-    expect(naSemanaZero(SEMANA_ZERO, "2026-10-25")).toBe(true);
-    expect(naSemanaZero(SEMANA_ZERO, "2026-10-26")).toBe(false);
-    expect(naSemanaZero(null, "2026-10-20")).toBe(false);
+describe("fase atual com pausas (Segurança)", () => {
+  it("dentro de cada pausa, continua a fase que começou antes dela", () => {
+    expect(indiceFaseAtual(SEG, "2026-11-01", PAUSAS)).toBe(0); // Revisão CKA, no meio da Fase 1
+    expect(indiceFaseAtual(SEG, "2027-02-20", PAUSAS)).toBe(0); // Pausa CKA, depois do fim da Fase 1
+    expect(indiceFaseAtual(SEG, "2027-05-20", PAUSAS)).toBe(1); // Pausa AWS SAA
+    expect(indiceFaseAtual(SEG, "2027-07-25", PAUSAS)).toBe(2); // Pausa Terraform
+  });
+
+  it("no dia seguinte a cada pausa, vale a fase do calendário", () => {
+    expect(indiceFaseAtual(SEG, "2026-11-09", PAUSAS)).toBe(0);
+    expect(indiceFaseAtual(SEG, "2027-03-08", PAUSAS)).toBe(1);
+    expect(indiceFaseAtual(SEG, "2027-06-07", PAUSAS)).toBe(2);
+    expect(indiceFaseAtual(SEG, "2027-08-02", PAUSAS)).toBe(3);
+  });
+
+  it("sem pausas, um intervalo entre fases aponta para a próxima", () => {
+    expect(indiceFaseAtual(SEG, "2027-02-20")).toBe(1);
+  });
+
+  it("acha a pausa do dia", () => {
+    expect(pausaEm(PAUSAS, "2026-11-08")).toBe(PAUSAS[0]);
+    expect(pausaEm(PAUSAS, "2026-11-09")).toBeNull();
+  });
+});
+
+describe("estação inicial", () => {
+  it("antes do começo mostra em quantos dias a trilha começa", () => {
+    expect(estacaoInicial("2026-10-19", "2026-10-19", "2026-10-10")).toEqual({
+      tipo: "antes",
+      dias: 9,
+    });
+    expect(estacaoInicial("2026-10-19", "2026-10-19", "2026-10-18")).toEqual({
+      tipo: "antes",
+      dias: 1,
+    });
+  });
+
+  it("Segurança: começa com a Fase 1, então 'Você está aqui' vale a primeira semana", () => {
+    expect(estacaoInicial("2026-10-19", "2026-10-19", "2026-10-19")).toEqual({ tipo: "aqui" });
+    expect(estacaoInicial("2026-10-19", "2026-10-19", "2026-10-25")).toEqual({ tipo: "aqui" });
+    expect(estacaoInicial("2026-10-19", "2026-10-19", "2026-10-26")).toBeNull();
+  });
+
+  it("DevOps: 'Você está aqui' até a véspera da Fase 1", () => {
+    expect(estacaoInicial("2026-10-19", "2026-10-26", "2026-10-20")).toEqual({ tipo: "aqui" });
+    expect(estacaoInicial("2026-10-19", "2026-10-26", "2026-10-25")).toEqual({ tipo: "aqui" });
+    expect(estacaoInicial("2026-10-19", "2026-10-26", "2026-10-26")).toBeNull();
+  });
+});
+
+describe("números do cabeçalho", () => {
+  it("separa o número do rótulo", () => {
+    expect(separarNumero("4 fases")).toEqual({ numero: "4", rotulo: "fases" });
+    expect(separarNumero("17 h 30 por semana")).toEqual({
+      numero: "17 h 30",
+      rotulo: "por semana",
+    });
+    expect(separarNumero("5 h por semana")).toEqual({ numero: "5 h", rotulo: "por semana" });
+    expect(separarNumero("1 certificação no núcleo")).toEqual({
+      numero: "1",
+      rotulo: "certificação no núcleo",
+    });
+    expect(separarNumero("sem prazo")).toEqual({ numero: "", rotulo: "sem prazo" });
   });
 });
 

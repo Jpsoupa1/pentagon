@@ -1,7 +1,7 @@
 "use client";
 
 import { dataNumerica, percentual } from "@/lib/roadmap";
-import type { RoadmapDados, FaseRoadmap } from "@/server/servicos/roadmap";
+import type { FaseRoadmap, PausaRoadmap, RoadmapDados } from "@/server/servicos/roadmap";
 import { Icone } from "../../shell/icones";
 import { coresDaFase, feitosDe } from "./comum";
 import s from "./Roadmap.module.css";
@@ -21,26 +21,26 @@ export function Mapa({
   trilha,
   fases,
   atual,
-  semanaZeroAgora,
+  inicio,
   selecionada,
   aoSelecionar,
-}: Selecao & Pick<RoadmapDados, "trilha" | "semanaZeroAgora">) {
+}: Selecao & Pick<RoadmapDados, "trilha" | "inicio">) {
   return (
     <section className={s.mapa} aria-label="Mapa da trilha">
       <ol className={s.linha}>
-        {trilha.semanaZeroRotulo && (
-          <li className={s.terminal}>
-            <span className={s.estacaoPonto} aria-hidden />
-            <span className={s.estacaoNome}>{trilha.semanaZeroRotulo}</span>
-            {semanaZeroAgora ? (
-              <span className={s.aqui}>Você está aqui</span>
-            ) : (
-              <span className={`${s.estacaoMeta} mono`}>
-                {trilha.semanaZeroInicio && dataNumerica(trilha.semanaZeroInicio)}
-              </span>
-            )}
-          </li>
-        )}
+        <li className={s.terminal}>
+          <span className={s.estacaoPonto} aria-hidden />
+          <span className={s.estacaoNome}>{trilha.rotuloInicio}</span>
+          {inicio?.tipo === "aqui" ? (
+            <span className={s.aqui}>Você está aqui</span>
+          ) : inicio?.tipo === "antes" ? (
+            <span className={`${s.emBreve} mono`}>
+              em {inicio.dias} {inicio.dias === 1 ? "dia" : "dias"}
+            </span>
+          ) : (
+            <span className={`${s.estacaoMeta} mono`}>{dataNumerica(trilha.inicio)}</span>
+          )}
+        </li>
         {fases.map((f, i) => {
           const pct = percentual(feitosDe(f), f.requisitos.length);
           return (
@@ -110,5 +110,30 @@ export function Pilulas({ fases, atual, selecionada, aoSelecionar }: Selecao) {
         </button>
       ))}
     </div>
+  );
+}
+
+/** Períodos em que a trilha para, com a cor da fase da outra trilha que motiva cada pausa. */
+export function Pausas({ pausas, agora }: { pausas: PausaRoadmap[]; agora: PausaRoadmap | null }) {
+  const ligadas = new Set(pausas.map((p) => p.trilhaLigada?.nome).filter(Boolean));
+  const outra = ligadas.size === 1 ? [...ligadas][0]!.replace(/^Trilha /, "") : null;
+  return (
+    <section className={s.pausas} aria-labelledby="pausas-titulo">
+      <h2 id="pausas-titulo" className={s.pausasTitulo}>
+        {outra ? `Pausas para a ${outra}` : "Pausas"}
+      </h2>
+      <ul className={s.pausasLista}>
+        {pausas.map((p) => (
+          <li key={p.id} className={s.pausa} aria-current={p.id === agora?.id ? "true" : undefined}>
+            <span className={s.pausaPonto} style={{ background: p.cor }} aria-hidden />
+            <span className={s.pausaNome}>{p.rotulo}</span>
+            <span className={`${s.pausaPeriodo} mono`}>
+              {dataNumerica(p.inicio)} a {dataNumerica(p.fim)}
+            </span>
+            {p.id === agora?.id && <span className="sr-only">(agora)</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

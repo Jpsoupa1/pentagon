@@ -1,20 +1,29 @@
 "use client";
 
-import { percentual, textoFaltam } from "@/lib/roadmap";
+import { dataNumerica, percentual, textoFaltam, type EstacaoInicial } from "@/lib/roadmap";
 import { difDias } from "@/lib/tempo";
-import type { FaseRoadmap } from "@/server/servicos/roadmap";
+import type { FaseRoadmap, PausaRoadmap } from "@/server/servicos/roadmap";
 import { Icone } from "../../shell/icones";
 import { coresDaFase, dataBr, feitosDe } from "./comum";
 import s from "./Roadmap.module.css";
 
 /** Card escuro com o portão da fase atual, a contagem regressiva e o atalho para o que falta. */
+const ATE = { exam: "até a prova", project: "até a entrega", milestone: "até o portão" };
+
 export function ProximoPortao({
   fase,
   hoje,
+  icone,
+  pausa,
+  inicio,
   aoVer,
 }: {
   fase: FaseRoadmap;
   hoje: string;
+  icone: string;
+  /** Pausa em que hoje cai: a contagem continua, mas o card avisa até quando. */
+  pausa: PausaRoadmap | null;
+  inicio: EstacaoInicial;
   aoVer: () => void;
 }) {
   const dias = difDias(hoje, fase.portaoData);
@@ -22,9 +31,17 @@ export function ProximoPortao({
   const pct = percentual(feitos, fase.requisitos.length);
   return (
     <section className={s.proximo} style={coresDaFase(fase)} aria-labelledby="proximo-portao">
-      <span className={s.proximoRotulo} id="proximo-portao">
-        Próximo portão
+      <span className={s.proximoTopo}>
+        <span className={s.proximoRotulo} id="proximo-portao">
+          Próximo portão
+        </span>
+        <Icone
+          nome={icone === "escudo" ? "escudo" : "areas"}
+          tamanho={22}
+          className={s.proximoIcone}
+        />
       </span>
+      {pausa && <span className={`${s.emPausa} mono`}>Em pausa até {dataNumerica(pausa.fim)}</span>}
       <div className={s.proximoNome}>
         <strong>{fase.portao}</strong>
         <span>{fase.portaoNome}</span>
@@ -34,12 +51,8 @@ export function ProximoPortao({
         <span>{dias === 1 ? "dia" : "dias"}</span>
       </p>
       <p className={s.proximoMeta}>
-        {dias < 0
-          ? textoFaltam(dias)
-          : fase.portaoTipo === "exam"
-            ? "até a prova"
-            : "até a entrega"}{" "}
-        · <span className="mono">{dataBr(fase.portaoData)}</span>
+        {dias < 0 ? textoFaltam(dias) : ATE[fase.portaoTipo]} ·{" "}
+        <span className="mono">{dataBr(fase.portaoData)}</span>
       </p>
       <div className={s.proximoBarra}>
         <span className={s.proximoBarraTexto}>
@@ -47,6 +60,15 @@ export function ProximoPortao({
           <span className="mono">
             {feitos}/{fase.requisitos.length}
           </span>
+          {inicio?.tipo === "antes" && (
+            <>
+              {" "}
+              · começa em{" "}
+              <span className="mono">
+                {inicio.dias} {inicio.dias === 1 ? "dia" : "dias"}
+              </span>
+            </>
+          )}
         </span>
         <div
           className={s.barraEscura}

@@ -1,90 +1,70 @@
 import type { ReactNode } from "react";
-import type { FaseTrilha } from "@/server/db/schema";
+import { dataNumerica, textoFaltam } from "@/lib/roadmap";
+import { difDias } from "@/lib/tempo";
+import type { segurancaEm } from "@/server/roadmap/compartilhamento";
+import { BotaoLink } from "../ui/Botao";
 import { Cartao, CartaoCabeca, Rotulo } from "../ui/Cartao";
 import { EstadoVazio } from "../ui/EstadoVazio";
 import p from "../ui/Pagina.module.css";
-import { MudarFase } from "./MudarFase";
 import s from "./TrilhaSeguranca.module.css";
 
 /**
- * Trilha leve, sem datas nem metas: mostra a fase em estudo, onde praticar e as sessões da
- * semana. A fase só avança quando o usuário marca a atual como consolidada.
+ * Trilha Segurança em Estudos: a fase do Roadmap em que hoje cai (com as pausas para a DevOps),
+ * o portão dela e as sessões desta semana. O detalhe (requisitos, cursos, provas) fica no Roadmap.
  */
 export function TrilhaSeguranca({
   slug,
   nome,
-  fases,
-  faseAtual,
+  estado,
+  hoje,
   sessoes,
 }: {
   slug: string;
   nome: string;
-  fases: FaseTrilha[];
-  faseAtual: number;
+  estado: ReturnType<typeof segurancaEm>;
+  hoje: string;
   /** Linhas da agenda (LinhaAgenda) com as sessões desta semana. */
   sessoes: ReactNode[];
 }) {
-  const fase = fases.find((f) => f.id === faseAtual) ?? fases[0];
+  const dias = difDias(hoje, estado.portaoData);
   return (
     <Cartao aria-labelledby="trilha-seguranca">
       <CartaoCabeca
         titulo={<span id="trilha-seguranca">{nome}</span>}
         acao={
           <span className="mono">
-            Fase {fase.id}/{fases.length}
+            Fase {estado.numero}/{estado.total}
           </span>
         }
       />
       <div className={p.pilha} style={{ gap: 14 }}>
         <div className={s.fase}>
-          <Rotulo>Fase atual</Rotulo>
-          <span className={s.nome}>{fase.nome}</span>
-          <ul className={s.itens}>
-            {fase.temas?.map((t) => (
-              <li key={t}>{t}</li>
-            ))}
-          </ul>
+          <Rotulo>{estado.pausa ? "Em pausa" : "Fase atual"}</Rotulo>
+          <span className={s.nome}>
+            <span className={s.ponto} style={{ background: estado.cor }} aria-hidden />
+            {estado.nome}
+          </span>
+          {estado.pausa && (
+            <p className={p.meta}>
+              {estado.pausa.rotulo}: as tardes de terça e quinta voltam para a DevOps até{" "}
+              <span className="mono">{dataNumerica(estado.pausa.fim)}</span>. O sábado continua.
+            </p>
+          )}
+          <p className={p.meta}>
+            Portão: {estado.portao} · <span className="mono">{textoFaltam(dias)}</span>
+          </p>
         </div>
-        {!!fase.praticas?.length && (
-          <div className={s.fase}>
-            <Rotulo>Onde praticar</Rotulo>
-            <ul className={s.itens}>
-              {fase.praticas.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {fase.consolidada && <p className={p.meta}>Para avançar: {fase.consolidada}</p>}
-        <MudarFase
-          slug={slug}
-          fase={fase.id}
-          primeira={fases[0].id}
-          ultima={fases[fases.length - 1].id}
-        />
         <div className={s.fase}>
           <Rotulo>Nesta semana</Rotulo>
           {sessoes.length ? (
             <ul className={p.lista}>{sessoes}</ul>
           ) : (
-            <EstadoVazio>Nenhuma sessão nesta semana. Sem problema.</EstadoVazio>
+            <EstadoVazio>Nenhuma sessão nesta semana.</EstadoVazio>
           )}
         </div>
-        <div className={s.fase}>
-          <Rotulo>Fases</Rotulo>
-          <ol className={s.fases}>
-            {fases.map((f) => (
-              <li key={f.id} aria-current={f.id === fase.id ? "step" : undefined}>
-                <span>
-                  {f.id}. {f.nome}
-                </span>
-                <span className={`${p.meta} mono`}>
-                  {f.id < fase.id ? "consolidada" : f.id === fase.id ? "agora" : ""}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <BotaoLink href={`/trilhas/${slug}/roadmap`} pequeno>
+          Ver o roadmap da Segurança
+        </BotaoLink>
       </div>
     </Cartao>
   );

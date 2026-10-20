@@ -1,7 +1,7 @@
-import { and, eq, notInArray, sql } from "drizzle-orm";
+import { and, eq, ne, notInArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { studySessions, studyTracks, studyWeeks } from "../db/schema";
-import { NOME_TRILHA, ROTINA, SLUG_TRILHA, TODOS_OS_DIAS } from "./trilha";
+import { NOME_TRILHA, ROTINA, SLUG_TRILHA, sessoesDaDevops } from "./trilha";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type QualquerDb = NodePgDatabase<any>;
@@ -9,6 +9,7 @@ type QualquerDb = NodePgDatabase<any>;
 /**
  * Grava a trilha DevOps para um usuário. Idempotente: rodar de novo atualiza conteúdo e datas,
  * mas preserva o status (pendente ou feita) de cada sessão, identificada pelo dia e pelo turno.
+ * As tardes de terça e quinta das semanas compartilhadas com a Segurança não entram.
  */
 export async function semearTrilha(db: QualquerDb, userId: string) {
   const [trilha] = await db
@@ -58,7 +59,7 @@ export async function semearTrilha(db: QualquerDb, userId: string) {
     .returning({ id: studyWeeks.id, numero: studyWeeks.numero });
   const idDaSemana = new Map(semanas.map((s) => [s.numero, s.id]));
 
-  const sessoes = ROTINA.sessoesEntre(ROTINA.INICIO, ROTINA.FIM, TODOS_OS_DIAS);
+  const sessoes = sessoesDaDevops();
   const gravadas: string[] = [];
   for (let i = 0; i < sessoes.length; i += 200) {
     const linhas = await db
@@ -89,10 +90,17 @@ export async function semearTrilha(db: QualquerDb, userId: string) {
       .returning({ id: studySessions.id });
     gravadas.push(...linhas.map((l) => l.id));
   }
-  // Sessões que a trilha não prevê mais (datas fora do período ou turno que deixou de existir) saem.
+  // Sessões que a trilha não prevê mais (datas fora do período, turno que deixou de existir ou
+  // tarde cedida à Segurança) saem. As já feitas ficam: são histórico.
   const removidas = await db
     .delete(studySessions)
-    .where(and(eq(studySessions.trackId, trilha.id), notInArray(studySessions.id, gravadas)))
+    .where(
+      and(
+        eq(studySessions.trackId, trilha.id),
+        notInArray(studySessions.id, gravadas),
+        ne(studySessions.status, "feita"),
+      ),
+    )
     .returning({ id: studySessions.id });
   return {
     trilhaId: trilha.id,

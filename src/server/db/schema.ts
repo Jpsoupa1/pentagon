@@ -412,18 +412,42 @@ export const roadmapTrails = pgTable("roadmap_trails", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
   nome: text("nome").notNull(),
-  /** Título grande da página e o parágrafo abaixo dele. */
+  subtitulo: text("subtitulo"),
+  /** Ícone do card do próximo portão ("pentagono" ou "escudo"). */
+  icone: text("icone").notNull().default("pentagono"),
+  /** Título grande da página, o parágrafo abaixo dele e os números do cabeçalho. */
   titulo: text("titulo").notNull(),
   sobre: text("sobre").notNull(),
+  numeros: jsonb("numeros").$type<string[]>().notNull().default([]),
   inicio: date("inicio").notNull(),
+  /** Estação inicial do mapa (ex.: "Semana zero", "Começo"). */
+  rotuloInicio: text("rotulo_inicio").notNull().default("Começo"),
   /** Estação final do mapa (ex.: "Primeira vaga") e a nota dela. */
   meta: text("meta").notNull(),
   metaNota: text("meta_nota"),
-  semanaZeroRotulo: text("semana_zero_rotulo"),
-  semanaZeroInicio: date("semana_zero_inicio"),
-  semanaZeroFim: date("semana_zero_fim"),
   createdAt: criadoEm(),
 });
+
+/** Períodos em que a trilha para (ex.: a Segurança pausa nas retas finais das provas da DevOps). */
+export const roadmapBreaks = pgTable(
+  "roadmap_breaks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    trailId: uuid("trail_id")
+      .notNull()
+      .references(() => roadmapTrails.id, { onDelete: "cascade" }),
+    posicao: smallint("posicao").notNull(),
+    rotulo: text("rotulo").notNull(),
+    inicio: date("inicio").notNull(),
+    fim: date("fim").notNull(),
+    /** Cor da fase da outra trilha que motiva a pausa. */
+    cor: text("cor").notNull(),
+    trilhaLigadaId: uuid("trilha_ligada_id").references(() => roadmapTrails.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [uniqueIndex("roadmap_breaks_trail_posicao_uq").on(t.trailId, t.posicao)],
+);
 
 export const portaoEnum = pgEnum("roadmap_gate_kind", tiposPortao);
 export const precoRecursoEnum = pgEnum("roadmap_pricing", precosRecurso);

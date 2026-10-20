@@ -81,6 +81,12 @@ const caminhos = {
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   seta: <path d="M5 12h14M13 6l6 6-6 6" />,
+  escudo: (
+    <>
+      <path d="M12 3.2 19.5 6v5.6c0 4.4-3.1 8.1-7.5 9.2-4.4-1.1-7.5-4.8-7.5-9.2V6z" />
+      <path d="m9 12 2.2 2.2L15.5 10" />
+    </>
+  ),
   menos: <path d="M5 12h14" />,
   bandeira: (
     <>

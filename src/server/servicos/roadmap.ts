@@ -1,11 +1,12 @@
 import "server-only";
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
-import { horariosComPadrao } from "@/lib/estudos";
-import { indiceFaseAtual, naSemanaZero, type Periodo } from "@/lib/roadmap";
+import { alias } from "drizzle-orm/pg-core";
+import { dentro, estacaoInicial, indiceFaseAtual, type EstacaoInicial } from "@/lib/roadmap";
 import { hojeLocal } from "@/lib/tempo";
 import { db } from "../db";
 import {
   flashcardAnswers,
+  roadmapBreaks,
   flashcards,
   roadmapAssessments,
   roadmapDomains,
@@ -45,23 +46,41 @@ export type FaseRoadmap = Omit<Fase, "trailId"> & {
   avaliacoes: Omit<typeof roadmapAssessments.$inferSelect, "phaseId" | "posicao">[];
   pratica: PraticaRoadmap[];
 };
+export type PausaRoadmap = {
+  id: string;
+  rotulo: string;
+  inicio: string;
+  fim: string;
+  cor: string;
+  /** A outra trilha que motiva a pausa (a DevOps, para a Segurança). */
+  trilhaLigada: { slug: string; nome: string } | null;
+};
+export type TrilhaResumo = { slug: string; nome: string; subtitulo: string | null; titulo: string };
 export type RoadmapDados = {
-  trilha: typeof roadmapTrails.$inferSelect;
+  trilha: Omit<typeof roadmapTrails.$inferSelect, "createdAt">;
+  /** Todas as trilhas, para o seletor. */
+  trilhas: TrilhaResumo[];
   fases: FaseRoadmap[];
+  pausas: PausaRoadmap[];
   hoje: string;
   fuso: string;
-  /** Índice da fase atual em `fases`. */
+  /** Índice da fase atual em `fases` (durante uma pausa, a fase de antes dela). */
   atual: number;
-  semanaZeroAgora: boolean;
-  /** Soma dos horários de estudo ligados em Ajustes. */
-  minutosPorSemana: number;
+  /** Etiqueta da estação inicial: "em N dias", "Você está aqui" ou nada. */
+  inicio: EstacaoInicial;
 };
 
-export async function listarRoadmaps() {
+/** Trilhas do Roadmap na ordem em que foram cadastradas (DevOps, depois Segurança). */
+export async function listarRoadmaps(): Promise<TrilhaResumo[]> {
   return db()
-    .select({ slug: roadmapTrails.slug, nome: roadmapTrails.nome, titulo: roadmapTrails.titulo })
+    .select({
+      slug: roadmapTrails.slug,
+      nome: roadmapTrails.nome,
+      subtitulo: roadmapTrails.subtitulo,
+      titulo: roadmapTrails.titulo,
+    })
     .from(roadmapTrails)
-    .orderBy(asc(roadmapTrails.nome));
+    .orderBy(asc(roadmapTrails.createdAt), asc(roadmapTrails.slug));
 }
 
 /** A trilha inteira, com fases, recursos e o progresso do usuário, numa leitura só. */
@@ -72,13 +91,15 @@ export async function obterRoadmap(
 ): Promise<RoadmapDados> {
   const [trilha] = await db().select().from(roadmapTrails).where(eq(roadmapTrails.slug, slug));
   if (!trilha) throw new NaoEncontrado("Trilha");
-  const [fases, ajustes] = await Promise.all([
+  const [fases, ajustes, pausas, trilhas] = await Promise.all([
     db()
       .select()
       .from(roadmapPhases)
       .where(eq(roadmapPhases.trailId, trilha.id))
       .orderBy(asc(roadmapPhases.posicao)),
     obterAjustes(userId),
+    pausasDa(trilha.id),
+    listarRoadmaps(),
   ]);
   const ids = fases.map((f) => f.id);
   const doPai = <T extends { phaseId: string }>(linhas: T[], id: string) =>
@@ -133,22 +154,15 @@ export async function obterRoadmap(
   const manual = new Map(contagens.map((c) => [c.id, c.contagem]));
   const automatico = await contagensAutomaticas(userId, slug, fases, pratica);
   const hoje = hojeLocal(agora, ajustes.fuso);
-  const minutosPorSemana = Object.values(horariosComPadrao(ajustes.horariosEstudo))
-    .filter((h) => h.ativo)
-    .reduce((t, h) => t + h.minutos, 0);
 
   return {
-    trilha,
+    trilha: omitir(trilha, "createdAt"),
+    trilhas,
+    pausas,
     hoje,
     fuso: ajustes.fuso,
-    atual: indiceFaseAtual(fases, hoje),
-    semanaZeroAgora: naSemanaZero(
-      trilha.semanaZeroInicio && trilha.semanaZeroFim
-        ? { inicio: trilha.semanaZeroInicio, fim: trilha.semanaZeroFim }
-        : null,
-      hoje,
-    ),
-    minutosPorSemana,
+    atual: indiceFaseAtual(fases, hoje, pausas),
+    inicio: fases.length ? estacaoInicial(trilha.inicio, fases[0].inicio, hoje) : null,
     fases: fases.map((f) => ({
       ...omitir(f, "trailId"),
       dominios: doPai(dominios, f.id).map(({ id, rotulo, peso }) => ({ id, rotulo, peso })),
@@ -172,7 +186,27 @@ export async function obterRoadmap(
   };
 }
 
-const noPeriodo = (data: string, p: Periodo) => p.inicio <= data && data <= p.fim;
+async function pausasDa(trailId: string): Promise<PausaRoadmap[]> {
+  const ligada = alias(roadmapTrails, "ligada");
+  const linhas = await db()
+    .select({
+      id: roadmapBreaks.id,
+      rotulo: roadmapBreaks.rotulo,
+      inicio: roadmapBreaks.inicio,
+      fim: roadmapBreaks.fim,
+      cor: roadmapBreaks.cor,
+      slug: ligada.slug,
+      nome: ligada.nome,
+    })
+    .from(roadmapBreaks)
+    .leftJoin(ligada, eq(ligada.id, roadmapBreaks.trilhaLigadaId))
+    .where(eq(roadmapBreaks.trailId, trailId))
+    .orderBy(asc(roadmapBreaks.posicao));
+  return linhas.map(({ slug, nome, ...p }) => ({
+    ...p,
+    trilhaLigada: slug && nome ? { slug, nome } : null,
+  }));
+}
 
 function omitir<T extends object, K extends keyof T>(o: T, ...chaves: K[]): Omit<T, K> {
   const copia = { ...o };
@@ -246,7 +280,7 @@ async function contagensAutomaticas(
         : tipo === "revisoes"
           ? revisoes.map((r) => r.data)
           : cards.filter((c) => c.trilha === alvo?.toLowerCase()).map((c) => c.data);
-    saida.set(p.id, datas.filter((d) => noPeriodo(d, periodo)).length);
+    saida.set(p.id, datas.filter((d) => dentro(d, periodo)).length);
   }
   return saida;
 }

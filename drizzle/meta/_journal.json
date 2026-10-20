@@ -50,6 +50,20 @@
       "when": 1792513102825,
       "tag": "0006_roadmap",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792519444538,
+      "tag": "0007_roadmap-seguranca",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792519445784,
+      "tag": "0008_roadmap-sem-semana-zero",
+      "breakpoints": true
     }
   ]
 }

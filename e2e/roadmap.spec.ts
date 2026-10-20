@@ -113,3 +113,69 @@ test("Roadmap no iPhone e no iPad: uma coluna, pílulas e só 5 requisitos de in
     "page",
   );
 });
+
+test("Trocar de trilha mantém a aba; a Segurança mostra pausas e portão de marco", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 860 });
+  await page.goto(URL);
+  await page.getByRole("tab", { name: /Prática/ }).click();
+  const trocar = page.getByRole("navigation", { name: "Trocar de trilha" });
+  await expect(trocar.getByRole("link", { name: "DevOps" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await trocar.getByRole("link", { name: "Segurança" }).click();
+
+  await expect(page).toHaveURL(/\/trilhas\/seguranca\/roadmap\?aba=pratica$/);
+  await expect(
+    page.getByRole("heading", { name: "Do primeiro pacote ao primeiro incidente" }),
+  ).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Prática/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByText("Flashcards de portas e siglas")).toBeVisible();
+  await semRolagemHorizontal(page);
+
+  const pausas = page.getByRole("region", { name: "Pausas para a DevOps" });
+  await expect(pausas.getByRole("listitem")).toHaveCount(4);
+  await expect(pausas).toContainText("Revisão CKA");
+  await expect(pausas).toContainText("26/10 a 08/11");
+
+  const portao = page.getByRole("region", { name: /Fase 1: Fundamentos/ });
+  await expect(portao.getByText("Portão: marco")).toBeVisible();
+  await expect(portao.getByRole("heading", { name: "Portão de fundamentos" })).toBeVisible();
+
+  // Fase 4: pesos provisórios no título dos domínios.
+  await page.getByRole("button", { name: /^4\s*Security\+/ }).click();
+  await expect(page.getByText("O que a prova cobra (pesos provisórios)")).toBeVisible();
+
+  // Volta para a DevOps na mesma aba.
+  await page.getByRole("tab", { name: /Provas e simulados/ }).click();
+  await trocar.getByRole("link", { name: "DevOps" }).click();
+  await expect(page).toHaveURL(/\/trilhas\/devops\/roadmap\?aba=provas$/);
+  await expect(page.getByRole("tab", { name: /Provas e simulados/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+});
+
+test("Segurança no iPhone e no iPad: seletor abaixo do título e sem rolagem lateral", async ({
+  page,
+}) => {
+  for (const largura of [390, 820]) {
+    await page.setViewportSize({ width: largura, height: 900 });
+    await page.goto("/trilhas/seguranca/roadmap");
+    const titulo = page.getByRole("heading", { name: "Roadmap", level: 1 });
+    const trocar = page.getByRole("navigation", { name: "Trocar de trilha" });
+    await expect(titulo).toBeVisible();
+    const [t, s] = [await titulo.boundingBox(), await trocar.boundingBox()];
+    expect(s!.y).toBeGreaterThan(t!.y);
+    await expect(trocar.getByRole("link", { name: "Segurança" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    for (const alvo of await trocar.getByRole("link").all()) {
+      expect((await alvo.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    await semRolagemHorizontal(page);
+  }
+});
