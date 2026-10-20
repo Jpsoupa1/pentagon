@@ -5,7 +5,7 @@ import { db } from "./db";
 import { accounts, sessions, users } from "./db/schema";
 import { semearTrilha } from "./estudos/seed";
 import { semearSeguranca } from "./estudos/seguranca";
-import { emailPermitido } from "./permissao";
+import { emailPermitido, recebeConteudoPessoal } from "./permissao";
 import { semearRotina } from "./rotina/seed";
 
 declare module "next-auth" {
@@ -26,9 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   pages: { signIn: "/login", error: "/login" },
   trustHost: true,
   events: {
-    // Primeiro login: grava a trilha DevOps, a rotina pessoal e a trilha de Segurança.
+    // Primeiro login do dono: grava a trilha DevOps, a rotina pessoal e a trilha de Segurança.
+    // Os outros usuários (fora de OWNER_EMAILS) começam com o app vazio.
     async createUser({ user }) {
-      if (!user.id) return;
+      if (!user.id || !recebeConteudoPessoal(user.email)) return;
       await semearTrilha(db(), user.id);
       await semearRotina(db(), user.id);
       await semearSeguranca(db(), user.id);

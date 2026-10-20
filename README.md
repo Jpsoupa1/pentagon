@@ -187,7 +187,7 @@ Os testes e2e criam um usuário e uma sessão direto no banco local (`e2e/sessao
 
 1. Projeto na Vercel ligado ao repositório do GitHub (deploy pela integração Git; produção = `main`, cada PR ganha preview).
 2. Neon instalado pela Vercel Marketplace, com **branch do banco por preview**. A integração injeta `DATABASE_URL`.
-3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `ANTHROPIC_API_KEY` (chave de um workspace do Console só do Pentagon, com limite de gasto) e `ANTHROPIC_MODEL`. As do QStash vêm da integração Upstash da Vercel Marketplace.
+3. Variáveis de ambiente (ver `.env.example`): `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `OWNER_EMAILS` (quem recebe a rotina e as trilhas; os outros começam com o app vazio), `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `ANTHROPIC_API_KEY` (chave de um workspace do Console só do Pentagon, com limite de gasto) e `ANTHROPIC_MODEL`. As do QStash vêm da integração Upstash da Vercel Marketplace.
 4. O build da Vercel usa `npm run vercel-build`: aplica as migrações (só quando `VERCEL_ENV` é `production` ou `preview`, cada um no seu banco) e depois roda `next build`.
 5. Cron diário em `vercel.json` (06:00 UTC = 03:00 em São Paulo).
 
