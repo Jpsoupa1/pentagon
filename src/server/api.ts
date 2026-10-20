@@ -2,7 +2,7 @@ import "server-only";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { z, ZodError } from "zod";
 import { auth } from "./auth";
-import { Conflito, LimiteExcedido, NaoEncontrado, SemCreditos } from "./erros";
+import { Conflito, EntradaInvalida, LimiteExcedido, NaoEncontrado, SemCreditos } from "./erros";
 
 type Contexto<P> = { userId: string; req: NextRequest; params: P };
 
@@ -45,6 +45,8 @@ export function respostaDeErro(erro: unknown) {
       { status: 400 },
     );
   }
+  if (erro instanceof EntradaInvalida)
+    return NextResponse.json({ erro: erro.message }, { status: 400 });
   if (erro instanceof NaoEncontrado)
     return NextResponse.json({ erro: erro.message }, { status: 404 });
   if (erro instanceof Conflito) {

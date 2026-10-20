@@ -55,6 +55,12 @@ export default async function Areas() {
         <Cartao aria-label="Mais">
           <ul className={layout.lista}>
             <li>
+              <Link href="/cards" className={layout.itemLink}>
+                <Icone nome="cards" />
+                <span className={layout.itemTitulo}>Cards</span>
+              </Link>
+            </li>
+            <li>
               <Link href="/voz" className={layout.itemLink}>
                 <Icone nome="microfone" />
                 <span className={layout.itemTitulo}>Assistente</span>

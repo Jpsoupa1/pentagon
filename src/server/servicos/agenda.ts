@@ -7,6 +7,7 @@ import { expandirComRegras, marcarNoEstagio, ocorrenciasDeFeriados } from "../ag
 import { db } from "../db";
 import { assessments, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
+import { cardsDeHoje } from "./cards";
 import { eventosNoIntervalo } from "./eventos";
 import { feriadosEntre } from "./feriados";
 import { ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
@@ -93,14 +94,15 @@ export function semanaDe(data: string): Intervalo {
 
 /** Dados da tela Hoje. */
 export async function painelHoje(userId: string, agora = new Date()) {
-  const { fuso } = await obterAjustes(userId);
+  const { fuso, limiteCards } = await obterAjustes(userId);
   const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
-  const [daSemana, prazos, lembretes, pendentes] = await Promise.all([
+  const [daSemana, prazos, lembretes, pendentes, cards] = await Promise.all([
     ocorrencias(userId, semana),
     proximosPrazos(userId, paraUtc(hoje, "00:00", fuso)),
     lembretesDeHoje(userId, hoje, fuso),
     sessoesPendentes(userId, hoje),
+    cardsDeHoje(userId, hoje, limiteCards),
   ]);
   const doDia = daSemana.filter(
     (o) =>
@@ -123,5 +125,6 @@ export async function painelHoje(userId: string, agora = new Date()) {
     prazos,
     lembretes,
     pendentes,
+    cards,
   };
 }

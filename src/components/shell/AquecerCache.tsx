@@ -3,7 +3,14 @@
 import { useEffect } from "react";
 import { MENU, SECUNDARIO } from "./navegacao";
 
-const PAGINAS = [...MENU, ...SECUNDARIO].map((i) => i.href);
+// As telas de Cards rodam da cópia local do acervo: guardadas, as duas sessões abrem offline.
+const PAGINAS = [
+  ...[...MENU, ...SECUNDARIO].map((i) => i.href),
+  "/cards/dia",
+  "/cards/aleatorio",
+  "/cards/acervo",
+  "/cards/importar",
+];
 const CHAVE = "pentagon:aquecido-em";
 const INTERVALO_MS = 10 * 60_000;
 

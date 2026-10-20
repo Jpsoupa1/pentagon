@@ -46,6 +46,7 @@ export default async function Ajustes() {
               avisoMin: ajustes.avisoMin,
               periodoInicio: ajustes.periodoInicio,
               periodoFim: ajustes.periodoFim,
+              limiteCards: ajustes.limiteCards,
             }}
           />
         </Cartao>

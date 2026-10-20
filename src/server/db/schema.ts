@@ -20,7 +20,10 @@ import { categoriasSessao, turnos } from "../../lib/estudos";
 import {
   areaIds,
   assessmentKinds,
+  modosCard,
+  origensCard,
   repeticoes,
+  resultadosCard,
   type AreaId as AreaIdDominio,
   type HorariosEstudo,
 } from "../../lib/dominio";
@@ -327,6 +330,63 @@ export const studyErrors = pgTable(
   (t) => [index("study_errors_user_revisar_idx").on(t.userId, t.revisarEm)],
 );
 
+// ---------------------------------------------------------------- Flashcards
+
+export const cardOriginEnum = pgEnum("flashcard_origin", origensCard);
+export const cardResultEnum = pgEnum("flashcard_result", resultadosCard);
+export const cardModeEnum = pgEnum("flashcard_mode", modosCard);
+
+/**
+ * Acervo de flashcards. Nada aqui é apagado ou escondido por revisar: o card só sai se o
+ * usuário apagar. `chave` é o id do JSON importado (ex.: cka-arq-001).
+ */
+export const flashcards = pgTable(
+  "flashcards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    chave: text("chave").notNull(),
+    trilha: text("trilha").notNull(),
+    tema: text("tema").notNull(),
+    frente: text("frente").notNull(),
+    verso: text("verso").notNull(),
+    codigo: text("codigo"),
+    origem: cardOriginEnum("origem").notNull(),
+    /** Data que veio no JSON (`criado_em`). */
+    criadoEm: date("criado_em").notNull(),
+    caixa: smallint("caixa").notNull().default(1),
+    /** Próxima revisão na sessão do dia. Sem data: card novo, nunca revisado. */
+    proximaEm: date("proxima_em"),
+    suspenso: boolean("suspenso").notNull().default(false),
+    acertos: integer("acertos").notNull().default(0),
+    erros: integer("erros").notNull().default(0),
+    createdAt: criadoEm(),
+    updatedAt: atualizadoEm(),
+  },
+  (t) => [uniqueIndex("flashcards_user_chave_uq").on(t.userId, t.chave)],
+);
+
+/** Cada resposta dada. O id vem do aparelho: reenviar da fila offline não grava de novo. */
+export const flashcardAnswers = pgTable(
+  "flashcard_answers",
+  {
+    id: uuid("id").primaryKey(),
+    userId: dono(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => flashcards.id, { onDelete: "cascade" }),
+    /** Dia local em que respondeu (vale para o agendamento, mesmo sincronizando depois). */
+    data: date("data").notNull(),
+    respondidaEm: timestamp("respondida_em", tz).notNull(),
+    resultado: cardResultEnum("resultado").notNull(),
+    modo: cardModeEnum("modo").notNull(),
+    caixaAntes: smallint("caixa_antes").notNull(),
+    caixaDepois: smallint("caixa_depois").notNull(),
+    createdAt: criadoEm(),
+  },
+  (t) => [index("flashcard_answers_user_data_idx").on(t.userId, t.data)],
+);
+
 // ---------------------------------------------------------------- Lembretes e avisos
 
 export const repeatEnum = pgEnum("reminder_repeat", repeticoes);
@@ -404,6 +464,8 @@ export const settings = pgTable("settings", {
   periodoInicio: date("periodo_inicio"),
   periodoFim: date("periodo_fim"),
   horariosEstudo: jsonb("horarios_estudo").$type<HorariosEstudo>(),
+  /** Quantos cards a sessão do dia mostra. */
+  limiteCards: smallint("limite_cards").notNull().default(20),
   /** Quando o seed da rotina pessoal rodou: evita recriar o que o usuário apagou. */
   rotinaSemeadaEm: timestamp("rotina_semeada_em", tz),
   areasNoFeed: areaEnum("areas_no_feed")

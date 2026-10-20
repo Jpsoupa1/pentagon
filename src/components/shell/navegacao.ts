@@ -39,6 +39,7 @@ export const MENU: ItemNav[] = [
     area: "estudos",
     contador: "estudos",
   },
+  { href: "/cards", rotulo: "Cards", curto: "Cards", icone: "cards", area: "estudos" },
   { href: "/estagio", rotulo: "Estágio", curto: "Estágio", icone: "estagio", area: "estagio" },
   {
     href: "/lembretes",

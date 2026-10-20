@@ -113,7 +113,9 @@ export function Trilho({ contadores }: Pick<Props, "contadores">) {
   );
 }
 
-const ABAS_IPAD = [MENU[0], MENU[1], MENU[2], MENU[3], MENU[4], MENU[6]];
+const ABAS_IPAD = ["/", "/agenda", "/aulas", "/provas", "/estudos", "/lembretes"].map((href) =>
+  MENU.find((i) => i.href === href)!,
+);
 
 /** iPad vertical: barra de abas flutuante centralizada. */
 export function AbasFlutuantes() {
@@ -140,6 +142,7 @@ export function AbasFlutuantes() {
             className={s.aba}
             aria-current={
               ativo(pathname, "/areas") ||
+              ativo(pathname, "/cards") ||
               ativo(pathname, "/estagio") ||
               ativo(pathname, "/ajustes")
                 ? "page"
@@ -169,9 +172,15 @@ export function AbasFlutuantes() {
 export function AbasIphone() {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
-  const areasAtivo = ["/areas", "/aulas", "/provas", "/estudos", "/estagio", "/ajustes"].some((h) =>
-    ativo(pathname, h),
-  );
+  const areasAtivo = [
+    "/areas",
+    "/aulas",
+    "/provas",
+    "/estudos",
+    "/cards",
+    "/estagio",
+    "/ajustes",
+  ].some((h) => ativo(pathname, h));
   const itens = [
     { href: "/", rotulo: "Hoje", icone: "hoje" as const, atual: ativo(pathname, "/") },
     {

@@ -30,6 +30,12 @@ const caminhos = {
       <path d="M8.5 8 4.5 12l4 4M15.5 8l4 4-4 4M13.5 5.5l-3 13" />
     </>
   ),
+  cards: (
+    <>
+      <rect x="3.5" y="7" width="13" height="13.5" rx="2.5" />
+      <path d="M7.5 4.5A1.5 1.5 0 0 1 9 3.5h9.5A2 2 0 0 1 20.5 5.5V16a1.5 1.5 0 0 1-1 1.4" />
+    </>
+  ),
   estagio: (
     <>
       <rect x="3.5" y="7" width="17" height="12.5" rx="2.5" />
