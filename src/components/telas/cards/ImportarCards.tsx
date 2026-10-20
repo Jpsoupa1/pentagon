@@ -64,13 +64,14 @@ export function ImportarCards() {
       setAviso("Sem conexão: a importação foi guardada e acontece quando a internet voltar.");
       return;
     }
+    // Recarrega o acervo antes de mostrar o resultado: um novo Conferir já vê os ids importados.
+    await recarregar();
     setResultado({
       ...r.dados,
       repetidos: [...(previa.repetidos ?? []), ...r.dados.repetidos],
       erros: previa.erros,
     });
     setTexto("");
-    await recarregar();
   }
 
   return (
