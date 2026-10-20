@@ -19,7 +19,7 @@ export async function semearSegurancaParaTodos(db: ReturnType<typeof drizzle>, e
   for (const u of alvo.filter((x) => recebeConteudoPessoal(x.email))) {
     const r = await semearSeguranca(db, u.id);
     console.log(
-      `Trilha de Segurança de ${u.email}: ${r.criada ? "criada com as sessões semanais" : "já existia, fases atualizadas"}.`,
+      `Trilha de Segurança de ${u.email}: ${r.criada ? "criada com as sessões semanais" : r.migrada ? "trocada pela versão com datas e sessões novas" : "já existia, fases e pausas atualizadas"}.`,
     );
   }
 }

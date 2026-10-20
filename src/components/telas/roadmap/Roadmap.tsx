@@ -3,23 +3,24 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { enviar } from "@/lib/cliente/api";
-import { percentual, semanasDoPeriodo } from "@/lib/roadmap";
-import { duracaoTexto } from "@/lib/tempo";
+import { pausaEm, percentual, separarNumero } from "@/lib/roadmap";
 import type { FaseRoadmap, RoadmapDados } from "@/server/servicos/roadmap";
-import { coresDaFase, feitosDe } from "./comum";
-import { Mapa, Pilulas } from "./Mapa";
+import { coresDaFase, feitosDe, type Aba } from "./comum";
+import { Mapa, Pausas, Pilulas } from "./Mapa";
 import { Portao } from "./Portao";
 import { ProximoPortao } from "./ProximoPortao";
 import { Recursos } from "./Recursos";
 import s from "./Roadmap.module.css";
+import { TrocarTrilha } from "./TrocarTrilha";
 
 /**
  * Roadmap de uma trilha: mapa das fases, o portão da fase selecionada e os recursos.
  * Marcar requisito e somar prática atualizam a tela na hora e voltam atrás se o servidor recusar.
  */
-export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
-  const { trilha, hoje, atual, semanaZeroAgora, minutosPorSemana } = inicial;
+export function Roadmap({ inicial, abaInicial }: { inicial: RoadmapDados; abaInicial: Aba }) {
+  const { trilha, trilhas, pausas, hoje, atual, inicio } = inicial;
   const [fases, setFases] = useState(inicial.fases);
+  const [aba, setAba] = useState(abaInicial);
   const [selecionada, setSelecionada] = useState(Math.max(0, atual));
   const [aviso, setAviso] = useState<string | null>(null);
   const detalhe = useRef<HTMLDivElement>(null);
@@ -73,6 +74,12 @@ export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
     }
   }
 
+  /** A aba fica no endereço: trocar de trilha (ou recarregar) volta para ela. */
+  function trocarAba(a: Aba) {
+    setAba(a);
+    window.history.replaceState(null, "", `?aba=${a}`);
+  }
+
   function verOQueFalta() {
     setSelecionada(Math.max(0, atual));
     detalhe.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -81,8 +88,7 @@ export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
 
   const total = fases.reduce((t, f) => t + f.requisitos.length, 0);
   const feitos = fases.reduce((t, f) => t + feitosDe(f), 0);
-  const semanas = fases.reduce((t, f) => t + semanasDoPeriodo(f), 0);
-  const certificacoes = fases.filter((f) => f.portaoTipo === "exam").length;
+  const pausa = pausaEm(pausas, hoje);
   const faseAtual = fases[Math.max(0, atual)];
   const fase = fases[selecionada];
 
@@ -101,42 +107,46 @@ export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
               <li aria-current="page">Roadmap</li>
             </ol>
           </nav>
+          {trilhas.length > 1 && <TrocarTrilha trilhas={trilhas} atual={trilha.slug} aba={aba} />}
           <h1 className={s.titulo}>
             <span className={s.tituloLongo}>{trilha.titulo}</span>
             <span className={s.tituloCurto}>Roadmap</span>
           </h1>
+          {trilha.subtitulo && <p className={s.subtitulo}>{trilha.subtitulo}</p>}
           <p className={s.sobre}>{trilha.sobre}</p>
           <dl className={s.numeros}>
-            <div>
-              <dt>fases</dt>
-              <dd>{fases.length}</dd>
-            </div>
-            <div>
-              <dt>certificações</dt>
-              <dd>{certificacoes}</dd>
-            </div>
-            <div>
-              <dt>semanas</dt>
-              <dd>{semanas}</dd>
-            </div>
-            <div>
-              <dt>por semana</dt>
-              <dd>{duracaoTexto(minutosPorSemana)}</dd>
-            </div>
+            {trilha.numeros.map((texto) => {
+              const { numero, rotulo } = separarNumero(texto);
+              return (
+                <div key={texto}>
+                  <dt>{rotulo}</dt>
+                  <dd>{numero}</dd>
+                </div>
+              );
+            })}
             <div>
               <dt>concluída</dt>
               <dd>{percentual(feitos, total)}%</dd>
             </div>
           </dl>
         </header>
-        {faseAtual && <ProximoPortao fase={faseAtual} hoje={hoje} aoVer={verOQueFalta} />}
+        {faseAtual && (
+          <ProximoPortao
+            fase={faseAtual}
+            hoje={hoje}
+            icone={trilha.icone}
+            pausa={pausa}
+            inicio={inicio}
+            aoVer={verOQueFalta}
+          />
+        )}
       </div>
 
       <Mapa
         trilha={trilha}
         fases={fases}
         atual={atual}
-        semanaZeroAgora={semanaZeroAgora}
+        inicio={inicio}
         selecionada={selecionada}
         aoSelecionar={setSelecionada}
       />
@@ -146,6 +156,7 @@ export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
         selecionada={selecionada}
         aoSelecionar={setSelecionada}
       />
+      {pausas.length > 0 && <Pausas pausas={pausas} agora={pausa} />}
 
       {fase && (
         <div
@@ -167,6 +178,8 @@ export function Roadmap({ inicial }: { inicial: RoadmapDados }) {
           <Recursos
             key={`recursos-${fase.id}`}
             fase={fase}
+            aba={aba}
+            aoTrocarAba={trocarAba}
             aoRegistrar={(id, delta) => registrarPratica(selecionada, id, delta)}
           />
           {fase.dica && (

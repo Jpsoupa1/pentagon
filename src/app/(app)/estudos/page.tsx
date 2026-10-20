@@ -28,6 +28,7 @@ import {
   partesLocais,
 } from "@/lib/tempo";
 import { tituloDaSessao } from "@/server/estudos/trilha";
+import { segurancaEm } from "@/server/roadmap/compartilhamento";
 import { exigirUsuario } from "@/server/sessao";
 import { ocorrencias, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
@@ -305,12 +306,12 @@ export default async function Estudos() {
               </div>
             </Cartao>
           )}
-          {seguranca?.faseAtual != null && (
+          {seguranca && (
             <TrilhaSeguranca
               slug={seguranca.slug}
               nome={seguranca.nome}
-              fases={seguranca.fases}
-              faseAtual={seguranca.faseAtual}
+              estado={segurancaEm(hoje)}
+              hoje={hoje}
               sessoes={sessoesSeguranca.map(linha)}
             />
           )}

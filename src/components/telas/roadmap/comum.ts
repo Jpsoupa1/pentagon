@@ -14,3 +14,7 @@ export const feitosDe = (f: FaseRoadmap) => f.requisitos.filter((r) => r.feito).
 
 /** "05/03/2027" */
 export const dataBr = (d: string) => d.split("-").reverse().join("/");
+
+/** Abas de recursos; a escolhida vai no endereço (?aba=) e sobrevive à troca de trilha. */
+export const ABAS = ["cursos", "provas", "pratica"] as const;
+export type Aba = (typeof ABAS)[number];

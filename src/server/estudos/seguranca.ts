@@ -1,113 +1,105 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { addDias, diaDaSemana, FUSO_PADRAO, hojeLocal, paraUtc } from "../../lib/tempo";
-import { events, settings, studyTracks, type FaseTrilha } from "../db/schema";
+import { eventExceptions, events, settings, studyTracks, type FaseTrilha } from "../db/schema";
+import {
+  DIAS_DA_SEGURANCA,
+  PAUSAS_DA_SEGURANCA,
+  PERIODO_DA_SEGURANCA,
+} from "../roadmap/compartilhamento";
+import seguranca from "../roadmap/trilhas/seguranca.json";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type QualquerDb = NodePgDatabase<any>;
 
-// Trilha de Segurança e SecOps: leve, sem datas nem metas. Uma fase por vez, avançando só quando
-// a anterior estiver consolidada (o usuário decide em Estudos). Conteúdo em docs/seguranca/.
+// Trilha Segurança (SecOps e Cibersegurança): fases com datas, definidas no Roadmap
+// (src/server/roadmap/trilhas/seguranca.json). Corre em paralelo à DevOps e pausa nas retas
+// finais das provas dela. Aqui ficam só a trilha de estudos e as sessões na agenda.
 
 export const SLUG_SEGURANCA = "seguranca";
 export const NOME_SEGURANCA = "Segurança e SecOps";
 
-export const FASES_SEGURANCA: FaseTrilha[] = [
-  {
-    id: 1,
-    nome: "Fundamentos",
-    curto: "Fundamentos",
-    prova: "",
-    temas: [
-      "Redes: TCP/IP, DNS, HTTP/HTTPS e TLS",
-      "Linux: terminal, permissões, processos e logs",
-      "Conceitos: tríade CIA, autenticação vs autorização, criptografia e hashing",
-    ],
-    praticas: ["TryHackMe: Pre Security (redes e Linux)", "Hack The Box: Starting Point, Tier 0"],
-    consolidada: "explicar um handshake TLS e uma resolução DNS e ler logs do Linux sem consultar.",
-  },
-  {
-    id: 2,
-    nome: "Segurança de aplicações web",
-    curto: "Web",
-    prova: "",
-    temas: [
-      "OWASP Top 10",
-      "Burp Suite: Proxy, Repeater e Intruder",
-      "Injeção, XSS, controle de acesso e autenticação",
-    ],
-    praticas: [
-      "PortSwigger Web Security Academy: labs Apprentice",
-      "TryHackMe: OWASP Top 10 e Burp Suite",
-    ],
-    consolidada:
-      "resolver os labs Apprentice dos temas principais com o Burp, sem seguir o passo a passo.",
-  },
-  {
-    id: 3,
-    nome: "SecOps",
-    curto: "SecOps",
-    prova: "",
-    temas: [
-      "Monitoramento e detecção: SIEM e leitura de logs",
-      "Resposta a incidentes: preparação, contenção, erradicação e lições",
-      "MITRE ATT&CK: táticas, técnicas e mapeamento de alertas",
-    ],
-    praticas: ["TryHackMe: SOC Level 1", "Hack The Box: Sherlocks (blue team)"],
-    consolidada: "investigar um alerta nos logs e mapear o que aconteceu para técnicas do ATT&CK.",
-  },
-  {
-    id: 4,
-    nome: "DevSecOps",
-    curto: "DevSecOps",
-    prova: "",
-    temas: [
-      "Segurança no pipeline: SAST, DAST e varredura de dependências",
-      "Gestão de segredos",
-      "Segurança de containers (Docker)",
-    ],
-    praticas: [
-      "Pipeline de um projeto seu com Semgrep, OWASP ZAP e Trivy",
-      "TryHackMe: trilha DevSecOps",
-    ],
-    consolidada:
-      "ter um pipeline que barra uma dependência vulnerável e um segredo no código, com a imagem limpa no Trivy.",
-  },
-];
-
-/** Prática em laboratório legal vale para todas as fases. */
-export const LABS_SEGURANCA = ["PortSwigger", "TryHackMe", "Hack The Box"];
+export const FASES_SEGURANCA: FaseTrilha[] = seguranca.phases.map((f, i) => ({
+  id: i + 1,
+  nome: f.name,
+  curto: f.short_name,
+  prova: f.gate_name,
+}));
 
 /**
- * Sessões semanais só em dias úteis, nos horários livres: terça e quinta no fim da tarde (entre
- * a academia e a aula das 19:10) e a tarde de sexta (entre o estágio e a academia). Cerca de 3 h.
+ * Sessões semanais: as tardes de terça e quinta (que nas semanas compartilhadas deixam de ser da
+ * DevOps) e o sábado à tarde. Cerca de 5 h por semana. Terça e quinta param nas pausas; o sábado não.
  */
 export const SESSOES_SEGURANCA = [
-  { dia: 2, hora: "17:45", minutos: 45 },
-  { dia: 4, hora: "17:45", minutos: 45 },
-  { dia: 5, hora: "14:00", minutos: 90 },
+  { dia: 2, hora: "14:00", minutos: 90 },
+  { dia: 4, hora: "14:00", minutos: 90 },
+  { dia: 6, hora: "14:00", minutos: 120 },
 ] as const;
 
 const NOTAS =
-  "Sessão leve, sem meta: siga a fase atual em Estudos e pratique em laboratório legal " +
-  `(${LABS_SEGURANCA.join(", ")}).`;
+  "Sessão da trilha Segurança. O que estudar e os requisitos da fase estão no Roadmap " +
+  "(Trilhas › Segurança). Pratique só em laboratório próprio ou nas plataformas feitas para isso.";
+
+/** Terças e quintas dentro das pausas, a partir de uma data: as sessões delas são canceladas. */
+export function datasEmPausa(dia: number, desde: string) {
+  const datas: { data: string; motivo: string }[] = [];
+  for (const [i, p] of PAUSAS_DA_SEGURANCA.entries()) {
+    for (let d = p.inicio; d <= p.fim; d = addDias(d, 1)) {
+      if (d >= desde && diaDaSemana(d) === dia) {
+        datas.push({ data: d, motivo: `Pausa: ${seguranca.breaks[i].label}` });
+      }
+    }
+  }
+  return datas;
+}
+
+/** Cancela as sessões de terça e quinta nas pausas (sem duplicar o que já está cancelado). */
+async function cancelarNasPausas(
+  db: Pick<QualquerDb, "insert">,
+  userId: string,
+  sessoes: { id: string; diasSemana: number[] | null; repeteDesde: string | null }[],
+) {
+  const linhas = sessoes.flatMap((s) => {
+    const dia = s.diasSemana?.[0];
+    if (dia === undefined || !(DIAS_DA_SEGURANCA as readonly number[]).includes(dia)) return [];
+    return datasEmPausa(dia, s.repeteDesde ?? PERIODO_DA_SEGURANCA.inicio).map((d) => ({
+      userId,
+      eventId: s.id,
+      data: d.data,
+      tipo: "cancelada" as const,
+      motivo: d.motivo,
+    }));
+  });
+  if (linhas.length) await db.insert(eventExceptions).values(linhas).onConflictDoNothing();
+}
 
 /**
- * Registra a trilha de Segurança e cria as sessões semanais como compromissos recorrentes.
- * Idempotente: se a trilha já existe, só atualiza nome e fases e mantém a fase atual e os
- * compromissos (o usuário pode ter mudado o horário ou apagado algum).
+ * Registra a trilha Segurança e as sessões semanais como compromissos recorrentes.
+ * Idempotente: se a trilha já existe, atualiza nome, fases e datas e mantém os compromissos (o
+ * usuário pode ter mudado o horário ou apagado algum). A versão antiga (sem datas, fim nulo, com
+ * sessões terça e quinta às 17:45 e sexta às 14:00) é trocada pela nova uma única vez.
  */
 export async function semearSeguranca(db: QualquerDb, userId: string, agora = new Date()) {
   const [existente] = await db
-    .select({ id: studyTracks.id })
+    .select({ id: studyTracks.id, fim: studyTracks.fim })
     .from(studyTracks)
     .where(and(eq(studyTracks.userId, userId), eq(studyTracks.slug, SLUG_SEGURANCA)));
-  if (existente) {
-    await db
-      .update(studyTracks)
-      .set({ nome: NOME_SEGURANCA, fases: FASES_SEGURANCA })
-      .where(eq(studyTracks.id, existente.id));
-    return { criada: false };
+  const dados = {
+    nome: NOME_SEGURANCA,
+    inicio: PERIODO_DA_SEGURANCA.inicio,
+    fim: PERIODO_DA_SEGURANCA.fim,
+    fases: FASES_SEGURANCA,
+    faseAtual: null,
+  };
+
+  if (existente && existente.fim !== null) {
+    await db.update(studyTracks).set(dados).where(eq(studyTracks.id, existente.id));
+    const sessoes = await db
+      .select({ id: events.id, diasSemana: events.diasSemana, repeteDesde: events.repeteDesde })
+      .from(events)
+      .where(and(eq(events.userId, userId), eq(events.trackId, existente.id)));
+    await cancelarNasPausas(db, userId, sessoes);
+    return { criada: false, migrada: false };
   }
 
   const [ajuste] = await db
@@ -116,40 +108,56 @@ export async function semearSeguranca(db: QualquerDb, userId: string, agora = ne
     .where(eq(settings.userId, userId));
   const fuso = ajuste?.fuso ?? FUSO_PADRAO;
   const hoje = hojeLocal(agora, fuso);
+  const desde = hoje > PERIODO_DA_SEGURANCA.inicio ? hoje : PERIODO_DA_SEGURANCA.inicio;
 
   await db.transaction(async (tx) => {
-    const [trilha] = await tx
-      .insert(studyTracks)
-      .values({
-        userId,
-        slug: SLUG_SEGURANCA,
-        nome: NOME_SEGURANCA,
-        inicio: hoje,
-        fim: null,
-        fases: FASES_SEGURANCA,
-        marcos: [],
-        faseAtual: FASES_SEGURANCA[0].id,
-      })
-      .returning({ id: studyTracks.id });
-    await tx.insert(events).values(
-      SESSOES_SEGURANCA.map((s) => {
-        // Primeira ocorrência: o próximo dia da semana da sessão, a partir de hoje.
-        const data = addDias(hoje, (s.dia - diaDaSemana(hoje) + 7) % 7);
-        return {
-          userId,
-          trackId: trilha.id,
-          titulo: NOME_SEGURANCA,
-          areaId: "estudos" as const,
-          notas: NOTAS,
-          inicio: paraUtc(data, s.hora, fuso),
-          duracaoMin: s.minutos,
-          fuso,
-          diasSemana: [s.dia],
-          repeteDesde: data,
-          lembrarMin: 10,
-        };
-      }),
-    );
+    let trackId: string;
+    if (existente) {
+      // Versão antiga: os compromissos dela (17:45 e sexta) saem e entram os novos.
+      trackId = existente.id;
+      await tx.update(studyTracks).set(dados).where(eq(studyTracks.id, trackId));
+      const antigos = await tx
+        .select({ id: events.id })
+        .from(events)
+        .where(and(eq(events.userId, userId), eq(events.trackId, trackId)));
+      if (antigos.length)
+        await tx.delete(events).where(
+          inArray(
+            events.id,
+            antigos.map((a) => a.id),
+          ),
+        );
+    } else {
+      const [trilha] = await tx
+        .insert(studyTracks)
+        .values({ userId, slug: SLUG_SEGURANCA, marcos: [], ...dados })
+        .returning({ id: studyTracks.id });
+      trackId = trilha.id;
+    }
+    const criadas = await tx
+      .insert(events)
+      .values(
+        SESSOES_SEGURANCA.map((s) => {
+          // Primeira ocorrência: o próximo dia da semana da sessão, a partir de hoje.
+          const data = addDias(desde, (s.dia - diaDaSemana(desde) + 7) % 7);
+          return {
+            userId,
+            trackId,
+            titulo: NOME_SEGURANCA,
+            areaId: "estudos" as const,
+            notas: NOTAS,
+            inicio: paraUtc(data, s.hora, fuso),
+            duracaoMin: s.minutos,
+            fuso,
+            diasSemana: [s.dia],
+            repeteDesde: data,
+            repeteAte: PERIODO_DA_SEGURANCA.fim,
+            lembrarMin: 10,
+          };
+        }),
+      )
+      .returning({ id: events.id, diasSemana: events.diasSemana, repeteDesde: events.repeteDesde });
+    await cancelarNasPausas(tx, userId, criadas);
   });
-  return { criada: true };
+  return { criada: !existente, migrada: !!existente };
 }

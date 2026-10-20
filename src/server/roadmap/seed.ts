@@ -3,8 +3,10 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { precosRecurso, tiposAvaliacaoRoadmap, tiposPortao } from "../../lib/roadmap";
+import { sessoesDaDevops, SLUG_TRILHA } from "../estudos/trilha";
 import {
   roadmapAssessments,
+  roadmapBreaks,
   roadmapDomains,
   roadmapPhases,
   roadmapPractice,
@@ -15,6 +17,7 @@ import {
   roadmapTrails,
 } from "../db/schema";
 import devops from "./trilhas/devops.json";
+import seguranca from "./trilhas/seguranca.json";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type QualquerDb = NodePgDatabase<any>;
@@ -32,13 +35,27 @@ const trilhaSchema = z.object({
   trail: z.object({
     slug: z.string().min(1),
     name: z.string().min(1),
-    title: z.string().min(1),
-    intro: z.string().min(1),
+    subtitle: z.string().min(1).optional(),
+    icon: z.enum(["pentagono", "escudo"]).default("pentagono"),
+    hero_title: z.string().min(1),
+    hero_text: z.string().min(1),
+    stats: z.array(z.string().min(1)).default([]),
     starts_on: data,
+    start_label: z.string().min(1),
     goal_label: z.string().min(1),
     goal_note: z.string().optional(),
-    week_zero: z.object({ label: z.string(), starts_on: data, ends_on: data }).optional(),
   }),
+  breaks: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        starts_on: data,
+        ends_on: data,
+        color: z.string().regex(/^#[0-9a-f]{6}$/i),
+        linked_trail: z.string().min(1).optional(),
+      }),
+    )
+    .default([]),
   phases: z
     .array(
       z.object({
@@ -99,7 +116,24 @@ const trilhaSchema = z.object({
 
 export type TrilhaRoadmapJson = z.output<typeof trilhaSchema>;
 
-export const TRILHAS: TrilhaRoadmapJson[] = [trilhaSchema.parse(devops)];
+// A DevOps vem antes: as pausas da Segurança apontam para ela.
+export const TRILHAS: TrilhaRoadmapJson[] = [
+  trilhaSchema.parse(devops),
+  trilhaSchema.parse(seguranca),
+];
+
+/**
+ * Meta de prática ligada às sessões: na DevOps, o número real de tardes de prática da fase
+ * (as de terça e quinta cedidas à Segurança não contam). Nas outras, a meta do JSON.
+ */
+function metaDaPratica(
+  slug: string,
+  f: { starts_on: string; ends_on: string },
+  p: { target: number; source?: string },
+) {
+  if (p.source !== "sessoes:pratica" || slug !== SLUG_TRILHA) return p.target;
+  return sessoesDaDevops(f.starts_on, f.ends_on).filter((s) => s.categoria === "pratica").length;
+}
 
 /**
  * Upsert pela posição dentro do pai e remoção do que passou do fim da lista. Mudar o texto de um
@@ -133,20 +167,42 @@ export async function semearCatalogo(db: QualquerDb, t: TrilhaRoadmapJson) {
   const trilha = {
     slug: t.trail.slug,
     nome: t.trail.name,
-    titulo: t.trail.title,
-    sobre: t.trail.intro,
+    subtitulo: t.trail.subtitle ?? null,
+    icone: t.trail.icon,
+    titulo: t.trail.hero_title,
+    sobre: t.trail.hero_text,
+    numeros: t.trail.stats,
     inicio: t.trail.starts_on,
+    rotuloInicio: t.trail.start_label,
     meta: t.trail.goal_label,
     metaNota: t.trail.goal_note ?? null,
-    semanaZeroRotulo: t.trail.week_zero?.label ?? null,
-    semanaZeroInicio: t.trail.week_zero?.starts_on ?? null,
-    semanaZeroFim: t.trail.week_zero?.ends_on ?? null,
   };
   const [{ id: trailId }] = await db
     .insert(roadmapTrails)
     .values(trilha)
     .onConflictDoUpdate({ target: roadmapTrails.slug, set: trilha })
     .returning({ id: roadmapTrails.id });
+
+  const ligadas = await db
+    .select({ id: roadmapTrails.id, slug: roadmapTrails.slug })
+    .from(roadmapTrails);
+  const idDaTrilha = new Map(ligadas.map((l) => [l.slug, l.id]));
+  await sincronizar(
+    db,
+    roadmapBreaks,
+    { pai: roadmapBreaks.trailId, posicao: roadmapBreaks.posicao, id: roadmapBreaks.id },
+    trailId,
+    t.breaks.map((b, posicao) => ({
+      trailId,
+      posicao,
+      rotulo: b.label,
+      inicio: b.starts_on,
+      fim: b.ends_on,
+      cor: b.color,
+      trilhaLigadaId: (b.linked_trail && idDaTrilha.get(b.linked_trail)) || null,
+    })),
+    ["rotulo", "inicio", "fim", "cor", "trilha_ligada_id"],
+  );
 
   const faseIds = await sincronizar(
     db,
@@ -270,7 +326,7 @@ export async function semearCatalogo(db: QualquerDb, t: TrilhaRoadmapJson) {
         posicao,
         titulo: p.title,
         cadencia: p.cadence,
-        meta: p.target,
+        meta: metaDaPratica(t.trail.slug, f, p),
         fonte: p.source ?? null,
       })),
       ["titulo", "cadencia", "meta", "fonte"],

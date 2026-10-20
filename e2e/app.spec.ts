@@ -218,17 +218,15 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     });
   });
 
-  test("Estudos mostra a trilha de Segurança e avança de fase", async ({ page }) => {
+  test("Estudos mostra a fase datada da Segurança e leva ao Roadmap", async ({ page }) => {
     await page.goto("/estudos");
     const cartao = page.getByRole("region", { name: "Segurança e SecOps" });
     await expect(cartao.getByText("Fase 1/4")).toBeVisible();
-    await expect(cartao.getByText("Redes: TCP/IP, DNS, HTTP/HTTPS e TLS")).toBeVisible();
-    await expect(cartao.getByText("Nesta semana")).toBeVisible();
-    await cartao.getByRole("button", { name: "Fase consolidada, avançar" }).click();
-    await expect(cartao.getByText("Fase 2/4")).toBeVisible();
-    await expect(cartao.getByText("OWASP Top 10", { exact: true })).toBeVisible();
-    await cartao.getByRole("button", { name: "Voltar uma fase" }).click();
-    await expect(cartao.getByText("Fase 1/4")).toBeVisible();
+    await expect(cartao.getByText("Fundamentos de segurança")).toBeVisible();
+    await expect(cartao.getByText(/Portão: Portão de fundamentos/)).toBeVisible();
+    await expect(cartao.getByRole("button", { name: /avançar/ })).toHaveCount(0);
+    await cartao.getByRole("link", { name: "Ver o roadmap da Segurança" }).click();
+    await expect(page).toHaveURL(/\/trilhas\/seguranca\/roadmap$/);
   });
 
   test("sessões aparecem na Agenda com a cor de Estudos", async ({ page }) => {
@@ -242,7 +240,9 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     ).toBeVisible();
   });
 
-  test("Agenda mostra manhã no estágio e prática à tarde", async ({ page }) => {
+  test("Agenda mostra manhã no estágio, prática à tarde e a Segurança na terça e na quinta", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/agenda?semana=2026-11-09");
     const manha = page
@@ -253,7 +253,11 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     await expect(manha.getByText("no estágio")).toBeVisible();
     await expect(
       page.locator('[data-area="estudos"]').filter({ hasText: "Prática do tema da manhã" }),
-    ).toHaveCount(4);
+    ).toHaveCount(2);
+    // Semana compartilhada: as tardes de terça e quinta e o sábado à tarde são da Segurança.
+    await expect(
+      page.locator('[data-area="estudos"]').filter({ hasText: "Segurança e SecOps" }),
+    ).toHaveCount(3);
     await expect(
       page.locator('[data-area="estudos"]').filter({ hasText: "Revisão da semana: Cluster" }),
     ).toContainText("08:00–09:30");

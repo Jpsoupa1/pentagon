@@ -8,6 +8,12 @@ import { Icone } from "../../shell/icones";
 import { feitosDe } from "./comum";
 import s from "./Roadmap.module.css";
 
+const ROTULO_PORTAO = {
+  exam: "Portão: prova",
+  project: "Portão: projeto",
+  milestone: "Portão: marco",
+};
+
 /** No iPhone, a lista começa com estes requisitos e abre o resto no botão. */
 const VISIVEIS_NO_IPHONE = 5;
 
@@ -70,13 +76,18 @@ export function Portao({
       <div className={s.portaoResumo}>
         <Anel valor={pct} rotulo={`Requisitos da fase ${numero}`} />
         <div className={s.portaoTexto}>
-          <span className={s.rotulo}>
-            {fase.portaoTipo === "exam" ? "Portão: prova" : "Portão: entrega"}
-          </span>
-          <h3 id="portao-nome" className={s.portaoNome}>
-            {fase.portao}
-            <span>{fase.portaoNome}</span>
-          </h3>
+          <span className={s.rotulo}>{ROTULO_PORTAO[fase.portaoTipo]}</span>
+          {fase.portaoTipo === "exam" ? (
+            <h3 id="portao-nome" className={s.portaoNome}>
+              {fase.portao}
+              <span>{fase.portaoNome}</span>
+            </h3>
+          ) : (
+            // Marco ou projeto: o nome completo é o título; o formato explica o que conta.
+            <h3 id="portao-nome" className={s.portaoNome}>
+              {fase.portaoNome}
+            </h3>
+          )}
           <p className={s.portaoFormato}>{fase.portaoFormato}</p>
           <p className={`${s.faltam} mono`}>{textoFaltam(dias)}</p>
         </div>

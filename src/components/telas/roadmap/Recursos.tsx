@@ -4,10 +4,9 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { feitoDaPratica, percentual } from "@/lib/roadmap";
 import type { FaseRoadmap } from "@/server/servicos/roadmap";
 import { Icone } from "../../shell/icones";
-import { dataBr } from "./comum";
+import { dataBr, type Aba } from "./comum";
 import s from "./Roadmap.module.css";
 
-type Aba = "cursos" | "provas" | "pratica";
 type Filtro = "todos" | "free" | "paid";
 
 const TIPO: Record<string, string> = { simulado: "Simulado", prova: "Prova", entrega: "Entrega" };
@@ -24,12 +23,15 @@ function origem(fonte: string | null) {
 /** Coluna de recursos: cursos (com filtro de preço), provas e simulados e prática com contadores. */
 export function Recursos({
   fase,
+  aba,
+  aoTrocarAba: setAba,
   aoRegistrar,
 }: {
   fase: FaseRoadmap;
+  aba: Aba;
+  aoTrocarAba: (a: Aba) => void;
   aoRegistrar: (id: string, delta: 1 | -1) => void;
 }) {
-  const [aba, setAba] = useState<Aba>("cursos");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const abas = useRef<HTMLDivElement>(null);
   const gratis = fase.recursos.filter((r) => r.preco === "free").length;
