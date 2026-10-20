@@ -19,6 +19,17 @@ test("Cards: importa, revisa a sessão do dia (parte offline) e sorteia sem repe
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
+  // O download do acervo na abertura da tela fica lento de propósito: ele termina depois da
+  // importação e não pode trazer de volta o acervo antigo (sem os cards que acabaram de entrar).
+  let primeiro = true;
+  await page.route("**/api/cards", async (r) => {
+    if (r.request().method() !== "GET" || !primeiro) return r.fallback();
+    primeiro = false;
+    const resposta = await r.fetch();
+    await new Promise((ok) => setTimeout(ok, 3000));
+    await r.fulfill({ response: resposta });
+  });
+
   // Importação: os 5 entram; colar de novo só mostra repetidos.
   await page.goto("/cards/importar");
   const campo = page.getByLabel("Cards", { exact: true });
@@ -26,6 +37,8 @@ test("Cards: importa, revisa a sessão do dia (parte offline) e sorteia sem repe
   await page.getByRole("button", { name: "Conferir" }).click();
   await page.getByRole("button", { name: "Importar 5 cards" }).click();
   await expect(page.getByRole("heading", { name: "Importação concluída" })).toBeVisible();
+  await page.waitForTimeout(3500);
+  await page.unroute("**/api/cards");
   await campo.fill(exemplo);
   await page.getByRole("button", { name: "Conferir" }).click();
   await expect(page.getByRole("button", { name: "Importar 0 cards" })).toBeDisabled();
