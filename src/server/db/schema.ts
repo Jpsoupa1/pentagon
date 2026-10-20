@@ -137,6 +137,8 @@ export const events = pgTable(
     repeteDesde: date("repete_desde"),
     repeteAte: date("repete_ate"),
     lembrarMin: integer("lembrar_min"),
+    /** Sessão semanal de uma trilha sem datas (Segurança): o compromisso é o horário dela. */
+    trackId: uuid("track_id").references(() => studyTracks.id, { onDelete: "set null" }),
     createdAt: criadoEm(),
     updatedAt: atualizadoEm(),
   },
@@ -220,7 +222,16 @@ export const checklistItems = pgTable(
 
 // ---------------------------------------------------------------- Estudos
 
-export type FaseTrilha = { id: number; nome: string; curto: string; prova: string };
+export type FaseTrilha = {
+  id: number;
+  nome: string;
+  curto: string;
+  prova: string;
+  /** Trilhas sem datas: o que a fase cobre, onde praticar e quando ela está consolidada. */
+  temas?: string[];
+  praticas?: string[];
+  consolidada?: string;
+};
 export type MarcoTrilha = { data: string; titulo: string; fase: number; prova?: boolean };
 
 export const studyTracks = pgTable(
@@ -231,9 +242,12 @@ export const studyTracks = pgTable(
     slug: text("slug").notNull(),
     nome: text("nome").notNull(),
     inicio: date("inicio").notNull(),
-    fim: date("fim").notNull(),
+    /** Sem fim: a trilha não tem prazo e avança por fase (`faseAtual`). */
+    fim: date("fim"),
     fases: jsonb("fases").$type<FaseTrilha[]>().notNull().default([]),
     marcos: jsonb("marcos").$type<MarcoTrilha[]>().notNull().default([]),
+    /** Trilha sem datas: a fase em estudo, que só avança quando a anterior está consolidada. */
+    faseAtual: smallint("fase_atual"),
     createdAt: criadoEm(),
   },
   (t) => [uniqueIndex("study_tracks_user_slug_uq").on(t.userId, t.slug)],

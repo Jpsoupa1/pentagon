@@ -218,6 +218,19 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     });
   });
 
+  test("Estudos mostra a trilha de Segurança e avança de fase", async ({ page }) => {
+    await page.goto("/estudos");
+    const cartao = page.getByRole("region", { name: "Segurança e SecOps" });
+    await expect(cartao.getByText("Fase 1/4")).toBeVisible();
+    await expect(cartao.getByText("Redes: TCP/IP, DNS, HTTP/HTTPS e TLS")).toBeVisible();
+    await expect(cartao.getByText("Nesta semana")).toBeVisible();
+    await cartao.getByRole("button", { name: "Fase consolidada, avançar" }).click();
+    await expect(cartao.getByText("Fase 2/4")).toBeVisible();
+    await expect(cartao.getByText("OWASP Top 10", { exact: true })).toBeVisible();
+    await cartao.getByRole("button", { name: "Voltar uma fase" }).click();
+    await expect(cartao.getByText("Fase 1/4")).toBeVisible();
+  });
+
   test("sessões aparecem na Agenda com a cor de Estudos", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/agenda?semana=2026-10-19");

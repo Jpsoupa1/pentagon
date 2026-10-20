@@ -5,6 +5,7 @@ import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
 import { semearAreas } from "./seed-areas";
 import { semearRotinaParaTodos } from "./seed-rotina";
+import { semearSegurancaParaTodos } from "./seed-seguranca";
 import { semearTrilhaParaTodos } from "./seed-trilha";
 
 export async function migrar() {
@@ -17,7 +18,8 @@ export async function migrar() {
     await semearAreas(db);
     await semearTrilhaParaTodos(db);
     await semearRotinaParaTodos(db);
-    console.log("Migrações aplicadas; áreas, trilha e rotina conferidas.");
+    await semearSegurancaParaTodos(db);
+    console.log("Migrações aplicadas; áreas, trilhas e rotina conferidas.");
   } finally {
     await pool.end();
   }
