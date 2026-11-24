@@ -1,0 +1,69 @@
+/* Folga e blocos do dia no Hoje. */
+.respostas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.aviso {
+  margin-bottom: 8px;
+  color: var(--danger);
+  font-size: var(--fs-small);
+}
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bloco {
+  display: grid;
+  gap: 6px;
+  padding: 12px 4px;
+}
+.bloco + .bloco {
+  border-top: 1px solid var(--line-soft);
+}
+.bloco[data-feito="true"] .titulo {
+  color: var(--muted);
+}
+.horario {
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.titulo {
+  overflow-wrap: anywhere;
+}
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.feito {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+.minutos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.entrada {
+  width: 72px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+}

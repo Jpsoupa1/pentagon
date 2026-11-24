@@ -24,14 +24,14 @@ export type ExcecaoParaExpandir = {
   novaDuracaoMin: number | null;
 };
 
-export type OrigemOcorrencia = "evento" | "sessao" | "marco" | "feriado";
+export type OrigemOcorrencia = "evento" | "sessao" | "bloco" | "marco" | "feriado";
 
 export type Ocorrencia = {
   /** Identificador estável da ocorrência: `<eventId>:<data original>` */
   chave: string;
-  /** De onde veio: compromisso da agenda, sessão da trilha ou marco da trilha. */
+  /** De onde veio: compromisso da agenda, sessão da trilha, bloco do plano ou marco da trilha. */
   origem: OrigemOcorrencia;
-  /** Id do item de origem (evento, sessão de estudo ou data do marco). */
+  /** Id do item de origem (evento, sessão de estudo, `<data>:<bloco>` ou data do marco). */
   eventId: string;
   /** Data local original da ocorrência (a que a exceção usaria). */
   dataOriginal: string;
@@ -44,9 +44,9 @@ export type Ocorrencia = {
   diaInteiro: boolean;
   movida: boolean;
   recorrente: boolean;
-  /** Só para sessões de estudo. */
+  /** Só para sessões e blocos de estudo. */
   feita?: boolean;
-  /** Sessão de estudo que pode cair dentro do estágio sem contar como conflito. */
+  /** Estudo (sessão ou bloco da manhã) que pode cair dentro do estágio sem contar como conflito. */
   permiteSobreposicao?: boolean;
   /** A sessão acontece durante o estágio (selo "no estágio" na Agenda). */
   noEstagio?: boolean;

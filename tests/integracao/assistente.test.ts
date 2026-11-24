@@ -109,8 +109,8 @@ describe("pedido com duas ações e conflito", () => {
     expect(academia.campos).toEqual([
       {
         rotulo: "Horário",
-        antes: "Qua, 21 out · 16:00–17:30",
-        depois: "Qua, 21 out · 14:00–15:30",
+        antes: "Qua, 21 out · 16:00–17:20",
+        depois: "Qua, 21 out · 14:00–15:20",
       },
     ]);
     expect(lembrete).toMatchObject({ tipo: "criado", titulo: "Revisar Cálculo" });

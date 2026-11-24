@@ -117,11 +117,13 @@ export function encontrarConflitos(novas: Ocorrencia[], outras: Ocorrencia[]): C
   return saida;
 }
 
-/** Marca as sessões que de fato acontecem durante o estágio (para o selo "no estágio"). */
+/** Marca o estudo que de fato acontece durante o estágio (para o selo "no estágio"). */
 export function marcarNoEstagio(ocorrencias: Ocorrencia[]): Ocorrencia[] {
   const estagio = ocorrencias.filter((o) => o.areaId === "estagio" && !o.diaInteiro);
   return ocorrencias.map((o) =>
-    o.origem === "sessao" && o.permiteSobreposicao && estagio.some((e) => seSobrepoem(o, e))
+    (o.origem === "sessao" || o.origem === "bloco") &&
+    o.permiteSobreposicao &&
+    estagio.some((e) => seSobrepoem(o, e))
       ? { ...o, noEstagio: true }
       : o,
   );

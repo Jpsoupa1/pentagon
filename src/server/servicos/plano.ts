@@ -4,7 +4,10 @@ import type { z } from "zod";
 import {
   blocosPlano,
   conteudoDoBloco,
+  ehDiaUtil,
+  blocoAgendado,
   estadoDoItem,
+  estudadosNoDia,
   estadoTrilha,
   fechamento,
   gravarEscolha,
@@ -12,7 +15,7 @@ import {
   horasRestantes,
   itemPorCodigo,
   lerEscolha,
-  MINUTOS_PADRAO_BLOCO,
+  minutosDoBloco,
   liberadosApos,
   mensagemTentativa,
   opcoesDeTroca,
@@ -33,7 +36,7 @@ import {
   type ItemPlano,
   type Pendente,
 } from "@/lib/plano";
-import { diaDaSemana, hojeLocal, segundaDe } from "@/lib/tempo";
+import { hojeLocal, segundaDe } from "@/lib/tempo";
 import type {
   blocoFeitoPlanoSchema,
   checkPlanoSchema,
@@ -64,7 +67,7 @@ const RECRUTAMENTO = "recrutamento";
 
 // ---------------------------------------------------------------- Contexto e trava
 
-type Contexto = {
+export type Contexto = {
   userId: string;
   agora: Date;
   /** Hoje no fuso do usuário. */
@@ -84,14 +87,17 @@ class Recusa {
   ) {}
 }
 
-export async function exigirDono(userId: string) {
+/** Só quem está em OWNER_EMAILS tem plano. */
+export async function ehDono(userId: string) {
   const [u] = await db().select({ email: users.email }).from(users).where(eq(users.id, userId));
-  if (!u || !recebeConteudoPessoal(u.email)) {
-    throw new Proibido("Nenhum plano de estudos nesta conta.");
-  }
+  return !!u && recebeConteudoPessoal(u.email);
 }
 
-async function carregar(userId: string, agora: Date): Promise<Contexto> {
+export async function exigirDono(userId: string) {
+  if (!(await ehDono(userId))) throw new Proibido("Nenhum plano de estudos nesta conta.");
+}
+
+export async function carregar(userId: string, agora: Date): Promise<Contexto> {
   const [ajustes, cat, progresso] = await Promise.all([
     obterAjustes(userId),
     catalogoDoBanco(),
@@ -155,8 +161,7 @@ const MAX_PROXIMOS = 3;
  * o catálogo para marcar o que já foi feito; depois, as trilhas, as horas, o recrutamento e o dia.
  */
 export async function estadoDoPlano(userId: string, agora = new Date()) {
-  const [u] = await db().select({ email: users.email }).from(users).where(eq(users.id, userId));
-  if (!u || !recebeConteudoPessoal(u.email)) return { plano: null };
+  if (!(await ehDono(userId))) return { plano: null };
   const ctx = await carregar(userId, agora);
   const { cat, feitos, hoje } = ctx;
 
@@ -274,7 +279,7 @@ export async function estadoDoPlano(userId: string, agora = new Date()) {
       }
     : null;
 
-  const diaUtil = ![0, 6].includes(diaDaSemana(hoje));
+  const diaUtil = ehDiaUtil(hoje);
   return {
     plano: {
       iniciado: true as const,
@@ -308,32 +313,13 @@ export async function estadoDoPlano(userId: string, agora = new Date()) {
             feito: !!registro?.feitoEm,
             minutos: registro?.feitoEm
               ? registro.minutos
-              : minutosPadrao(ctx.ajustes, hoje, bloco, folga?.minutos ?? null),
+              : minutosDoBloco(hoje, bloco, ctx.ajustes.blocosPlano, folga?.minutos ?? null),
           };
         }),
         opcoesDeTroca: opcoesDeTroca(cat, feitos).map(gravarEscolha),
       },
     },
   };
-}
-
-type RegistroBloco = typeof planoBlocos.$inferSelect;
-
-/** Códigos estudados no dia em blocos já marcados como feitos, sem contar o próprio bloco. */
-function estudadosNoDia(registros: RegistroBloco[], data: string, exceto: string): string[] {
-  return registros
-    .filter((b) => b.data === data && b.bloco !== exceto && b.feitoEm && b.codigoEstudado)
-    .map((b) => b.codigoEstudado!);
-}
-
-/** Duração do bloco quando o usuário não informa: Ajustes, senão 90 (Teoria), 80 (Projeto) ou a folga. */
-function minutosPadrao(ajustes: Ajustes, data: string, bloco: BlocoPlano, folga: number | null) {
-  const dia = diaDaSemana(data);
-  const faixa = dia === 0 ? "domingo" : dia === 6 ? "sabado" : "dias_uteis";
-  const configurado = ajustes.blocosPlano?.[faixa]?.[bloco]?.minutos;
-  if (configurado) return configurado;
-  if (bloco === "manha" && folga) return folga;
-  return MINUTOS_PADRAO_BLOCO[bloco];
 }
 
 // ---------------------------------------------------------------- Primeira abertura
@@ -623,7 +609,7 @@ export function responderFolga(
   agora = new Date(),
 ) {
   return escrever(userId, agora, async (ctx) => {
-    if ([0, 6].includes(diaDaSemana(ctx.hoje))) {
+    if (!ehDiaUtil(ctx.hoje)) {
       return new Recusa("dia_sem_folga", "A pergunta da folga só vale em dia útil.");
     }
     await db()
@@ -640,6 +626,23 @@ export function responderFolga(
       });
     return {};
   });
+}
+
+async function folgaDoDia(ctx: Contexto) {
+  const [folga] = await db()
+    .select({ minutos: planoFolgas.minutos })
+    .from(planoFolgas)
+    .where(and(eq(planoFolgas.userId, ctx.userId), eq(planoFolgas.data, ctx.hoje)));
+  return folga?.minutos ?? null;
+}
+
+/** Só vale marcar ou trocar um bloco que existe hoje: manhã com folga, fim de semana ligado. */
+async function blocoDeHoje(ctx: Contexto, bloco: BlocoPlano) {
+  const folga = await folgaDoDia(ctx);
+  const agendado = blocoAgendado(ctx.hoje, bloco, ctx.ajustes.blocosPlano, folga);
+  return agendado
+    ? { agendado }
+    : new Recusa("bloco_fora_do_dia", "Este bloco não está no plano de hoje.");
 }
 
 function registroDoBloco(ctx: Contexto, bloco: BlocoPlano) {
@@ -676,6 +679,8 @@ export function marcarBloco(
       }
       return {};
     }
+    const hoje = await blocoDeHoje(ctx, bloco);
+    if (hoje instanceof Recusa) return hoje;
     const doDia = await db()
       .select()
       .from(planoBlocos)
@@ -685,14 +690,9 @@ export function marcarBloco(
       troca: registro?.escolha,
       estudadosHoje: estudadosNoDia(doDia, ctx.hoje, bloco),
     });
-    const [folga] = await db()
-      .select({ minutos: planoFolgas.minutos })
-      .from(planoFolgas)
-      .where(and(eq(planoFolgas.userId, ctx.userId), eq(planoFolgas.data, ctx.hoje)));
     const dados = {
       codigoEstudado: conteudo.item?.codigo ?? null,
-      minutos:
-        entrada.minutos ?? minutosPadrao(ctx.ajustes, ctx.hoje, bloco, folga?.minutos ?? null),
+      minutos: entrada.minutos ?? hoje.agendado.minutos,
       feitoEm: ctx.agora,
     };
     await db()
@@ -720,6 +720,8 @@ export function trocarBloco(
     }
     const escolha = lerEscolha(entrada.escolha);
     if (escolha) {
+      const hoje = await blocoDeHoje(ctx, bloco);
+      if (hoje instanceof Recusa) return hoje;
       const v = verificarTroca(ctx.cat, escolha, ctx.feitos);
       if (!v.ok) return new Recusa(v.motivo, v.mensagem);
     }

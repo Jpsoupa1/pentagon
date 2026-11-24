@@ -43,10 +43,10 @@ export const COMPROMISSOS: Compromisso[] = [
     areaId: "pessoal",
     dias: [1, 2, 3, 4, 5],
     hora: "16:00",
-    minutos: 90,
+    minutos: 80,
     lembrarMin: 10,
     notas:
-      "Horário sugerido: termina às 17:30 e sobra tempo para o deslocamento antes da aula das 19:10.",
+      "Horário sugerido: termina às 17:20, quando começa o bloco de Projeto, e sobra tempo para o deslocamento antes da aula das 19:10.",
   },
   ...DISCIPLINAS.map((d) => ({
     titulo: d.nome,

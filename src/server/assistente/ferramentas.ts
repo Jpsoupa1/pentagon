@@ -66,6 +66,7 @@ export type Execucao = { userId: string; runId: string; fuso: string; agora: Dat
 export function chaveDaOcorrencia(o: Ocorrencia) {
   if (o.origem === "evento") return `evento:${o.eventId}:${o.dataOriginal}`;
   if (o.origem === "sessao") return `sessao:${o.eventId}`;
+  if (o.origem === "bloco") return `bloco:${o.eventId}`;
   return `${o.origem}:${o.dataOriginal}`;
 }
 

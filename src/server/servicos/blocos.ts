@@ -1,0 +1,123 @@
+import "server-only";
+import { and, between, eq } from "drizzle-orm";
+import {
+  CARDS_E_CEREBRO,
+  ehDiaUtil,
+  gravarEscolha,
+  itemPorCodigo,
+  montarBlocos,
+  opcoesDeTroca,
+  perguntaDaFolgaAberta,
+  ROTULO_BLOCO,
+  rotulo,
+  type BlocoMontado,
+} from "@/lib/plano";
+import { partesLocais } from "@/lib/tempo";
+import { ocorrenciaDoBloco } from "../agenda/blocos";
+import type { Intervalo } from "../agenda/recorrencia";
+import { db } from "../db";
+import { planoBlocos, planoFolgas } from "../db/schema";
+import { carregar, ehDono, type Contexto } from "./plano";
+
+/** Blocos do intervalo com o plano já carregado (as folgas e os registros vêm do banco). */
+async function montar(ctx: Contexto, intervalo: Intervalo): Promise<BlocoMontado[]> {
+  const [folgas, registros] = await Promise.all([
+    db()
+      .select({ data: planoFolgas.data, minutos: planoFolgas.minutos })
+      .from(planoFolgas)
+      .where(
+        and(
+          eq(planoFolgas.userId, ctx.userId),
+          between(planoFolgas.data, intervalo.de, intervalo.ate),
+        ),
+      ),
+    db()
+      .select()
+      .from(planoBlocos)
+      .where(
+        and(
+          eq(planoBlocos.userId, ctx.userId),
+          between(planoBlocos.data, intervalo.de, intervalo.ate),
+        ),
+      ),
+  ]);
+  return montarBlocos({
+    cat: ctx.cat,
+    feitos: ctx.feitos,
+    ajustes: ctx.ajustes.blocosPlano,
+    intervalo,
+    folgas: new Map(folgas.map((f) => [f.data, f.minutos])),
+    registros,
+  });
+}
+
+/** O plano do usuário, ou nulo se ele não é dono ou ainda não fez a primeira abertura. */
+async function planoIniciado(userId: string, agora: Date): Promise<Contexto | null> {
+  if (!(await ehDono(userId))) return null;
+  const ctx = await carregar(userId, agora);
+  return ctx.ajustes.planoIniciadoEm ? ctx : null;
+}
+
+/**
+ * Única montagem dos blocos do dia no servidor: Hoje, Agenda, conflitos e calendário passam por
+ * aqui. Quem não é dono, ou ainda não fez a primeira abertura, não tem blocos.
+ */
+export async function blocosDoPlano(
+  userId: string,
+  intervalo: Intervalo,
+  agora = new Date(),
+): Promise<BlocoMontado[]> {
+  const ctx = await planoIniciado(userId, agora);
+  return ctx ? montar(ctx, intervalo) : [];
+}
+
+export async function ocorrenciasDeBlocos(userId: string, intervalo: Intervalo) {
+  const ctx = await planoIniciado(userId, new Date());
+  if (!ctx) return [];
+  const blocos = await montar(ctx, intervalo);
+  return blocos.map((b) => ocorrenciaDoBloco(b, ctx.ajustes.fuso));
+}
+
+/** Destino do "Abrir": a trilha do item em `/plano`, ou o topo da página no plano B de cards. */
+const destinoDoBloco = (b: BlocoMontado) =>
+  b.conteudo.item ? `/plano#trilha-${b.conteudo.item.trilha}` : "/plano";
+
+/**
+ * O que o Hoje mostra do plano: `null` fora do OWNER_EMAILS; antes da primeira abertura só o
+ * convite; depois a folga, os blocos de hoje e as opções de troca.
+ */
+export async function planoDeHoje(userId: string, agora = new Date()) {
+  if (!(await ehDono(userId))) return null;
+  const ctx = await planoIniciado(userId, agora);
+  if (!ctx) return { iniciado: false as const };
+
+  const { hoje } = ctx;
+  const [folga] = await db()
+    .select({ minutos: planoFolgas.minutos })
+    .from(planoFolgas)
+    .where(and(eq(planoFolgas.userId, userId), eq(planoFolgas.data, hoje)));
+  const blocos = await montar(ctx, { de: hoje, ate: hoje });
+  const minutosLocais = partesLocais(agora, ctx.ajustes.fuso).minutos;
+  return {
+    iniciado: true as const,
+    diaUtil: ehDiaUtil(hoje),
+    folga: folga?.minutos ?? null,
+    perguntarFolga: perguntaDaFolgaAberta(hoje, folga?.minutos ?? null, minutosLocais),
+    blocos: blocos.map((b) => ({
+      bloco: b.bloco,
+      rotulo: ROTULO_BLOCO[b.bloco],
+      inicio: b.inicio,
+      minutos: b.minutos,
+      texto: b.texto,
+      feito: b.feito,
+      minutosFeitos: b.minutosFeitos,
+      destino: destinoDoBloco(b),
+    })),
+    opcoesDeTroca: opcoesDeTroca(ctx.cat, ctx.feitos).map((e) => ({
+      valor: gravarEscolha(e),
+      texto: e.tipo === "cards" ? CARDS_E_CEREBRO : rotulo(itemPorCodigo(ctx.cat, e.codigo)!),
+    })),
+  };
+}
+
+export type PlanoDeHoje = NonNullable<Awaited<ReturnType<typeof planoDeHoje>>>;

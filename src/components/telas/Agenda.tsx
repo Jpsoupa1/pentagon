@@ -14,7 +14,7 @@ import s from "./Agenda.module.css";
 
 export type OcorrenciaAgenda = {
   chave: string;
-  origem: "evento" | "sessao" | "marco" | "feriado";
+  origem: "evento" | "sessao" | "bloco" | "marco" | "feriado";
   eventId: string;
   dataOriginal: string;
   recorrente: boolean;

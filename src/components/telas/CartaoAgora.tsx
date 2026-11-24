@@ -8,12 +8,12 @@ import { AREA_POR_ID } from "@/lib/areas";
 import type { AreaId } from "@/lib/dominio";
 import { dataCurta, duracaoTexto, hojeLocal, horaLocal, partesLocais } from "@/lib/tempo";
 import { BarraProgresso } from "../ui/BarraProgresso";
-import { Botao } from "../ui/Botao";
+import { Botao, BotaoLink } from "../ui/Botao";
 import { useNovoItem } from "../shell/NovoItemProvider";
 import s from "./CartaoAgora.module.css";
 
 export type OcorrenciaCliente = {
-  origem: "evento" | "sessao" | "marco" | "feriado";
+  origem: "evento" | "sessao" | "bloco" | "marco" | "feriado";
   eventId: string;
   dataOriginal: string;
   titulo: string;
@@ -97,6 +97,8 @@ export function CartaoAgora({
   }
 
   const ehSessao = item.origem === "sessao";
+  // O bloco do plano não se adia nem se encerra aqui: quem marca "Fiz este bloco" é o cartão dele.
+  const ehBloco = item.origem === "bloco";
   const adiar = () => excecao(inicio.getTime() + ADIAR_MIN * 60_000, total / 60_000);
   // Concluir encerra a ocorrência agora (só a deste dia); numa sessão de estudo, marca como feita.
   async function concluir() {
@@ -135,12 +137,17 @@ export function CartaoAgora({
         <p className={`${s.meta} mono`}>começa em {duracaoTexto(restante)}</p>
       )}
       <div className={s.acoes}>
-        {!ehSessao && (
+        {ehBloco && (
+          <BotaoLink variante="claro" href="/plano">
+            Abrir o plano
+          </BotaoLink>
+        )}
+        {!ehSessao && !ehBloco && (
           <Botao variante="claro" onClick={adiar} disabled={ocupado}>
             Adiar {ADIAR_MIN} min
           </Botao>
         )}
-        {(atual || ehSessao) && (
+        {(atual || ehSessao) && !ehBloco && (
           <Botao variante="claro" onClick={concluir} disabled={ocupado} className={s.concluir}>
             Concluir
           </Botao>
