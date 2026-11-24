@@ -2,6 +2,7 @@ import "server-only";
 import { and, between, eq } from "drizzle-orm";
 import {
   CARDS_E_CEREBRO,
+  conteudoDoBloco,
   ehDiaUtil,
   gravarEscolha,
   itemPorCodigo,
@@ -10,6 +11,7 @@ import {
   perguntaDaFolgaAberta,
   ROTULO_BLOCO,
   rotulo,
+  textoBloco,
   type BlocoMontado,
 } from "@/lib/plano";
 import { partesLocais } from "@/lib/tempo";
@@ -76,6 +78,31 @@ export async function ocorrenciasDeBlocos(userId: string, intervalo: Intervalo) 
   if (!ctx) return [];
   const blocos = await montar(ctx, intervalo);
   return blocos.map((b) => ocorrenciaDoBloco(b, ctx.ajustes.fuso));
+}
+
+/**
+ * O que os avisos do plano precisam: os blocos e as folgas respondidas do intervalo e o texto da
+ * manhã. Nulo para quem não é dono, antes da primeira abertura e sem `estudos` nas áreas.
+ */
+export async function planoParaAvisos(userId: string, intervalo: Intervalo, agora = new Date()) {
+  const ctx = await planoIniciado(userId, agora);
+  if (!ctx || !ctx.ajustes.areasNoFeed.includes("estudos")) return null;
+  const [blocos, folgas] = await Promise.all([
+    montar(ctx, intervalo),
+    db()
+      .select({ data: planoFolgas.data, minutos: planoFolgas.minutos })
+      .from(planoFolgas)
+      .where(
+        and(eq(planoFolgas.userId, userId), between(planoFolgas.data, intervalo.de, intervalo.ate)),
+      ),
+  ]);
+  return {
+    ajustes: ctx.ajustes,
+    hoje: ctx.hoje,
+    blocos,
+    folgas: new Map(folgas.map((f) => [f.data, f.minutos])),
+    textoDaManha: textoBloco(conteudoDoBloco(ctx.cat, "manha", { feitos: ctx.feitos })),
+  };
 }
 
 /** Destino do "Abrir": a trilha do item em `/plano`, ou o topo da página no plano B de cards. */

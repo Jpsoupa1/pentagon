@@ -1,23 +1,14 @@
-import { readFileSync } from "node:fs";
 import { and, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { eventoSchema } from "@/lib/validacao";
 import { addDias, diaDaSemana, hojeLocal, horaLocal } from "@/lib/tempo";
 import { db } from "@/server/db";
-import {
-  events,
-  notifications,
-  planoFolgas,
-  planoProgresso,
-  settings,
-  users,
-} from "@/server/db/schema";
+import { events, planoFolgas, planoProgresso, settings, users } from "@/server/db/schema";
 import { Conflito } from "@/server/erros";
 import { semearCatalogoPlano } from "@/server/plano/seed";
 import { ocorrencias } from "@/server/servicos/agenda";
 import { atualizarAjustes, obterAjustes } from "@/server/servicos/ajustes";
-import { reconciliarAvisos, salvarInscricao } from "@/server/servicos/avisos";
 import { blocosDoPlano, planoDeHoje } from "@/server/servicos/blocos";
 import { feedPorToken, gerarToken, revogarTokens } from "@/server/servicos/calendario";
 import { criarComChecagem } from "@/server/servicos/compromissos";
@@ -381,32 +372,5 @@ describe("feed e Ajustes: lacunas de acesso", () => {
     const [a] = await db().select().from(settings).where(eq(settings.userId, userId));
     expect(a.planoIniciadoEm).toBeNull();
     expect(a.userId).toBe(userId);
-  });
-});
-
-describe("blocos fora dos avisos (etapa 5)", () => {
-  it("com aparelho inscrito, os avisos agendados não incluem blocos nem a folga", async () => {
-    await iniciar();
-    await responderFolga(userId, { minutos: 120 }, MANHA);
-    await salvarInscricao(userId, {
-      endpoint: "https://push.exemplo/blocos",
-      p256dh: "p",
-      auth: "a",
-      aparelho: "teste",
-    });
-    const agendador = { ativo: false, agendar: async () => null, cancelar: async () => {} };
-    await reconciliarAvisos(userId, MANHA, agendador);
-    const avisos = await db().select().from(notifications).where(eq(notifications.userId, userId));
-    expect(avisos.length).toBeGreaterThan(0);
-    expect(avisos.some((a) => a.titulo.includes("Bloco") || a.corpo?.includes("Bloco"))).toBe(
-      false,
-    );
-    expect(avisos.map((a) => a.alvoTipo)).not.toContain("bloco");
-    expect(avisos.map((a) => a.alvoTipo)).not.toContain("folga");
-  });
-
-  it("o serviço de avisos não importa os blocos do plano", () => {
-    const fonte = readFileSync("src/server/servicos/avisos.ts", "utf8");
-    expect(fonte).not.toMatch(/blocos|plano/i);
   });
 });

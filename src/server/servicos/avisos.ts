@@ -2,13 +2,18 @@ import "server-only";
 import { and, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { addDias, hojeLocal, horaLocal } from "@/lib/tempo";
 import { TIPO_AVALIACAO_NOME } from "@/lib/dominio";
+import { ehDiaUtil } from "@/lib/plano";
 import {
+  avisosDaFolga,
   avisosDeAvaliacoes,
+  avisosDeBlocos,
   avisosDeCompromissos,
   avisosDeLembretes,
   avisosDeSessoes,
   diferencaAvisos,
   JANELA_MS,
+  textoDaPerguntaDaFolga,
+  textoDoAvisoDeBloco,
   type AlvoAviso,
 } from "../avisos/planejar";
 import { criarAgendador, type Agendador } from "../avisos/agendador";
@@ -17,6 +22,7 @@ import { db } from "../db";
 import { assessments, notifications, pushSubscriptions, reminders, subjects } from "../db/schema";
 import { obterAjustes } from "./ajustes";
 import { compromissos } from "./agenda";
+import { planoParaAvisos } from "./blocos";
 import { ocorrenciasDeEstudo } from "./estudos";
 
 const URL_DO_ALVO: Record<AlvoAviso, string> = {
@@ -41,7 +47,7 @@ async function avisosDesejados(userId: string, agora: Date) {
   const intervalo = { de: hoje, ate: addDias(hoje, 3) };
   const fimJanela = new Date(agora.getTime() + JANELA_MS);
 
-  const [c, estudo, avaliacoes, lembretes] = await Promise.all([
+  const [c, estudo, avaliacoes, lembretes, plano] = await Promise.all([
     compromissos(userId, intervalo),
     areas.has("estudos") ? ocorrenciasDeEstudo(userId, intervalo) : Promise.resolve([]),
     areas.has("provas")
@@ -76,9 +82,24 @@ async function avisosDesejados(userId: string, agora: Date) {
           lt(reminders.quando, fimJanela),
         ),
       ),
+    planoParaAvisos(userId, intervalo, agora),
   ]);
 
+  const datas = Array.from({ length: 4 }, (_, i) => addDias(hoje, i));
   return [
+    ...(plano
+      ? [
+          ...avisosDeBlocos(plano.blocos, ajustes.avisoBlocosMin, agora, ajustes.fuso),
+          ...avisosDaFolga(
+            datas,
+            plano.folgas,
+            ajustes.perguntaFolga,
+            plano.textoDaManha,
+            agora,
+            ajustes.fuso,
+          ),
+        ]
+      : []),
     ...avisosDeSessoes(estudo, ajustes.avisoMin, agora, hora),
     ...avisosDeCompromissos(
       c.ocorrencias.filter((o) => areas.has(o.areaId)),
@@ -173,14 +194,38 @@ async function enviarParaAparelhos(userId: string, m: MensagemPush) {
   return { aparelhos: inscricoes.length, entregues };
 }
 
+/**
+ * Texto de `bloco` e `folga` no instante do envio, ou nulo se o aviso não vale mais (bloco feito
+ * ou fora do dia, folga respondida, plano não iniciado, conta sem plano, área estudos fora).
+ * Os demais tipos seguem com o texto gravado.
+ */
+async function textoAtual(aviso: typeof notifications.$inferSelect, agora: Date) {
+  const gravado = { titulo: aviso.titulo, corpo: aviso.corpo ?? "" };
+  if (aviso.alvoTipo !== "bloco" && aviso.alvoTipo !== "folga") return gravado;
+  const [data, bloco] = aviso.alvoId.split(":");
+  const plano = await planoParaAvisos(aviso.userId, { de: data, ate: data }, agora);
+  if (!plano) return null;
+  if (aviso.alvoTipo === "folga") {
+    return ehDiaUtil(data) && !plano.folgas.has(data)
+      ? textoDaPerguntaDaFolga(plano.textoDaManha)
+      : null;
+  }
+  const b = plano.blocos.find((x) => x.bloco === bloco);
+  return b && b.bloco !== "manha" && !b.feito ? textoDoAvisoDeBloco(b) : null;
+}
+
 /** Chamado pelo QStash no horário: envia o aviso, se ainda estiver valendo. */
-export async function dispararAviso(id: string) {
+export async function dispararAviso(id: string, agora = new Date()) {
   const [aviso] = await db().select().from(notifications).where(eq(notifications.id, id));
   if (!aviso || aviso.status !== "agendada")
     return { enviado: false, motivo: "não está mais agendado" };
+  const texto = await textoAtual(aviso, agora);
+  if (!texto) {
+    await db().update(notifications).set({ status: "cancelada" }).where(eq(notifications.id, id));
+    return { enviado: false, motivo: "não vale mais" };
+  }
   const r = await enviarParaAparelhos(aviso.userId, {
-    titulo: aviso.titulo,
-    corpo: aviso.corpo ?? "",
+    ...texto,
     url: URL_DO_ALVO[aviso.alvoTipo],
     tag: `${aviso.alvoTipo}-${aviso.alvoId}`,
   });

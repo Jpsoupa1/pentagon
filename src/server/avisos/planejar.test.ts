@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { HORARIOS_PADRAO } from "@/lib/estudos";
+import type { BlocoMontado } from "@/lib/plano";
 import { horaLocal, paraUtc } from "@/lib/tempo";
 import { ocorrenciasDeSessoes } from "../estudos/ocorrencias";
 import {
+  avisosDaFolga,
   avisosDeAvaliacoes,
+  avisosDeBlocos,
   avisosDeCompromissos,
   avisosDeLembretes,
   avisosDeSessoes,
@@ -184,5 +187,75 @@ describe("avisos de todas as áreas", () => {
       { id: "l2", texto: "Muito longe", quando: paraUtc("2026-11-30", "18:00") },
     ];
     expect(avisosDeLembretes(l, agora).map((x) => x.alvoId)).toEqual(["l1"]);
+  });
+});
+
+describe("avisos do plano", () => {
+  const bloco = (data: string, nome: "manha" | "teoria" | "projeto", feito = false) =>
+    ({
+      bloco: nome,
+      data,
+      inicio: nome === "teoria" ? "13:30" : nome === "projeto" ? "17:20" : "08:00",
+      minutos: 60,
+      texto: "A1. Álgebra linear",
+      feito,
+    }) as BlocoMontado;
+  // Quarta 21/10/2026, 06:00 em São Paulo.
+  const cedo = new Date("2026-10-21T09:00:00Z");
+  const avisarBlocos = (blocos: BlocoMontado[], min = 5) => avisosDeBlocos(blocos, min, cedo, fuso);
+
+  it("avisa Teoria e Projeto antes do início, com o conteúdo, e nunca a manhã", () => {
+    const avisos = avisarBlocos([
+      bloco("2026-10-21", "manha"),
+      bloco("2026-10-21", "teoria"),
+      bloco("2026-10-21", "projeto"),
+    ]);
+    expect(avisos.map((a) => [a.alvoTipo, a.alvoId, a.titulo, a.corpo, a.url])).toEqual([
+      ["bloco", "2026-10-21:teoria", "Bloco Teoria às 13:30", "A1. Álgebra linear", "/"],
+      ["bloco", "2026-10-21:projeto", "Bloco Projeto às 17:20", "A1. Álgebra linear", "/"],
+    ]);
+    expect(avisos.map((a) => hl(a.enviarEm))).toEqual(["13:25", "17:15"]);
+  });
+
+  it("não avisa bloco feito, bloco que já passou nem bloco fora da janela de 48 h", () => {
+    expect(avisarBlocos([bloco("2026-10-21", "teoria", true)])).toEqual([]);
+    expect(
+      avisosDeBlocos([bloco("2026-10-21", "teoria")], 5, new Date("2026-10-21T17:00:00Z"), fuso),
+    ).toEqual([]);
+    expect(avisarBlocos([bloco("2026-10-24", "teoria")])).toEqual([]);
+  });
+
+  it("a pergunta da folga sai às 07:40 de dia útil sem resposta, com a manhã no corpo", () => {
+    const datas = ["2026-10-21", "2026-10-22"];
+    const avisos = avisosDaFolga(datas, new Map(), "07:40", "B1. Building", cedo, fuso);
+    expect(avisos.map((a) => [a.alvoTipo, a.alvoId, a.titulo, a.corpo, a.url])).toEqual(
+      datas.map((d) => [
+        "folga",
+        d,
+        "Hoje tem folga no estágio?",
+        "Toque para responder. Na manhã: B1. Building",
+        "/",
+      ]),
+    );
+    expect(hl(avisos[0].enviarEm)).toBe("07:40");
+  });
+
+  it("não pergunta a folga respondida (inclusive Nada), no fim de semana nem depois da hora", () => {
+    const resposta = (m: number) => new Map([["2026-10-21", m]]);
+    expect(avisosDaFolga(["2026-10-21"], resposta(120), "07:40", "x", cedo, fuso)).toEqual([]);
+    expect(avisosDaFolga(["2026-10-21"], resposta(0), "07:40", "x", cedo, fuso)).toEqual([]);
+    expect(
+      avisosDaFolga(["2026-10-24", "2026-10-25"], new Map(), "07:40", "x", cedo, fuso),
+    ).toEqual([]);
+    expect(
+      avisosDaFolga(
+        ["2026-10-21"],
+        new Map(),
+        "07:40",
+        "x",
+        new Date("2026-10-21T11:00:00Z"),
+        fuso,
+      ),
+    ).toEqual([]);
   });
 });
