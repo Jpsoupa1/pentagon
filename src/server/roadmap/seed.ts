@@ -4,6 +4,7 @@ import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { precosRecurso, tiposAvaliacaoRoadmap, tiposPortao } from "../../lib/roadmap";
 import { sessoesDaDevops, SLUG_TRILHA } from "../estudos/trilha";
+import { arquivadosDe } from "../plano/arquivados";
 import {
   roadmapAssessments,
   roadmapBreaks,
@@ -345,13 +346,22 @@ export async function semearCatalogo(db: QualquerDb, t: TrilhaRoadmapJson) {
 
 /**
  * Grava o catálogo e o progresso inicial do JSON ("done") para os usuários. Só na primeira vez:
- * o que o usuário desmarcar depois não volta a ficar marcado no próximo deploy.
+ * o que o usuário desmarcar depois não volta a ficar marcado no próximo deploy. O roadmap que o
+ * usuário arquivou segue só com o catálogo: o progresso dele não é recriado.
  */
-export async function semearRoadmap(db: QualquerDb, userIds: string[]) {
+export async function semearRoadmap(db: QualquerDb, todosOsUsuarios: string[]) {
+  const arquivadosPorUsuario = new Map(
+    await Promise.all(
+      todosOsUsuarios.map(async (id) => [id, (await arquivadosDe(db, id)).roadmaps] as const),
+    ),
+  );
   const resumo: { slug: string; fases: number }[] = [];
   for (const t of TRILHAS) {
     const c = await semearCatalogo(db, t);
     resumo.push({ slug: t.trail.slug, fases: c.fases });
+    const userIds = todosOsUsuarios.filter(
+      (id) => !arquivadosPorUsuario.get(id)?.has(t.trail.slug),
+    );
     if (!userIds.length) continue;
     if (c.requisitosFeitos.length) {
       await db

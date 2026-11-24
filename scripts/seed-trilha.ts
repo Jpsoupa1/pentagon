@@ -18,6 +18,10 @@ export async function semearTrilhaParaTodos(db: ReturnType<typeof drizzle>, emai
   // Só o dono (OWNER_EMAILS) recebe a rotina e as trilhas; os outros usuários ficam vazios.
   for (const u of alvo.filter((x) => recebeConteudoPessoal(x.email))) {
     const r = await semearTrilha(db, u.id);
+    if (r.arquivada) {
+      console.log(`Trilha DevOps de ${u.email}: arquivada, nada mudou.`);
+      continue;
+    }
     console.log(
       `Trilha gravada para ${u.email}: ${r.semanas} semanas, ${r.sessoes} sessões` +
         (r.removidas ? `, ${r.removidas} fora do período removidas.` : "."),

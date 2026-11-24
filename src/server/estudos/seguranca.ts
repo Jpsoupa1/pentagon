@@ -2,6 +2,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { addDias, diaDaSemana, FUSO_PADRAO, hojeLocal, paraUtc } from "../../lib/tempo";
 import { events, settings, studyTracks, type FaseTrilha } from "../db/schema";
+import { arquivadosDe } from "../plano/arquivados";
 import { PERIODO_DA_SEGURANCA } from "../roadmap/compartilhamento";
 import diaria from "../roadmap/trilhas/seguranca-diaria.json";
 import seguranca from "../roadmap/trilhas/seguranca.json";
@@ -59,8 +60,16 @@ function primeiroDiaDoBloco(desde: string) {
  * (o usuário pode ter mudado o horário ou apagado). Versões antigas são trocadas uma única vez:
  * a sem datas (fim nulo, terça e quinta às 17:45 e sexta às 14:00) e a de sessões semanais
  * (terça e quinta às 14:00 e sábado às 14:00), que tinham um compromisso por dia da semana.
+ * Trilha arquivada não é tocada: nem recriada, nem com o compromisso trocado.
  */
-export async function semearSeguranca(db: QualquerDb, userId: string, agora = new Date()) {
+export async function semearSeguranca(
+  db: QualquerDb,
+  userId: string,
+  agora = new Date(),
+): Promise<{ criada: boolean; migrada: boolean; arquivada?: true }> {
+  if ((await arquivadosDe(db, userId)).trilhasEstudo.has(SLUG_SEGURANCA)) {
+    return { criada: false, migrada: false, arquivada: true };
+  }
   const [existente] = await db
     .select({ id: studyTracks.id, fim: studyTracks.fim })
     .from(studyTracks)
