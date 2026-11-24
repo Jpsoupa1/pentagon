@@ -7,6 +7,8 @@ import type { erroSchema, revisaoSchema } from "@/lib/validacao";
 import { db } from "../db";
 import { studyErrors, studyReviews, studySessions, studyWeeks } from "../db/schema";
 import { NaoEncontrado } from "../erros";
+import { semErrosArquivados } from "../plano/arquivados";
+import { arquivados } from "./arquivamentos";
 import { obterTrilha } from "./estudos";
 
 // ---------------------------------------------------------------- Revisão de sexta
@@ -102,23 +104,29 @@ export async function criarErro(userId: string, e: z.output<typeof erroSchema>) 
 
 /** Erros ainda no caderno com revisão até o domingo da semana de `hoje` (inclusive os atrasados). */
 export async function errosParaRevisar(userId: string, hoje: string) {
+  const a = await arquivados(userId);
   const abertos = await db()
     .select()
     .from(studyErrors)
-    .where(and(eq(studyErrors.userId, userId), isNull(studyErrors.resolvidoEm)))
+    .where(
+      and(eq(studyErrors.userId, userId), isNull(studyErrors.resolvidoEm), semErrosArquivados(a)),
+    )
     .orderBy(asc(studyErrors.createdAt));
   return errosDaSemana(abertos, hoje);
 }
 
 /** Resumo do caderno: quantos erros ainda estão nele e quando é a próxima revisão. */
 export async function resumoDoCaderno(userId: string) {
+  const a = await arquivados(userId);
   const [r] = await db()
     .select({
       abertos: sql<number>`count(*)::int`,
       proxima: sql<string | null>`min(${studyErrors.revisarEm})`,
     })
     .from(studyErrors)
-    .where(and(eq(studyErrors.userId, userId), isNull(studyErrors.resolvidoEm)));
+    .where(
+      and(eq(studyErrors.userId, userId), isNull(studyErrors.resolvidoEm), semErrosArquivados(a)),
+    );
   return r;
 }
 
@@ -158,6 +166,7 @@ export async function apagarErro(userId: string, id: string) {
 
 /** Erros anotados numa semana (para a revisão de sexta mostrar o que já foi anotado). */
 export async function errosDaSemanaAnotados(userId: string, inicio: string) {
+  const a = await arquivados(userId);
   return db()
     .select()
     .from(studyErrors)
@@ -165,6 +174,7 @@ export async function errosDaSemanaAnotados(userId: string, inicio: string) {
       and(
         eq(studyErrors.userId, userId),
         sql`${studyErrors.data} between ${inicio} and ${addDias(inicio, 6)}`,
+        semErrosArquivados(a),
       ),
     )
     .orderBy(asc(studyErrors.createdAt));

@@ -1,6 +1,7 @@
 import { and, eq, ne, notInArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { studySessions, studyTracks, studyWeeks } from "../db/schema";
+import { arquivadosDe } from "../plano/arquivados";
 import { NOME_TRILHA, ROTINA, SLUG_TRILHA, sessoesDaDevops } from "./trilha";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,8 +10,12 @@ type QualquerDb = NodePgDatabase<any>;
 /**
  * Grava a trilha DevOps para um usuário. Idempotente: rodar de novo atualiza conteúdo e datas,
  * mas preserva o status (pendente ou feita) de cada sessão, identificada pelo dia e pelo turno.
+ * Trilha arquivada não é tocada: nem recriada, nem com a limpeza das sessões pendentes.
  */
 export async function semearTrilha(db: QualquerDb, userId: string) {
+  if ((await arquivadosDe(db, userId)).trilhasEstudo.has(SLUG_TRILHA)) {
+    return { arquivada: true, trilhaId: null, semanas: 0, sessoes: 0, removidas: 0 };
+  }
   const [trilha] = await db
     .insert(studyTracks)
     .values({
@@ -102,7 +107,8 @@ export async function semearTrilha(db: QualquerDb, userId: string) {
     )
     .returning({ id: studySessions.id });
   return {
-    trilhaId: trilha.id,
+    arquivada: false,
+    trilhaId: trilha.id as string | null,
     semanas: semanas.length,
     sessoes: sessoes.length,
     removidas: removidas.length,

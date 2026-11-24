@@ -6,7 +6,9 @@ import type { eventoSchema, excecaoSchema } from "@/lib/validacao";
 import { db } from "../db";
 import { eventExceptions, events, subjects } from "../db/schema";
 import { NaoEncontrado } from "../erros";
+import { semEventosArquivados } from "../plano/arquivados";
 import { obterAjustes } from "./ajustes";
+import { arquivados } from "./arquivamentos";
 
 type EventoValido = z.output<typeof eventoSchema>;
 
@@ -40,7 +42,12 @@ async function garantirDisciplina(userId: string, id: string) {
 }
 
 export async function listarEventos(userId: string) {
-  return db().select().from(events).where(eq(events.userId, userId)).orderBy(asc(events.inicio));
+  const a = await arquivados(userId);
+  return db()
+    .select()
+    .from(events)
+    .where(and(eq(events.userId, userId), semEventosArquivados(a)))
+    .orderBy(asc(events.inicio));
 }
 
 export async function obterEvento(userId: string, id: string) {
@@ -82,12 +89,14 @@ export async function apagarEvento(userId: string, id: string) {
 export async function eventosNoIntervalo(userId: string, de: string, ate: string) {
   const inicioUtc = paraUtc(addDias(de, -1), "00:00");
   const fimUtc = paraUtc(addDias(ate, 2), "00:00");
+  const a = await arquivados(userId);
   const lista = await db()
     .select()
     .from(events)
     .where(
       and(
         eq(events.userId, userId),
+        semEventosArquivados(a),
         lte(events.inicio, fimUtc),
         or(
           and(isNull(events.diasSemana), gte(events.inicio, inicioUtc)),

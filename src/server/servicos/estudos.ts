@@ -8,11 +8,15 @@ import { db } from "../db";
 import { events, studySessions, studyTracks, studyWeeks } from "../db/schema";
 import { NaoEncontrado } from "../erros";
 import { ocorrenciasDeMarcos, ocorrenciasDeSessoes } from "../estudos/ocorrencias";
+import { semTrilhasArquivadas } from "../plano/arquivados";
 import { SLUG_SEGURANCA } from "../estudos/seguranca";
 import { SLUG_TRILHA } from "../estudos/trilha";
 import { obterAjustes } from "./ajustes";
+import { arquivados } from "./arquivamentos";
 
+/** Trilha DevOps do usuário (null se ele não tem ou se está arquivada). */
 export async function obterTrilha(userId: string) {
+  if ((await arquivados(userId)).trilhasEstudo.has(SLUG_TRILHA)) return null;
   const [t] = await db()
     .select()
     .from(studyTracks)
@@ -20,8 +24,9 @@ export async function obterTrilha(userId: string) {
   return t ?? null;
 }
 
-/** Id da trilha de Segurança do usuário (null se ele não tem). */
+/** Id da trilha de Segurança do usuário (null se ele não tem ou se está arquivada). */
 export async function idDaTrilhaSeguranca(userId: string) {
+  if ((await arquivados(userId)).trilhasEstudo.has(SLUG_SEGURANCA)) return null;
   const [t] = await db()
     .select({ id: studyTracks.id })
     .from(studyTracks)
@@ -31,6 +36,7 @@ export async function idDaTrilhaSeguranca(userId: string) {
 
 /** Trilha de Segurança e os compromissos ligados a ela (o bloco diário). */
 export async function obterTrilhaSeguranca(userId: string) {
+  if ((await arquivados(userId)).trilhasEstudo.has(SLUG_SEGURANCA)) return null;
   const [t] = await db()
     .select()
     .from(studyTracks)
@@ -52,6 +58,7 @@ export async function obterTrilhaSeguranca(userId: string) {
 
 /** Trilhas com o total de sessões (nos dias ligados) e quantas foram feitas. */
 export async function listarTrilhas(userId: string) {
+  const a = await arquivados(userId);
   return db()
     .select({
       id: studyTracks.id,
@@ -65,7 +72,7 @@ export async function listarTrilhas(userId: string) {
       feitas: sql<number>`(select count(*) from ${studySessions} where ${studySessions.trackId} = ${studyTracks.id} and ${studySessions.status} = 'feita')::int`,
     })
     .from(studyTracks)
-    .where(eq(studyTracks.userId, userId))
+    .where(and(eq(studyTracks.userId, userId), semTrilhasArquivadas(a, studyTracks.id)))
     .orderBy(asc(studyTracks.inicio));
 }
 
@@ -81,6 +88,7 @@ function turnosLigados(horarios: HorariosEstudo) {
 }
 
 export async function sessoesEntre(userId: string, de: string, ate: string) {
+  const a = await arquivados(userId);
   return db()
     .select({
       id: studySessions.id,
@@ -102,7 +110,11 @@ export async function sessoesEntre(userId: string, de: string, ate: string) {
     .from(studySessions)
     .innerJoin(studyWeeks, eq(studyWeeks.id, studySessions.weekId))
     .where(
-      and(eq(studySessions.userId, userId), sql`${studySessions.data} between ${de} and ${ate}`),
+      and(
+        eq(studySessions.userId, userId),
+        sql`${studySessions.data} between ${de} and ${ate}`,
+        semTrilhasArquivadas(a),
+      ),
     )
     .orderBy(asc(studySessions.data), asc(studySessions.turno));
 }
@@ -128,7 +140,7 @@ export async function ocorrenciasDeEstudo(
 
 /** Sessões de dias já passados, em turnos ligados, ainda não feitas (as mais recentes primeiro). */
 export async function sessoesPendentes(userId: string, antesDe: string, limite = 5) {
-  const ajustes = await obterAjustes(userId);
+  const [ajustes, a] = await Promise.all([obterAjustes(userId), arquivados(userId)]);
   const ligados = turnosLigados(horariosComPadrao(ajustes.horariosEstudo));
   if (!ligados) return { total: 0, lista: [] };
   const filtro = and(
@@ -136,6 +148,7 @@ export async function sessoesPendentes(userId: string, antesDe: string, limite =
     eq(studySessions.status, "pendente"),
     sql`${studySessions.data} < ${antesDe}`,
     ligados,
+    semTrilhasArquivadas(a),
   );
   const [{ total }] = await db()
     .select({ total: sql<number>`count(*)::int` })
@@ -158,7 +171,7 @@ export async function sessoesPendentes(userId: string, antesDe: string, limite =
 
 /** Progresso por fase, contando só os turnos ligados. */
 export async function progressoPorFase(userId: string) {
-  const ajustes = await obterAjustes(userId);
+  const [ajustes, a] = await Promise.all([obterAjustes(userId), arquivados(userId)]);
   const ligados = turnosLigados(horariosComPadrao(ajustes.horariosEstudo));
   if (!ligados) return [];
   return db()
@@ -169,7 +182,7 @@ export async function progressoPorFase(userId: string) {
     })
     .from(studySessions)
     .innerJoin(studyWeeks, eq(studyWeeks.id, studySessions.weekId))
-    .where(and(eq(studySessions.userId, userId), ligados))
+    .where(and(eq(studySessions.userId, userId), ligados, semTrilhasArquivadas(a)))
     .groupBy(studyWeeks.fase)
     .orderBy(studyWeeks.fase);
 }

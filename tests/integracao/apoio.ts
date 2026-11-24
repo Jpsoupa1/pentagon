@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
+import { recusarBancoDeProducao } from "@/server/db/url";
 import { users } from "@/server/db/schema";
 import { semearTrilha } from "@/server/estudos/seed";
 import { semearRotina } from "@/server/rotina/seed";
@@ -15,8 +16,7 @@ export const AMANHA = "2026-10-22";
 
 /** Usuário novo, com a trilha e a rotina do seed, para cada teste começar do zero. */
 export async function usuarioDeTeste() {
-  const url = process.env.DATABASE_URL ?? "";
-  if (/neon\.tech|vercel/.test(url)) throw new Error("Recusado: banco parece ser de produção.");
+  recusarBancoDeProducao(process.env.DATABASE_URL ?? "");
   await db().delete(users).where(eq(users.email, EMAIL));
   const [u] = await db()
     .insert(users)

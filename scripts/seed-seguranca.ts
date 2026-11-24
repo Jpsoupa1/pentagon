@@ -19,7 +19,7 @@ export async function semearSegurancaParaTodos(db: ReturnType<typeof drizzle>, e
   for (const u of alvo.filter((x) => recebeConteudoPessoal(x.email))) {
     const r = await semearSeguranca(db, u.id);
     console.log(
-      `Trilha de Segurança de ${u.email}: ${r.criada ? "criada com o bloco diário" : r.migrada ? "trocada pelo bloco diário das 17:30" : "já existia, fases atualizadas"}.`,
+      `Trilha de Segurança de ${u.email}: ${r.arquivada ? "arquivada, nada mudou" : r.criada ? "criada com o bloco diário" : r.migrada ? "trocada pelo bloco diário das 17:30" : "já existia, fases atualizadas"}.`,
     );
   }
 }

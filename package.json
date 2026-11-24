@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "tsx scripts/migrar-no-build.ts && next build",
+    "vercel-build": "tsx --conditions=react-server scripts/migrar-no-build.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
@@ -16,7 +16,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "db:migrate": "tsx scripts/migrar.ts",
+    "db:migrate": "tsx --conditions=react-server scripts/migrar.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "drizzle-kit studio",
     "icons": "node scripts/gerar-icones.mjs",
@@ -25,6 +25,7 @@
     "seed:seguranca": "tsx scripts/seed-seguranca.ts",
     "seed:roadmap": "tsx scripts/seed-roadmap.ts",
     "seed:plano": "tsx scripts/seed-plano.ts",
+    "migrar:plano": "tsx --conditions=react-server scripts/migrar-plano.ts",
     "gerar:trilha-diaria": "node scripts/gerar-trilha-diaria.mjs",
     "test:integracao": "vitest run --config vitest.integracao.config.mts",
     "assistente:real": "tsx --conditions=react-server scripts/assistente-real.ts"

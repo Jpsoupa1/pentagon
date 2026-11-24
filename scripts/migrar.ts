@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
+import { migrarPlanoParaTodos } from "./migrar-plano";
 import { semearAreas } from "./seed-areas";
 import { semearCatalogoPlano } from "./seed-plano";
 import { semearRoadmapParaTodos } from "./seed-roadmap";
@@ -23,6 +24,8 @@ export async function migrar() {
     await semearSegurancaParaTodos(db);
     await semearRoadmapParaTodos(db);
     await semearCatalogoPlano(db);
+    // Por último: arquiva o que saiu do app. Se algum usuário falhar, lança e o deploy quebra.
+    await migrarPlanoParaTodos(db);
     console.log("Migrações aplicadas; áreas, trilhas, roadmap, plano e rotina conferidos.");
   } finally {
     await pool.end();
