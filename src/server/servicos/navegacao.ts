@@ -4,12 +4,14 @@ import { hojeLocal, paraUtc } from "@/lib/tempo";
 import { minutosPorArea } from "../agenda/recorrencia";
 import { db } from "../db";
 import { assessments, reminders, studySessions, subjects } from "../db/schema";
+import { semTrilhasArquivadas } from "../plano/arquivados";
 import { obterAjustes } from "./ajustes";
 import { ocorrencias, semanaDe } from "./agenda";
+import { arquivados } from "./arquivamentos";
 
 /** Contadores do menu e horas da semana por área (barra lateral). */
 export async function resumoNavegacao(userId: string) {
-  const { fuso } = await obterAjustes(userId);
+  const [{ fuso }, a] = await Promise.all([obterAjustes(userId), arquivados(userId)]);
   const hoje = hojeLocal(new Date(), fuso);
   const semana = semanaDe(hoje);
   const d = db();
@@ -33,6 +35,7 @@ export async function resumoNavegacao(userId: string) {
           eq(studySessions.userId, userId),
           eq(studySessions.status, "pendente"),
           sql`${studySessions.data} between ${semana.de} and ${semana.ate}`,
+          semTrilhasArquivadas(a),
         ),
       ),
     d

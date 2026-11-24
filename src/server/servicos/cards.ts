@@ -14,7 +14,9 @@ import type { cardEdicaoSchema, respostaCardSchema } from "@/lib/validacao";
 import { db, naTransacao } from "../db";
 import { flashcardAnswers, flashcards } from "../db/schema";
 import { EntradaInvalida, NaoEncontrado } from "../erros";
+import { semCardsArquivados } from "../plano/arquivados";
 import { obterAjustes } from "./ajustes";
+import { arquivados } from "./arquivamentos";
 
 const colunasCard = {
   id: flashcards.id,
@@ -41,20 +43,30 @@ const colunasResposta = {
   modo: flashcardAnswers.modo,
 };
 
-function listarCards(userId: string): Promise<CardCliente[]> {
+/** Cards de trilhas arquivadas não aparecem na sessão, no acervo nem na contagem; ficam no banco. */
+async function listarCards(userId: string): Promise<CardCliente[]> {
+  const a = await arquivados(userId);
   return db()
     .select(colunasCard)
     .from(flashcards)
-    .where(eq(flashcards.userId, userId))
+    .where(and(eq(flashcards.userId, userId), semCardsArquivados(a)))
     .orderBy(asc(flashcards.trilha), asc(flashcards.tema), asc(flashcards.chave));
 }
 
 /** Respostas desde segunda: bastam para o limite de hoje e para "errados na semana". */
-function respostasDesde(userId: string, data: string): Promise<RespostaCliente[]> {
+async function respostasDesde(userId: string, data: string): Promise<RespostaCliente[]> {
+  const a = await arquivados(userId);
   return db()
     .select(colunasResposta)
     .from(flashcardAnswers)
-    .where(and(eq(flashcardAnswers.userId, userId), gte(flashcardAnswers.data, data)));
+    .innerJoin(flashcards, eq(flashcards.id, flashcardAnswers.cardId))
+    .where(
+      and(
+        eq(flashcardAnswers.userId, userId),
+        gte(flashcardAnswers.data, data),
+        semCardsArquivados(a),
+      ),
+    );
 }
 
 /** Acervo inteiro para o aparelho guardar e usar sem internet. */
