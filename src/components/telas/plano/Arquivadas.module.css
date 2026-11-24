@@ -1,0 +1,7 @@
+/* Linha só de leitura da lista de itens arquivados. */
+.linha {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 10px 4px;
+}

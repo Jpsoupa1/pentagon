@@ -32,7 +32,11 @@ export default async function Areas() {
           <ul className={layout.lista}>
             {AREAS.map((a) => (
               <li key={a.id}>
-                <Link href={DESTINO[a.id]} className={layout.itemLink} data-area={a.id}>
+                <Link
+                  href={dono && a.id === "estudos" ? "/plano" : DESTINO[a.id]}
+                  className={layout.itemLink}
+                  data-area={a.id}
+                >
                   <span className={layout.iniciais} aria-hidden>
                     <span
                       style={{
@@ -57,19 +61,18 @@ export default async function Areas() {
         <Cartao aria-label="Mais">
           <ul className={layout.lista}>
             <li>
-              <Link href="/trilhas" className={layout.itemLink}>
-                <Icone nome="trilhas" />
-                <span className={layout.itemTitulo}>Trilhas</span>
-              </Link>
-            </li>
-            {dono && (
-              <li>
+              {dono ? (
                 <Link href="/plano" className={layout.itemLink}>
                   <Icone nome="plano" />
                   <span className={layout.itemTitulo}>Plano</span>
                 </Link>
-              </li>
-            )}
+              ) : (
+                <Link href="/trilhas" className={layout.itemLink}>
+                  <Icone nome="trilhas" />
+                  <span className={layout.itemTitulo}>Trilhas</span>
+                </Link>
+              )}
+            </li>
             <li>
               <Link href="/cards" className={layout.itemLink}>
                 <Icone nome="cards" />

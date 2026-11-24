@@ -10,6 +10,8 @@ export type ItemNav = {
   contador?: keyof Contadores;
   /** Só aparece para quem recebe o conteúdo pessoal (OWNER_EMAILS). */
   soDono?: boolean;
+  /** Some para quem recebe o conteúdo pessoal: o Plano ocupa o lugar da entrada. */
+  somePraDono?: boolean;
 };
 
 export type Contadores = { aulas: number; provas: number; estudos: number; lembretes: number };
@@ -40,8 +42,16 @@ export const MENU: ItemNav[] = [
     icone: "estudos",
     area: "estudos",
     contador: "estudos",
+    somePraDono: true,
   },
-  { href: "/trilhas", rotulo: "Trilhas", curto: "Trilhas", icone: "trilhas", area: "estudos" },
+  {
+    href: "/trilhas",
+    rotulo: "Trilhas",
+    curto: "Trilhas",
+    icone: "trilhas",
+    area: "estudos",
+    somePraDono: true,
+  },
   { href: "/plano", rotulo: "Plano", curto: "Plano", icone: "plano", soDono: true },
   { href: "/cards", rotulo: "Cards", curto: "Cards", icone: "cards", area: "estudos" },
   { href: "/estagio", rotulo: "Estágio", curto: "Estágio", icone: "estagio", area: "estagio" },
@@ -60,8 +70,9 @@ export const SECUNDARIO: ItemNav[] = [
   { href: "/ajustes", rotulo: "Ajustes", curto: "Ajustes", icone: "ajustes" },
 ];
 
-/** O menu que a pessoa enxerga: a entrada do plano some para quem não é dono. */
-export const menuDe = (dono: boolean) => [...MENU, ...SECUNDARIO].filter((i) => dono || !i.soDono);
+/** O menu que a pessoa enxerga: dono troca Estudos e Trilhas pelo Plano; os demais mantêm o menu atual. */
+export const menuDe = (dono: boolean) =>
+  [...MENU, ...SECUNDARIO].filter((i) => (dono ? !i.somePraDono : !i.soDono));
 
 export function ativo(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);

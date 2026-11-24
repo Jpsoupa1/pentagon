@@ -38,8 +38,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <main className={s.principal} id="conteudo">
             <div className={s.conteudo}>{children}</div>
           </main>
-          <AbasFlutuantes />
-          <AbasIphone />
+          <AbasFlutuantes dono={dono} />
+          <AbasIphone dono={dono} />
           <FilaOffline />
           <AquecerCache />
         </div>

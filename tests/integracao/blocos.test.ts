@@ -5,14 +5,18 @@ import { eventoSchema } from "@/lib/validacao";
 import { addDias, diaDaSemana, hojeLocal, horaLocal } from "@/lib/tempo";
 import { db } from "@/server/db";
 import { events, planoFolgas, planoProgresso, settings, users } from "@/server/db/schema";
+import { dataDeRevisao } from "@/lib/estudos";
 import { Conflito } from "@/server/erros";
 import { semearCatalogoPlano } from "@/server/plano/seed";
 import { ocorrencias } from "@/server/servicos/agenda";
 import { atualizarAjustes, obterAjustes } from "@/server/servicos/ajustes";
 import { blocosDoPlano, planoDeHoje } from "@/server/servicos/blocos";
 import { feedPorToken, gerarToken, revogarTokens } from "@/server/servicos/calendario";
+import { importarCards } from "@/server/servicos/cards";
 import { criarComChecagem } from "@/server/servicos/compromissos";
 import { iniciarPlano, marcarBloco, responderFolga, trocarBloco } from "@/server/servicos/plano";
+import { criarErro, resumoDoCaderno } from "@/server/servicos/revisao";
+import { exemplo } from "./exemplo";
 import { AGORA, apagarUsuarioDeTeste, EMAIL, HOJE, usuarioDeTeste } from "./apoio";
 
 // A sessão é simulada só para exercitar a rota real de Ajustes (400 em HTTP).
@@ -146,6 +150,38 @@ describe("Hoje: folga e blocos", () => {
       { bloco: "teoria", feito: true, minutosFeitos: 45, texto: "A1. Álgebra linear" },
       { bloco: "projeto", feito: false, texto: "Cards e Cerebro", destino: "/plano" },
     ]);
+  });
+
+  it("o bloco em Cards e Cerebro traz os cards do dia e só os erros já vencidos; os outros blocos não trazem nada", async () => {
+    await iniciar();
+    await importarCards(userId, exemplo);
+    const erro = (tema: string, revisarEm: string) =>
+      criarErro(userId, { data: HOJE, tema, errei: "a", correto: "b", revisarEm });
+    await erro("Vencido ontem", addDias(HOJE, -1));
+    await erro("Vence hoje", HOJE);
+    await erro("Vence na sexta", addDias(HOJE, 2));
+
+    expect((await planoIniciado()).cardsECerebro).toBeNull();
+
+    await trocarBloco(userId, "projeto", { escolha: "cards" }, MANHA);
+    const p = await planoIniciado();
+    expect(p.blocos.find((b) => b.bloco === "projeto")?.emCardsECerebro).toBe(true);
+    expect(p.blocos.find((b) => b.bloco === "teoria")?.emCardsECerebro).toBe(false);
+    expect(p.cardsECerebro?.cards.total).toBe(5);
+    expect(p.cardsECerebro?.erros.map((e) => e.tema)).toEqual(["Vencido ontem", "Vence hoje"]);
+  });
+
+  it("anotar erro a partir de um bloco não exige sessão e entra no caderno", async () => {
+    const criado = await criarErro(userId, {
+      data: HOJE,
+      tema: "A1. Álgebra linear",
+      errei: "a",
+      correto: "b",
+      origem: "pratica",
+    });
+    expect(criado.sessionId).toBeNull();
+    expect(criado.revisarEm).toBe(dataDeRevisao(HOJE));
+    expect((await resumoDoCaderno(userId)).abertos).toBe(1);
   });
 
   it("marcar ou trocar um bloco que não existe hoje é recusado: manhã sem folga, fim de semana desligado", async () => {

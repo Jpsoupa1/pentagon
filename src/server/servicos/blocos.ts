@@ -20,7 +20,9 @@ import { ocorrenciaDoBloco } from "../agenda/blocos";
 import type { Intervalo } from "../agenda/recorrencia";
 import { db } from "../db";
 import { planoBlocos, planoFolgas } from "../db/schema";
+import { cardsDeHoje } from "./cards";
 import { carregar, ehDono, type Contexto } from "./plano";
+import { errosParaRevisar } from "./revisao";
 
 /** Folgas e registros de blocos do intervalo, direto do banco. */
 async function lerDados(userId: string, intervalo: Intervalo) {
@@ -122,6 +124,20 @@ export async function planoParaAvisos(userId: string, intervalo: Intervalo, agor
 const destinoDoBloco = (b: BlocoMontado) =>
   b.conteudo.item ? `/plano#trilha-${b.conteudo.item.trilha}` : "/plano";
 
+/** O que o plano B "Cards e Cerebro" mostra: cards do dia e os erros do caderno já vencidos. */
+async function materialDoCardsECerebro(ctx: Contexto) {
+  const [cards, erros] = await Promise.all([
+    cardsDeHoje(ctx.userId, ctx.hoje, ctx.ajustes.limiteCards),
+    errosParaRevisar(ctx.userId, ctx.hoje),
+  ]);
+  return {
+    cards,
+    erros: erros
+      .filter((e) => e.revisarEm <= ctx.hoje)
+      .map((e) => ({ id: e.id, tema: e.tema, revisarEm: e.revisarEm })),
+  };
+}
+
 /**
  * O que o Hoje mostra do plano: `null` fora do OWNER_EMAILS; antes da primeira abertura só o
  * convite; depois a folga, os blocos de hoje e as opções de troca.
@@ -138,8 +154,12 @@ export async function planoDeHoje(userId: string, agora = new Date()) {
     .where(and(eq(planoFolgas.userId, userId), eq(planoFolgas.data, hoje)));
   const blocos = await montar(ctx, { de: hoje, ate: hoje });
   const minutosLocais = partesLocais(agora, ctx.ajustes.fuso).minutos;
+  const emCardsECerebro = blocos.some((b) => !b.conteudo.item);
+  const cardsECerebro = emCardsECerebro ? await materialDoCardsECerebro(ctx) : null;
   return {
     iniciado: true as const,
+    hoje,
+    cardsECerebro,
     diaUtil: ehDiaUtil(hoje),
     folga: folga?.minutos ?? null,
     perguntarFolga: perguntaDaFolgaAberta(hoje, folga?.minutos ?? null, minutosLocais),
@@ -152,6 +172,7 @@ export async function planoDeHoje(userId: string, agora = new Date()) {
       feito: b.feito,
       minutosFeitos: b.minutosFeitos,
       destino: destinoDoBloco(b),
+      emCardsECerebro: !b.conteudo.item,
     })),
     opcoesDeTroca: opcoesDeTroca(ctx.cat, ctx.feitos).map((e) => ({
       valor: gravarEscolha(e),

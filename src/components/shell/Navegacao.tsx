@@ -115,18 +115,19 @@ export function Trilho({ contadores, dono }: Pick<Props, "contadores" | "dono">)
   );
 }
 
-const ABAS_IPAD = ["/", "/agenda", "/aulas", "/provas", "/estudos", "/lembretes"].map((href) =>
-  MENU.find((i) => i.href === href)!,
-);
+const abasIpad = (dono: boolean) =>
+  ["/", "/agenda", "/aulas", "/provas", dono ? "/plano" : "/estudos", "/lembretes"].map((href) =>
+    MENU.find((i) => i.href === href)!,
+  );
 
 /** iPad vertical: barra de abas flutuante centralizada. */
-export function AbasFlutuantes() {
+export function AbasFlutuantes({ dono }: Pick<Props, "dono">) {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
   return (
     <nav className={s.flutuante} aria-label="Principal">
       <ul>
-        {ABAS_IPAD.map((item) => (
+        {abasIpad(dono).map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
@@ -172,7 +173,7 @@ export function AbasFlutuantes() {
 }
 
 /** iPhone: abas fixas com o "+" no centro (Lembretes fica em Áreas). */
-export function AbasIphone() {
+export function AbasIphone({ dono }: Pick<Props, "dono">) {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
   const areasAtivo = [
@@ -180,6 +181,7 @@ export function AbasIphone() {
     "/aulas",
     "/provas",
     "/estudos",
+    "/trilhas",
     "/cards",
     "/estagio",
     "/lembretes",
@@ -194,12 +196,19 @@ export function AbasIphone() {
       atual: ativo(pathname, "/agenda"),
     },
     null,
-    {
-      href: "/trilhas",
-      rotulo: "Trilhas",
-      icone: "trilhas" as const,
-      atual: ativo(pathname, "/trilhas"),
-    },
+    dono
+      ? {
+          href: "/plano",
+          rotulo: "Plano",
+          icone: "plano" as const,
+          atual: ativo(pathname, "/plano"),
+        }
+      : {
+          href: "/trilhas",
+          rotulo: "Trilhas",
+          icone: "trilhas" as const,
+          atual: ativo(pathname, "/trilhas"),
+        },
     { href: "/areas", rotulo: "Áreas", icone: "areas" as const, atual: areasAtivo },
   ];
   return (

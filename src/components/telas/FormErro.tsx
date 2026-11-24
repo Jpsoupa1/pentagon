@@ -29,15 +29,21 @@ export function FormErro({ padrao, aoSalvar }: { padrao: PadraoErro; aoSalvar?: 
   async function salvar(e: FormEvent) {
     e.preventDefault();
     setSalvando(true);
-    const r = await enviar("POST", "/api/estudos/erros", {
-      data,
-      tema,
-      errei,
-      correto,
-      revisarEm,
-      origem: padrao.origem,
-      sessaoId: padrao.sessaoId,
-    });
+    // Cria um registro: sem fila offline, para o reenvio não duplicar a linha do caderno.
+    const r = await enviar(
+      "POST",
+      "/api/estudos/erros",
+      {
+        data,
+        tema,
+        errei,
+        correto,
+        revisarEm,
+        origem: padrao.origem,
+        sessaoId: padrao.sessaoId,
+      },
+      { semFila: true },
+    );
     setSalvando(false);
     if (!r.ok) {
       setErro(Object.values(r.campos ?? {})[0]?.[0] ?? r.erro);

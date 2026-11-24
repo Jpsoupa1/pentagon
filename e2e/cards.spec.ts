@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
-const exemplo = readFileSync("docs/cards/exemplo-cka.json", "utf8");
+const exemplo = readFileSync("docs/cards/exemplo.json", "utf8");
 
 type Acervo = {
   cards: { chave: string; caixa: number; proximaEm: string | null; acertos: number }[];

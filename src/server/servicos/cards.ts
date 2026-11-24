@@ -2,8 +2,10 @@ import "server-only";
 import { and, asc, eq, gte } from "drizzle-orm";
 import type { z } from "zod";
 import {
+  AVISO_TRILHA_DE_CARDS,
   responder,
   sessaoDoDia,
+  TRILHAS_DE_CARDS_DO_PLANO,
   validarImportacao,
   type CardCliente,
   type ErroImportacao,
@@ -16,6 +18,7 @@ import { flashcardAnswers, flashcards } from "../db/schema";
 import { EntradaInvalida, NaoEncontrado } from "../erros";
 import { semCardsArquivados } from "../plano/arquivados";
 import { obterAjustes } from "./ajustes";
+import { ehDono } from "./plano";
 import { arquivados } from "./arquivamentos";
 
 const colunasCard = {
@@ -103,6 +106,9 @@ export async function importarCards(
     existentes.map((e) => e.chave),
   );
   if (!r.ok) throw new EntradaInvalida(r.erro);
+  // O dono guarda cards só nas trilhas do plano; as demais contas importam como antes.
+  const fora = r.validos.some((c) => !TRILHAS_DE_CARDS_DO_PLANO.some((t) => t === c.trilha));
+  if (fora && (await ehDono(userId))) throw new EntradaInvalida(AVISO_TRILHA_DE_CARDS);
   let importados = 0;
   const repetidos = [...r.repetidos];
   // Em lotes, para não estourar o limite de parâmetros do Postgres.
