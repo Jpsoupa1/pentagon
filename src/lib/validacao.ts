@@ -8,6 +8,7 @@ import {
   resultadosCard,
 } from "./dominio";
 import { CHAVES_TURNO } from "./estudos";
+import { blocosPlano } from "./plano";
 
 // Esquemas compartilhados entre formulários (cliente) e API (servidor).
 
@@ -234,4 +235,57 @@ export const respostaCardSchema = z.object({
   modo: z.enum(modosCard),
   data: dataSchema,
   respondidaEm: z.iso.datetime({ offset: true }),
+});
+
+// ---------------------------------------------------------------- Plano AI Engineer
+// Nenhum esquema aceita `userId` (o servidor usa o da sessão): são todos estritos, e o que vem
+// fora da lista é recusado com 400.
+
+export const codigoPlanoSchema = z.string().regex(/^[A-Z]\d{1,3}[a-z]?$/, "Código inválido");
+export const blocoPlanoSchema = z.enum(blocosPlano);
+const notaPlano = z.number().int().min(0).max(100);
+
+export const planoInicioSchema = z.strictObject({
+  marcados: z.array(codigoPlanoSchema).max(200),
+  /** Marca junto os requisitos que faltarem, em vez de recusar. */
+  incluirRequisitos: z.boolean().default(false),
+});
+
+export const conclusaoPlanoSchema = z.strictObject({
+  nota: notaPlano.optional(),
+  aprovado: z.boolean().optional(),
+});
+
+export const tentativaPlanoSchema = z.strictObject({ nota: notaPlano });
+
+export const checkPlanoSchema = z.discriminatedUnion("grupo", [
+  z.strictObject({
+    grupo: z.enum(["antes", "etapas", "entrega"]),
+    codigo: codigoPlanoSchema,
+    indice: z.number().int().min(0).max(50),
+    feito: z.boolean(),
+  }),
+  z.strictObject({
+    grupo: z.literal("recrutamento"),
+    indice: z.number().int().min(0).max(50),
+    feito: z.boolean(),
+  }),
+]);
+
+export const folgaPlanoSchema = z.strictObject({
+  minutos: z.union([z.literal(0), z.literal(60), z.literal(120), z.literal(180)]),
+});
+
+export const blocoFeitoPlanoSchema = z.strictObject({
+  feito: z.boolean(),
+  /** Minutos estudados; sem eles vale a duração padrão do bloco. */
+  minutos: z.number().int().min(1).max(240).optional(),
+});
+
+/** `item:<código>`, `cards` ou nulo (volta à regra do bloco). */
+export const trocaPlanoSchema = z.strictObject({
+  escolha: z
+    .string()
+    .regex(/^(cards|item:[A-Z]\d{1,3}[a-z]?)$/, "Escolha inválida")
+    .nullable(),
 });
