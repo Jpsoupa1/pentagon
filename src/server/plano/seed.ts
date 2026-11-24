@@ -24,6 +24,8 @@ function atualizarCom(tabela: PgTable, chave: string[]) {
  */
 export async function semearCatalogoPlano(db: QualquerDb, json: unknown = planoJson) {
   const cat = carregarCatalogo(json);
+  // Sem itens, o `notInArray` abaixo ficaria sem lista: um seed vazio é erro, não "desativar tudo".
+  if (!cat.itens.length) throw new Error("plano.json inválido: catálogo sem itens.");
   await db.transaction(async (tx) => {
     await tx
       .insert(planoCatalogo)

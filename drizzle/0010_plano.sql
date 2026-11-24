@@ -21,7 +21,8 @@ CREATE TABLE "plano_blocos" (
 	"escolha" text,
 	"codigo_estudado" text,
 	"minutos" smallint DEFAULT 0 NOT NULL,
-	"feito_em" timestamp with time zone
+	"feito_em" timestamp with time zone,
+	CONSTRAINT "plano_blocos_bloco" CHECK ("plano_blocos"."bloco" IN ('manha', 'teoria', 'projeto'))
 );
 --> statement-breakpoint
 CREATE TABLE "plano_catalogo" (

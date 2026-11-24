@@ -1,5 +1,5 @@
 {
-  "id": "734d67e8-08bf-4417-94d1-e7266500641f",
+  "id": "67d46836-be5a-4b25-bd6c-5408cddf14b2",
   "prevId": "337eb4dd-9303-4454-a5a5-5dda26e84ba2",
   "version": "7",
   "dialect": "postgresql",
@@ -1876,7 +1876,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "plano_blocos_bloco": {
+          "name": "plano_blocos_bloco",
+          "value": "\"plano_blocos\".\"bloco\" IN ('manha', 'teoria', 'projeto')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.plano_catalogo": {

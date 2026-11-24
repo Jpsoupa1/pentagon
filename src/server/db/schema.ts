@@ -985,7 +985,10 @@ export const planoBlocos = pgTable(
     minutos: smallint("minutos").notNull().default(0),
     feitoEm: timestamp("feito_em", tz),
   },
-  (t) => [uniqueIndex("plano_blocos_user_data_bloco_uq").on(t.userId, t.data, t.bloco)],
+  (t) => [
+    uniqueIndex("plano_blocos_user_data_bloco_uq").on(t.userId, t.data, t.bloco),
+    check("plano_blocos_bloco", sql`${t.bloco} IN ('manha', 'teoria', 'projeto')`),
+  ],
 );
 
 export const planoFolgas = pgTable(

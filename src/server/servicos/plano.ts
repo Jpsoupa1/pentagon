@@ -12,6 +12,7 @@ import {
   horasRestantes,
   itemPorCodigo,
   lerEscolha,
+  MINUTOS_PADRAO_BLOCO,
   liberadosApos,
   mensagemTentativa,
   opcoesDeTroca,
@@ -82,7 +83,7 @@ class Recusa {
   ) {}
 }
 
-async function exigirDono(userId: string) {
+export async function exigirDono(userId: string) {
   const [u] = await db().select({ email: users.email }).from(users).where(eq(users.id, userId));
   if (!u || !recebeConteudoPessoal(u.email)) {
     throw new Proibido("Nenhum plano de estudos nesta conta.");
@@ -326,8 +327,8 @@ function minutosPadrao(ajustes: Ajustes, data: string, bloco: BlocoPlano, folga:
   const faixa = dia === 0 ? "domingo" : dia === 6 ? "sabado" : "dias_uteis";
   const configurado = ajustes.blocosPlano?.[faixa]?.[bloco]?.minutos;
   if (configurado) return configurado;
-  if (bloco === "manha") return folga || 60;
-  return bloco === "teoria" ? 90 : 80;
+  if (bloco === "manha" && folga) return folga;
+  return MINUTOS_PADRAO_BLOCO[bloco];
 }
 
 // ---------------------------------------------------------------- Primeira abertura

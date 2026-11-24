@@ -481,6 +481,46 @@ describe("folga, bloco feito e troca (só hoje)", () => {
   });
 });
 
+describe("dia local do usuário (fuso America/Sao_Paulo)", () => {
+  beforeEach(async () => {
+    await iniciar(["A0", "C1"]);
+    await db()
+      .update(settings)
+      .set({ fuso: "America/Sao_Paulo" })
+      .where(eq(settings.userId, userId));
+  });
+
+  it("folga e bloco feito usam o dia local quando em UTC já é o dia seguinte", async () => {
+    // 01:30 UTC de terça 20/10 ainda é segunda 19/10 às 22:30 em São Paulo.
+    const tarde = new Date("2026-10-20T01:30:00Z");
+    await responderFolga(userId, { minutos: 60 }, tarde);
+    await marcarBloco(userId, "teoria", { feito: true }, tarde);
+    const [folga] = await db().select().from(planoFolgas).where(eq(planoFolgas.userId, userId));
+    const [bloco] = await db().select().from(planoBlocos).where(eq(planoBlocos.userId, userId));
+    expect([folga.data, bloco.data]).toEqual(["2026-10-19", "2026-10-19"]);
+    expect((await estado(userId, tarde)).hoje).toBe("2026-10-19");
+  });
+
+  it("domingo à noite no Brasil ainda é domingo: sem folga, e o contador soma na semana anterior", async () => {
+    // 01:30 UTC de segunda 19/10 é domingo 18/10 às 22:30 em São Paulo.
+    const domingo = new Date("2026-10-19T01:30:00Z");
+    await recusado(responderFolga(userId, { minutos: 60 }, domingo), "dia_sem_folga");
+
+    await db().delete(settings).where(eq(settings.userId, userId));
+    await iniciar(["B5", "C8"], userId, true);
+    await db()
+      .update(settings)
+      .set({ fuso: "America/Sao_Paulo" })
+      .where(eq(settings.userId, userId));
+    await somarContador(userId, "questoes", domingo);
+    const [linha] = await db()
+      .select()
+      .from(planoContagens)
+      .where(eq(planoContagens.userId, userId));
+    expect(linha.semana).toBe("2026-10-12");
+  });
+});
+
 describe("acesso", () => {
   it("fora do OWNER_EMAILS recebe plano nulo e 403 em toda escrita, sem gravar", async () => {
     const amigo = await criarUsuario(AMIGO);
@@ -590,7 +630,43 @@ describe("rotas (HTTP)", () => {
   });
 });
 
+describe("rotas: dono antes da validação", () => {
+  it("quem não é dono recebe 403 mesmo com corpo ou parâmetro inválido", async () => {
+    const { POST: tentativa } = await import("@/app/api/plano/itens/[codigo]/tentativas/route");
+    const { PUT: folga } = await import("@/app/api/plano/folga/route");
+    const { PUT: bloco } = await import("@/app/api/plano/blocos/[bloco]/route");
+    sessao.userId = await criarUsuario(AMIGO);
+    const doItem = (codigo: string) => ({ params: Promise.resolve({ codigo }) });
+
+    expect((await tentativa(requisicao("POST", { nota: 101 }), doItem("A2"))).status).toBe(403);
+    expect((await tentativa(requisicao("POST", { userId: "x" }), doItem("A2"))).status).toBe(403);
+    expect((await tentativa(requisicao("POST", { nota: 90 }), doItem("????"))).status).toBe(403);
+    expect(
+      (await folga(requisicao("PUT", { minutos: 90 }), { params: Promise.resolve({}) })).status,
+    ).toBe(403);
+    const blocoInvalido = { params: Promise.resolve({ bloco: "x" }) };
+    expect((await bloco(requisicao("PUT", { feito: true }), blocoInvalido)).status).toBe(403);
+  });
+});
+
 describe("catálogo e seed", () => {
+  it("o banco recusa bloco fora de manhã, teoria e projeto", async () => {
+    await expect(
+      db().insert(planoBlocos).values({ userId, data: "2026-10-21", bloco: "x" }),
+    ).rejects.toThrow();
+  });
+
+  it("seed sem itens lança e não desativa o catálogo", async () => {
+    const vazio = {
+      ...planoJson,
+      itens: [],
+      recrutamento: { ...planoJson.recrutamento, liberaCom: [] },
+    };
+    await expect(semearCatalogoPlano(db(), vazio)).rejects.toThrow(/plano\.json inválido/);
+    const ativos = await db().select().from(planoItens).where(eq(planoItens.ativo, true));
+    expect(ativos).toHaveLength(planoJson.itens.length);
+  });
+
   const contarItens = async () => (await db().select({ n: count() }).from(planoItens))[0].n;
   const itensDoSeed = planoJson.itens.length;
 

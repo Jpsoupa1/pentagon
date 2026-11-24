@@ -17,6 +17,13 @@ export type BlocosPlanoAjustes = Partial<
   >
 >;
 
+/** Duração padrão de cada bloco, em minutos, quando Ajustes não define (a manhã segue a folga do dia). */
+export const MINUTOS_PADRAO_BLOCO: Record<BlocoPlano, number> = {
+  manha: 60,
+  teoria: 90,
+  projeto: 80,
+};
+
 export const SUGESTAO_INICIAL = ["A0", "C1"] as const;
 
 // ---------------------------------------------------------------------------------------------
