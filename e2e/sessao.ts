@@ -46,6 +46,8 @@ export async function criarSessaoDeTeste(url: string) {
 }
 
 export const EMAIL_FORA_DO_PLANO = "amigo@pentagon.local";
+/** Sessão da conta fora do plano, já com a DevOps, a Segurança e o roadmap semeados (global-setup). */
+export const ESTADO_AMIGO = "e2e/.auth/amigo.json";
 
 /** Sessão de um segundo usuário (sem mexer nos dados de ninguém): cookie pronto para o Playwright. */
 export async function criarSessaoDeOutroUsuario(url: string, email: string) {

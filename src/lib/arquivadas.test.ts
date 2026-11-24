@@ -4,7 +4,7 @@ import { dataDoArquivamento, nomeDoArquivado } from "./arquivadas";
 describe("nomeDoArquivado", () => {
   it("monta o nome legível de cada tipo", () => {
     expect(nomeDoArquivado("trilha_estudo", "devops", "Trilha DevOps")).toBe("Trilha DevOps");
-    expect(nomeDoArquivado("roadmap", "seguranca", "Segurança")).toBe("Roadmap Segurança");
+    expect(nomeDoArquivado("roadmap", "seguranca", "Trilha Segurança")).toBe("Roadmap Segurança");
     expect(nomeDoArquivado("cards", "CKA", null)).toBe("Cards CKA");
     expect(nomeDoArquivado("evento", "id-1", "Ciber e SecOps")).toBe("Compromisso Ciber e SecOps");
     expect(nomeDoArquivado("erros", "antes_do_plano", null)).toBe("Erros anteriores ao plano");

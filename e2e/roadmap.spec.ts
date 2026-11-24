@@ -1,4 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { ESTADO_AMIGO } from "./sessao";
+
+// O roadmap antigo não abre mais para o dono (vai para /plano): estes testes rodam com a conta
+// fora do OWNER_EMAILS, que mantém a tela e tem a DevOps e a Segurança semeadas.
+test.use({ storageState: ESTADO_AMIGO });
 
 const URL = "/trilhas/devops/roadmap";
 

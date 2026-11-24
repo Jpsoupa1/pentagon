@@ -22,7 +22,8 @@ export function nomeDoArquivado(tipo: TipoArquivado, chave: string, nome: string
     case "trilha_estudo":
       return base;
     case "roadmap":
-      return `Roadmap ${base}`;
+      // O catálogo chama o roadmap de "Trilha DevOps"; na lista ele é "Roadmap DevOps".
+      return `Roadmap ${base.replace(/^Trilha /, "")}`;
     case "cards":
       return `Cards ${chave}`;
     case "evento":

@@ -7,7 +7,12 @@ import { semearRoadmap } from "../src/server/roadmap/seed";
 import { semearSeguranca } from "../src/server/estudos/seguranca";
 import { semearRotina } from "../src/server/rotina/seed";
 import { iniciarClaudeFalso } from "./claude-falso";
-import { criarSessaoDeTeste } from "./sessao";
+import {
+  criarSessaoDeOutroUsuario,
+  criarSessaoDeTeste,
+  EMAIL_FORA_DO_PLANO,
+  ESTADO_AMIGO,
+} from "./sessao";
 
 // Os testes olham semanas fixas (19/10 a 9/11/2026). A rotina e a Segurança começam na semana
 // de `agora`, então o seed usa a data em que esses testes foram escritos, e não a data real.
@@ -19,14 +24,26 @@ export default async function globalSetup() {
   const claude = await iniciarClaudeFalso(Number(process.env.PORTA_E2E ?? 3100) + 99);
   const { token, userId } = await criarSessaoDeTeste(url);
   const pool = new Pool({ connectionString: url, max: 1 });
+  let estadoAmigo: Awaited<ReturnType<typeof criarSessaoDeOutroUsuario>>;
   try {
     await semearTrilha(drizzle(pool), userId);
     await semearRotina(drizzle(pool), userId, SEMEADO_EM);
     await semearSeguranca(drizzle(pool), userId, SEMEADO_EM);
     await semearRoadmap(drizzle(pool), [userId]);
-    // De propósito, sem `migrarPlano`: os e2e de Estudos e Trilhas dependem da DevOps e da
-    // Segurança ativas até o 6b removê-los. O dono migrado é coberto em
-    // tests/integracao/arquivamento.test.ts.
+    // De propósito, sem `migrarPlano`: o dono migrado é coberto em
+    // tests/integracao/arquivamento.test.ts, e os e2e de Agenda ainda leem a DevOps do dono.
+
+    // Estudos, Trilhas e Roadmap não abrem mais para o dono (vão para /plano). Esses e2e rodam
+    // com a conta fora do OWNER_EMAILS, que recebe o mesmo seed e mantém as telas antigas.
+    estadoAmigo = await criarSessaoDeOutroUsuario(url, EMAIL_FORA_DO_PLANO);
+    const { rows } = await pool.query("select id from users where email = $1", [
+      EMAIL_FORA_DO_PLANO,
+    ]);
+    const amigo = rows[0].id as string;
+    await semearTrilha(drizzle(pool), amigo);
+    await semearRotina(drizzle(pool), amigo, SEMEADO_EM);
+    await semearSeguranca(drizzle(pool), amigo, SEMEADO_EM);
+    await semearRoadmap(drizzle(pool), [amigo]);
   } finally {
     await pool.end();
   }
@@ -49,5 +66,6 @@ export default async function globalSetup() {
       origins: [],
     }),
   );
+  writeFileSync(ESTADO_AMIGO, JSON.stringify(estadoAmigo));
   return () => new Promise<void>((ok) => claude.close(() => ok()));
 }

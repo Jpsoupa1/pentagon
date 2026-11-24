@@ -59,7 +59,7 @@ describe("lista de arquivados", () => {
     const lista = await listarArquivadas(userId);
     expect(lista.map((i) => i.nome)).toEqual([
       trilha.nome,
-      `Roadmap ${roadmap.nome}`,
+      "Roadmap DevOps",
       "Cards CKA",
       `Compromisso ${evento.titulo}`,
       "Erros anteriores ao plano",
