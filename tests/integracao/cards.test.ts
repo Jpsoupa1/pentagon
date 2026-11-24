@@ -161,6 +161,18 @@ describe("importação de cards por quem é dono", () => {
     expect((await acervo(userId, AGORA)).cards).toHaveLength(0);
   });
 
+  it("o dono não muda a trilha de um card para fora do plano; quem não é dono muda", async () => {
+    process.env.OWNER_EMAILS = EMAIL;
+    await importarCards(userId, { cards: [card("TEORIA")] });
+    const [{ id }] = (await acervo(userId, AGORA)).cards;
+    await expect(editarCard(userId, id, { trilha: "CKA" })).rejects.toThrow(
+      "Use a trilha TEORIA, CURSOS ou PROJETOS.",
+    );
+    expect((await editarCard(userId, id, { trilha: "CURSOS" })).trilha).toBe("CURSOS");
+    process.env.OWNER_EMAILS = "outro-dono@pentagon.local";
+    expect((await editarCard(userId, id, { trilha: "CKA" })).trilha).toBe("CKA");
+  });
+
   it("quem não é dono importa qualquer trilha, como antes", async () => {
     process.env.OWNER_EMAILS = "outro-dono@pentagon.local";
     const r = await importarCards(userId, { cards: [card("CKA")] });

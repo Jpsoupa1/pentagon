@@ -7,6 +7,7 @@ import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { enviar } from "@/lib/cliente/api";
 import { AnotarErro } from "../AnotarErro";
+import { RevisaoEspacada } from "../RevisaoEspacada";
 import { duracaoTexto, minParaHm, hmParaMin } from "@/lib/tempo";
 import type { PlanoDeHoje } from "@/server/servicos/blocos";
 import s from "./PlanoNoHoje.module.css";
@@ -120,13 +121,7 @@ function CartaoCardsECerebro({ material }: { material: NonNullable<Plano["cardsE
           <p className={s.titulo}>
             <strong>Erros para revisar ({erros.length})</strong>
           </p>
-          {erros.length > 0 && (
-            <ul className={s.temas}>
-              {erros.map((e) => (
-                <li key={e.id}>{e.tema}</li>
-              ))}
-            </ul>
-          )}
+          {erros.length > 0 && <RevisaoEspacada erros={erros} />}
         </li>
         <li className={s.bloco}>
           <p className={s.titulo}>Passar as notas no Cerebro</p>

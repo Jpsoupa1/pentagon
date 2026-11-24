@@ -22,7 +22,7 @@ import { db } from "../db";
 import { planoBlocos, planoFolgas } from "../db/schema";
 import { cardsDeHoje } from "./cards";
 import { carregar, ehDono, type Contexto } from "./plano";
-import { errosParaRevisar } from "./revisao";
+import { errosVencidos } from "./revisao";
 
 /** Folgas e registros de blocos do intervalo, direto do banco. */
 async function lerDados(userId: string, intervalo: Intervalo) {
@@ -128,14 +128,9 @@ const destinoDoBloco = (b: BlocoMontado) =>
 async function materialDoCardsECerebro(ctx: Contexto) {
   const [cards, erros] = await Promise.all([
     cardsDeHoje(ctx.userId, ctx.hoje, ctx.ajustes.limiteCards),
-    errosParaRevisar(ctx.userId, ctx.hoje),
+    errosVencidos(ctx.userId, ctx.hoje),
   ]);
-  return {
-    cards,
-    erros: erros
-      .filter((e) => e.revisarEm <= ctx.hoje)
-      .map((e) => ({ id: e.id, tema: e.tema, revisarEm: e.revisarEm })),
-  };
+  return { cards, erros };
 }
 
 /**

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Pool } from "pg";
-import { ESTADO_AMIGO } from "./sessao";
+import { ESTADO_AMIGO, exigirBancoLocal } from "./sessao";
 
 // O dono (teste@pentagon.local) tem o Plano no lugar de Estudos e Trilhas; a conta fora do
 // OWNER_EMAILS (amigo@pentagon.local) mantém o menu e as telas de antes.
@@ -138,4 +138,13 @@ test("dono: Trilhas arquivadas lista os itens com nome e data, sem ação de rea
     );
     await pool.end();
   }
+});
+
+test("a trava dos e2e recusa banco que não é local", () => {
+  expect(() => exigirBancoLocal("postgres://u:p@db.exemplo.com/x")).toThrow(
+    "só roda em banco local",
+  );
+  expect(() => exigirBancoLocal("postgres://u:p@db.localhost.exemplo.com/x")).toThrow();
+  expect(() => exigirBancoLocal("postgres://u:p@localhost:5433/x")).not.toThrow();
+  expect(() => exigirBancoLocal("postgres://u:p@127.0.0.1:5432/x")).not.toThrow();
 });

@@ -171,6 +171,20 @@ describe("Hoje: folga e blocos", () => {
     expect(p.cardsECerebro?.erros.map((e) => e.tema)).toEqual(["Vencido ontem", "Vence hoje"]);
   });
 
+  it("o erro vencido de outra conta não entra em Cards e Cerebro", async () => {
+    await iniciar();
+    const outro = await criarAmigo();
+    await criarErro(outro, {
+      data: HOJE,
+      tema: "Erro alheio",
+      errei: "a",
+      correto: "b",
+      revisarEm: HOJE,
+    });
+    await trocarBloco(userId, "projeto", { escolha: "cards" }, MANHA);
+    expect((await planoIniciado()).cardsECerebro?.erros).toEqual([]);
+  });
+
   it("anotar erro a partir de um bloco não exige sessão e entra no caderno", async () => {
     const criado = await criarErro(userId, {
       data: HOJE,
