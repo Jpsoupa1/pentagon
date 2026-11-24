@@ -125,6 +125,9 @@ export async function fotoAtual(
         .where(eq(checklistItems.assessmentId, id));
       return { ...fotografar(a), _checklist: fotografar(itens) };
     }
+    // O assistente ainda não lê nem altera o plano (etapa 7).
+    case "item_plano":
+      return null;
     case "falta": {
       const [f] = await db()
         .select()
@@ -160,6 +163,7 @@ async function restaurar(userId: string, entidade: Entidade, id: string, foto: F
         .values(paraLinha(foto) as never);
     return;
   }
+  if (entidade === "item_plano") return;
   const tabela = {
     evento: events,
     lembrete: reminders,

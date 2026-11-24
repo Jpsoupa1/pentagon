@@ -71,6 +71,13 @@
       "when": 1792534207870,
       "tag": "0009_rotina-ciber",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795539705113,
+      "tag": "0010_plano",
+      "breakpoints": true
     }
   ]
 }

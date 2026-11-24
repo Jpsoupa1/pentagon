@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -17,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { categoriasSessao, turnos } from "../../lib/estudos";
+import type { Avaliacao, BlocosPlanoAjustes, Recrutamento } from "../../lib/plano";
 import { precosRecurso, tiposAvaliacaoRoadmap, tiposPortao } from "../../lib/roadmap";
 import {
   areaIds,
@@ -615,6 +617,8 @@ export const notificationTargetEnum = pgEnum("notification_target", [
   "avaliacao",
   "sessao",
   "lembrete",
+  "bloco",
+  "folga",
 ]);
 export const notificationStatusEnum = pgEnum("notification_status", [
   "agendada",
@@ -670,6 +674,16 @@ export const settings = pgTable("settings", {
   limiteCards: smallint("limite_cards").notNull().default(20),
   /** Quando o seed da rotina pessoal rodou: evita recriar o que o usuário apagou. */
   rotinaSemeadaEm: timestamp("rotina_semeada_em", tz),
+  /** Fim da primeira abertura do plano AI Engineer; nulo até lá. */
+  planoIniciadoEm: timestamp("plano_iniciado_em", tz),
+  /** Quando a migração de dados do plano rodou (uma vez por usuário). */
+  planoMigradoEm: timestamp("plano_migrado_em", tz),
+  /** Horários e durações dos blocos de estudo; nulo usa os padrões do app. */
+  blocosPlano: jsonb("blocos_plano").$type<BlocosPlanoAjustes>(),
+  /** Hora (HH:MM) da pergunta "Hoje tem folga no estágio?". */
+  perguntaFolga: text("pergunta_folga").notNull().default("07:40"),
+  /** Minutos de antecedência do aviso de cada bloco. */
+  avisoBlocosMin: integer("aviso_blocos_min").notNull().default(5),
   areasNoFeed: areaEnum("areas_no_feed")
     .array()
     .notNull()
@@ -764,6 +778,7 @@ export const entidadesDoAssistente = [
   "sessao",
   "avaliacao",
   "falta",
+  "item_plano",
 ] as const;
 export const assistantEntityEnum = pgEnum("assistant_entity", entidadesDoAssistente);
 
@@ -809,4 +824,192 @@ export const assistantActions = pgTable(
     atualizadaEm: timestamp("atualizada_em", tz),
   },
   (t) => [index("assistant_actions_run_idx").on(t.runId, t.ordem)],
+);
+
+// ---------------------------------------------------------------- Plano AI Engineer
+
+export const acoesDoPlano = ["concluido", "desfeito", "inicio_marcado"] as const;
+export const origensDoPlano = ["tela", "voz", "inicio"] as const;
+export const gruposDeCheck = ["etapas", "antes", "entrega", "recrutamento"] as const;
+export const tiposDeArquivamento = [
+  "trilha_estudo",
+  "roadmap",
+  "cards",
+  "evento",
+  "erros",
+] as const;
+
+export const planoAcaoEnum = pgEnum("plano_acao", acoesDoPlano);
+export const planoOrigemEnum = pgEnum("plano_origem", origensDoPlano);
+export const planoGrupoCheckEnum = pgEnum("plano_grupo_check", gruposDeCheck);
+export const arquivamentoTipoEnum = pgEnum("arquivamento_tipo", tiposDeArquivamento);
+
+// Catálogo global, regravado a cada deploy por semearCatalogoPlano. Nunca apaga: o item que sai do
+// seed fica com `ativo = false` e o progresso dele continua guardado.
+
+export const planoTrilhas = pgTable("plano_trilhas", {
+  slug: text("slug").primaryKey(),
+  nome: text("nome").notNull(),
+  bloco: text("bloco").notNull(),
+  posicao: smallint("posicao").notNull(),
+});
+
+export const planoFases = pgTable("plano_fases", {
+  numero: smallint("numero").primaryKey(),
+  nome: text("nome").notNull(),
+  /** Ordem de exibição (não segue o número). */
+  posicao: smallint("posicao").notNull(),
+});
+
+export const planoItens = pgTable("plano_itens", {
+  codigo: text("codigo").primaryKey(),
+  trilha: text("trilha").notNull(),
+  fase: smallint("fase"),
+  /** Ordem dentro da trilha. */
+  posicao: smallint("posicao").notNull(),
+  titulo: text("titulo").notNull(),
+  estudar: text("estudar"),
+  recurso: text("recurso"),
+  criterio: text("criterio").notNull(),
+  horas: numeric("horas", { precision: 4, scale: 1, mode: "number" }).notNull(),
+  requisitos: text("requisitos")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  avaliacao: jsonb("avaliacao").$type<Avaliacao>(),
+  antesDeComecar: text("antes_de_comecar")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  etapas: text("etapas")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  entrega: boolean("entrega").notNull().default(false),
+  opcional: boolean("opcional").notNull().default(false),
+  ativo: boolean("ativo").notNull().default(true),
+});
+
+/** Linha única (id 1): versão do seed, padrão de entrega e recrutamento, sempre lidos inteiros. */
+export const planoCatalogo = pgTable(
+  "plano_catalogo",
+  {
+    id: smallint("id").primaryKey().default(1),
+    versao: integer("versao").notNull(),
+    padraoEntrega: jsonb("padrao_entrega").$type<string[]>().notNull(),
+    recrutamento: jsonb("recrutamento").$type<Recrutamento>().notNull(),
+    updatedAt: atualizadoEm(),
+  },
+  (t) => [check("plano_catalogo_linha_unica", sql`${t.id} = 1`)],
+);
+
+// Progresso por usuário, sempre pelo `codigo` (texto) e sem chave estrangeira para o catálogo.
+
+export const planoProgresso = pgTable(
+  "plano_progresso",
+  {
+    userId: dono(),
+    codigo: text("codigo").notNull(),
+    concluidoEm: timestamp("concluido_em", tz).notNull(),
+    notaFinal: smallint("nota_final"),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.codigo] })],
+);
+
+export const planoHistorico = pgTable(
+  "plano_historico",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    codigo: text("codigo").notNull(),
+    acao: planoAcaoEnum("acao").notNull(),
+    em: timestamp("em", tz).notNull().defaultNow(),
+    origem: planoOrigemEnum("origem").notNull(),
+  },
+  (t) => [index("plano_historico_user_em_idx").on(t.userId, t.em)],
+);
+
+export const planoTentativas = pgTable(
+  "plano_tentativas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    codigo: text("codigo").notNull(),
+    nota: smallint("nota").notNull(),
+    aprovada: boolean("aprovada").notNull(),
+    feitaEm: timestamp("feita_em", tz).notNull().defaultNow(),
+  },
+  (t) => [
+    index("plano_tentativas_user_codigo_idx").on(t.userId, t.codigo),
+    check("plano_tentativas_nota", sql`${t.nota} BETWEEN 0 AND 100`),
+  ],
+);
+
+export const planoChecks = pgTable(
+  "plano_checks",
+  {
+    userId: dono(),
+    /** Código do item, ou "recrutamento" no grupo recrutamento. */
+    codigo: text("codigo").notNull(),
+    grupo: planoGrupoCheckEnum("grupo").notNull(),
+    indice: smallint("indice").notNull(),
+    feito: boolean("feito").notNull().default(false),
+    feitoEm: timestamp("feito_em", tz),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.codigo, t.grupo, t.indice] })],
+);
+
+export const planoContagens = pgTable(
+  "plano_contagens",
+  {
+    userId: dono(),
+    chave: text("chave").notNull(),
+    /** Segunda da semana, só para agrupar. */
+    semana: date("semana").notNull(),
+    contagem: integer("contagem").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.chave, t.semana] })],
+);
+
+/** "Fiz este bloco" e a troca manual do dia. */
+export const planoBlocos = pgTable(
+  "plano_blocos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: dono(),
+    data: date("data").notNull(),
+    bloco: text("bloco").notNull(),
+    /** `item:<codigo>` ou `cards`; nulo segue a regra do bloco. */
+    escolha: text("escolha"),
+    codigoEstudado: text("codigo_estudado"),
+    minutos: smallint("minutos").notNull().default(0),
+    feitoEm: timestamp("feito_em", tz),
+  },
+  (t) => [uniqueIndex("plano_blocos_user_data_bloco_uq").on(t.userId, t.data, t.bloco)],
+);
+
+export const planoFolgas = pgTable(
+  "plano_folgas",
+  {
+    userId: dono(),
+    data: date("data").notNull(),
+    minutos: smallint("minutos").notNull(),
+    respondidaEm: timestamp("respondida_em", tz).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.data] }),
+    check("plano_folgas_minutos", sql`${t.minutos} IN (0, 60, 120, 180)`),
+  ],
+);
+
+/** O que o usuário tirou de circulação sem apagar (usada na etapa de arquivamento). */
+export const arquivamentos = pgTable(
+  "arquivamentos",
+  {
+    userId: dono(),
+    tipo: arquivamentoTipoEnum("tipo").notNull(),
+    chave: text("chave").notNull(),
+    arquivadoEm: timestamp("arquivado_em", tz).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.tipo, t.chave] })],
 );
