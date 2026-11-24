@@ -28,7 +28,8 @@ class AgendadorQStash implements Agendador {
       url: this.destino,
       body: { id: avisoId },
       notBefore: Math.floor(quando.getTime() / 1000),
-      deduplicationId: avisoId,
+      // Reativar a mesma linha (bloco desmarcado) é uma publicação nova: a chave não pode se repetir.
+      deduplicationId: `${avisoId}:${quando.getTime()}:${Date.now()}`,
       retries: 3,
     });
     return "messageId" in r ? r.messageId : null;

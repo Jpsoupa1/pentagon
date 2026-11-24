@@ -48,6 +48,12 @@ vi.mock("@/server/auth", () => ({
   auth: async () => (sessao.userId ? { user: { id: sessao.userId } } : null),
 }));
 
+// `after()` só roda dentro de uma requisição real: aqui a reconciliação dos avisos não agenda nada.
+vi.mock("next/server", async (original) => ({
+  ...(await original<typeof import("next/server")>()),
+  after: vi.fn(),
+}));
+
 const OUTRO_DONO = "outro-dono-plano@pentagon.local";
 const AMIGO = "amigo-plano@pentagon.local";
 const donosAntes = process.env.OWNER_EMAILS;

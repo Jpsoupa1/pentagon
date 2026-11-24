@@ -1,3 +1,5 @@
+import { ehDiaUtil, ROTULO_BLOCO, type BlocoMontado } from "@/lib/plano";
+import { paraUtc } from "@/lib/tempo";
 import type { Ocorrencia } from "../agenda/recorrencia";
 
 // Regras puras de agendamento de avisos: o que deveria estar agendado e o que muda.
@@ -161,5 +163,66 @@ export function avisosDeLembretes(
       titulo: "Lembrete",
       corpo: l.texto,
       url: "/lembretes",
+    }));
+}
+
+/** Título e corpo do aviso de um bloco; o disparo remonta o mesmo texto com o plano de agora. */
+export function textoDoAvisoDeBloco(b: Pick<BlocoMontado, "bloco" | "inicio" | "texto">) {
+  return { titulo: `Bloco ${ROTULO_BLOCO[b.bloco]} às ${b.inicio}`, corpo: b.texto };
+}
+
+/** Título e corpo da pergunta da folga; `manha` é o texto do conteúdo da manhã. */
+export const textoDaPerguntaDaFolga = (manha: string) => ({
+  titulo: "Hoje tem folga no estágio?",
+  corpo: `Toque para responder. Na manhã: ${manha}`,
+});
+
+/** Aviso `minutosAntes` do início de Teoria e Projeto ainda não feitos; a manhã não tem aviso. */
+export function avisosDeBlocos(
+  blocos: BlocoMontado[],
+  minutosAntes: number,
+  agora: Date,
+  fuso: string,
+): AvisoDesejado[] {
+  return blocos
+    .filter((b) => b.bloco !== "manha" && !b.feito)
+    .map((b) => ({
+      b,
+      enviarEm: new Date(paraUtc(b.data, b.inicio, fuso).getTime() - minutosAntes * 60_000),
+    }))
+    .filter(({ enviarEm }) => naJanela(enviarEm, agora))
+    .map(({ b, enviarEm }) => ({
+      alvoTipo: "bloco" as const,
+      alvoId: `${b.data}:${b.bloco}`,
+      ocorrencia: b.data,
+      enviarEm,
+      ...textoDoAvisoDeBloco(b),
+      url: "/",
+    }));
+}
+
+/**
+ * Pergunta da folga de cada dia útil das `datas` ainda sem resposta (inclusive o "Nada", que é 0).
+ * `folgas` tem os minutos respondidos por data e `textosDaManha` o conteúdo da manhã de cada data.
+ */
+export function avisosDaFolga(
+  datas: string[],
+  folgas: ReadonlyMap<string, number>,
+  horario: string,
+  textosDaManha: ReadonlyMap<string, string>,
+  agora: Date,
+  fuso: string,
+): AvisoDesejado[] {
+  return datas
+    .filter((data) => ehDiaUtil(data) && !folgas.has(data))
+    .map((data) => ({ data, enviarEm: paraUtc(data, horario, fuso) }))
+    .filter(({ enviarEm }) => naJanela(enviarEm, agora))
+    .map(({ data, enviarEm }) => ({
+      alvoTipo: "folga" as const,
+      alvoId: data,
+      ocorrencia: data,
+      enviarEm,
+      ...textoDaPerguntaDaFolga(textosDaManha.get(data) ?? ""),
+      url: "/",
     }));
 }

@@ -645,7 +645,7 @@ export const notifications = pgTable(
   },
   (t) => [
     index("notifications_status_enviar_idx").on(t.status, t.enviarEm),
-    uniqueIndex("notifications_alvo_uq").on(t.alvoTipo, t.alvoId, t.enviarEm),
+    uniqueIndex("notifications_alvo_uq").on(t.userId, t.alvoTipo, t.alvoId, t.enviarEm),
   ],
 );
 

@@ -2,7 +2,9 @@ import "server-only";
 import { and, between, eq } from "drizzle-orm";
 import {
   CARDS_E_CEREBRO,
+  conteudoDoBloco,
   ehDiaUtil,
+  estudadosNoDia,
   gravarEscolha,
   itemPorCodigo,
   montarBlocos,
@@ -10,37 +12,42 @@ import {
   perguntaDaFolgaAberta,
   ROTULO_BLOCO,
   rotulo,
+  textoBloco,
   type BlocoMontado,
 } from "@/lib/plano";
-import { partesLocais } from "@/lib/tempo";
+import { addDias, partesLocais } from "@/lib/tempo";
 import { ocorrenciaDoBloco } from "../agenda/blocos";
 import type { Intervalo } from "../agenda/recorrencia";
 import { db } from "../db";
 import { planoBlocos, planoFolgas } from "../db/schema";
 import { carregar, ehDono, type Contexto } from "./plano";
 
-/** Blocos do intervalo com o plano já carregado (as folgas e os registros vêm do banco). */
-async function montar(ctx: Contexto, intervalo: Intervalo): Promise<BlocoMontado[]> {
+/** Folgas e registros de blocos do intervalo, direto do banco. */
+async function lerDados(userId: string, intervalo: Intervalo) {
   const [folgas, registros] = await Promise.all([
     db()
       .select({ data: planoFolgas.data, minutos: planoFolgas.minutos })
       .from(planoFolgas)
       .where(
-        and(
-          eq(planoFolgas.userId, ctx.userId),
-          between(planoFolgas.data, intervalo.de, intervalo.ate),
-        ),
+        and(eq(planoFolgas.userId, userId), between(planoFolgas.data, intervalo.de, intervalo.ate)),
       ),
     db()
       .select()
       .from(planoBlocos)
       .where(
-        and(
-          eq(planoBlocos.userId, ctx.userId),
-          between(planoBlocos.data, intervalo.de, intervalo.ate),
-        ),
+        and(eq(planoBlocos.userId, userId), between(planoBlocos.data, intervalo.de, intervalo.ate)),
       ),
   ]);
+  return { folgas, registros };
+}
+
+/** Blocos do intervalo com o plano já carregado (as folgas e os registros vêm do banco). */
+async function montar(
+  ctx: Contexto,
+  intervalo: Intervalo,
+  dados?: Awaited<ReturnType<typeof lerDados>>,
+): Promise<BlocoMontado[]> {
+  const { folgas, registros } = dados ?? (await lerDados(ctx.userId, intervalo));
   return montarBlocos({
     cat: ctx.cat,
     feitos: ctx.feitos,
@@ -76,6 +83,39 @@ export async function ocorrenciasDeBlocos(userId: string, intervalo: Intervalo) 
   if (!ctx) return [];
   const blocos = await montar(ctx, intervalo);
   return blocos.map((b) => ocorrenciaDoBloco(b, ctx.ajustes.fuso));
+}
+
+/**
+ * O que os avisos do plano precisam: os blocos e as folgas respondidas do intervalo e o texto da
+ * manhã. Nulo para quem não é dono, antes da primeira abertura e sem `estudos` nas áreas.
+ */
+export async function planoParaAvisos(userId: string, intervalo: Intervalo, agora = new Date()) {
+  const ctx = await planoIniciado(userId, agora);
+  if (!ctx || !ctx.ajustes.areasNoFeed.includes("estudos")) return null;
+  const dados = await lerDados(userId, intervalo);
+  const blocos = await montar(ctx, intervalo, dados);
+  // O mesmo conteúdo que o Hoje mostra na manhã do dia: troca gravada e o que já foi estudado.
+  const textosDaManha = new Map<string, string>();
+  for (let data = intervalo.de; data <= intervalo.ate; data = addDias(data, 1)) {
+    const manha = dados.registros.find((r) => r.data === data && r.bloco === "manha");
+    textosDaManha.set(
+      data,
+      textoBloco(
+        conteudoDoBloco(ctx.cat, "manha", {
+          feitos: ctx.feitos,
+          troca: manha?.escolha,
+          estudadosHoje: estudadosNoDia(dados.registros, data, "manha"),
+        }),
+      ),
+    );
+  }
+  return {
+    ajustes: ctx.ajustes,
+    hoje: ctx.hoje,
+    blocos,
+    folgas: new Map(dados.folgas.map((f) => [f.data, f.minutos])),
+    textosDaManha,
+  };
 }
 
 /** Destino do "Abrir": a trilha do item em `/plano`, ou o topo da página no plano B de cards. */
