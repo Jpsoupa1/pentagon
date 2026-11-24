@@ -10,11 +10,6 @@ import {
   arquivamentos,
   events,
   flashcards,
-  roadmapPhases,
-  roadmapPractice,
-  roadmapPracticeProgress,
-  roadmapRequirementProgress,
-  roadmapRequirements,
   roadmapTrails,
   settings,
   studyTracks,
@@ -40,6 +35,9 @@ export const BLOCOS_PLANO_PADRAO: BlocosPlanoAjustes = {
 /** A Academia do seed antigo: 16:00 com 90 min. Só quem ainda está assim passa para 80 min. */
 const ACADEMIA = { titulo: "Academia", hora: "16:00", minutosAntigos: 90, minutosNovos: 80 };
 
+/** Sem OWNER_EMAILS, `recebeConteudoPessoal` aceitaria todo mundo: aqui isso significa ninguém. */
+export const temDonosDefinidos = () => !!process.env.OWNER_EMAILS?.trim();
+
 export type ResultadoDaMigracao = "migrado" | "ja_migrado" | "nao_dono";
 
 /**
@@ -54,7 +52,7 @@ export async function migrarPlano(
   agora = new Date(),
 ): Promise<ResultadoDaMigracao> {
   const [usuario] = await db.select({ email: users.email }).from(users).where(eq(users.id, userId));
-  if (!usuario || !recebeConteudoPessoal(usuario.email)) return "nao_dono";
+  if (!temDonosDefinidos() || !usuario || !recebeConteudoPessoal(usuario.email)) return "nao_dono";
 
   return db.transaction(async (tx) => {
     await tx.insert(settings).values({ userId }).onConflictDoNothing();
@@ -96,7 +94,7 @@ async function arquivarTudo(tx: QualquerDb, userId: string, agora: Date) {
           ),
         )
     : [];
-  const roadmaps = await roadmapsComProgresso(tx, userId);
+  const roadmaps = await roadmapsDoCatalogo(tx);
   const cards = await tx
     .selectDistinct({ trilha: flashcards.trilha })
     .from(flashcards)
@@ -120,28 +118,9 @@ async function arquivarTudo(tx: QualquerDb, userId: string, agora: Date) {
     .onConflictDoNothing();
 }
 
-/** Slugs dos roadmaps em que o usuário tem alguma marcação (requisito ou prática). */
-async function roadmapsComProgresso(tx: QualquerDb, userId: string) {
-  const [requisitos, praticas] = await Promise.all([
-    tx
-      .selectDistinct({ slug: roadmapTrails.slug })
-      .from(roadmapRequirementProgress)
-      .innerJoin(
-        roadmapRequirements,
-        eq(roadmapRequirements.id, roadmapRequirementProgress.requirementId),
-      )
-      .innerJoin(roadmapPhases, eq(roadmapPhases.id, roadmapRequirements.phaseId))
-      .innerJoin(roadmapTrails, eq(roadmapTrails.id, roadmapPhases.trailId))
-      .where(eq(roadmapRequirementProgress.userId, userId)),
-    tx
-      .selectDistinct({ slug: roadmapTrails.slug })
-      .from(roadmapPracticeProgress)
-      .innerJoin(roadmapPractice, eq(roadmapPractice.id, roadmapPracticeProgress.practiceId))
-      .innerJoin(roadmapPhases, eq(roadmapPhases.id, roadmapPractice.phaseId))
-      .innerJoin(roadmapTrails, eq(roadmapTrails.id, roadmapPhases.trailId))
-      .where(eq(roadmapPracticeProgress.userId, userId)),
-  ]);
-  return [...new Set([...requisitos, ...praticas].map((r) => r.slug))];
+/** Slugs de todos os roadmaps do catálogo: o arquivamento é por usuário, com ou sem progresso. */
+async function roadmapsDoCatalogo(tx: QualquerDb) {
+  return (await tx.select({ slug: roadmapTrails.slug }).from(roadmapTrails)).map((r) => r.slug);
 }
 
 /**

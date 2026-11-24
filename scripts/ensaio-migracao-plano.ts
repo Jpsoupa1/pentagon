@@ -6,6 +6,7 @@
 import "./env";
 import { sql } from "drizzle-orm";
 import { db } from "../src/server/db";
+import { ehBancoLocal } from "../src/server/db/url";
 import { criarDono } from "../tests/integracao/dono-antigo";
 import { migrar } from "./migrar";
 
@@ -56,8 +57,7 @@ async function academia(userId: string) {
 
 async function main() {
   const url = process.env.DATABASE_URL ?? "";
-  if (!/localhost|127\.0\.0\.1/.test(url))
-    throw new Error("Recusado: o ensaio só roda em banco local.");
+  if (!ehBancoLocal(url)) throw new Error("Recusado: o ensaio só roda em banco local.");
   process.env.OWNER_EMAILS = EMAIL;
 
   const userId = await criarDono(EMAIL, new Date());

@@ -6,7 +6,7 @@ import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
 import { users } from "../src/server/db/schema";
 import { recebeConteudoPessoal } from "../src/server/permissao";
-import { migrarPlano } from "../src/server/plano/migracao";
+import { migrarPlano, temDonosDefinidos } from "../src/server/plano/migracao";
 
 type Opcoes = {
   email?: string;
@@ -16,6 +16,18 @@ type Opcoes = {
   /** Passo 5 (cancelar os avisos arquivados). Roda depois do commit de cada usuário migrado. */
   reconciliar?: (userId: string) => Promise<unknown>;
 };
+
+/**
+ * Descrição do erro para o log. Erros do banco trazem a query e os parâmetros (com dados do
+ * usuário) na mensagem e no objeto, então só vão o nome e o código.
+ */
+export function descreverErro(erro: unknown) {
+  if (!(erro instanceof Error)) return "erro desconhecido";
+  const causa = erro.cause as { code?: string } | undefined;
+  const codigo = (erro as { code?: string }).code ?? causa?.code;
+  if (codigo || "query" in erro) return `${erro.name}${codigo ? ` (código ${codigo})` : ""}`;
+  return erro.message;
+}
 
 /** Reconcilia pelo serviço de avisos. Importa na hora: ele exige a condição `react-server` do tsx. */
 async function reconciliarAvisosDoServidor(userId: string) {
@@ -30,6 +42,16 @@ async function reconciliarAvisosDoServidor(userId: string) {
  */
 export async function migrarPlanoParaTodos(db: ReturnType<typeof drizzle>, opcoes: Opcoes = {}) {
   const { email, agora = new Date(), migrar = migrarPlano } = opcoes;
+  if (!temDonosDefinidos()) {
+    // Sem OWNER_EMAILS todo usuário seria "dono". Na Vercel isso é erro de configuração: quebra o deploy.
+    if (process.env.VERCEL_ENV) {
+      throw new Error(
+        "OWNER_EMAILS não está definida: a migração do plano não pode escolher os donos.",
+      );
+    }
+    console.warn("OWNER_EMAILS não definida: migração do plano ignorada.");
+    return { migrados: [] };
+  }
   const reconciliar = opcoes.reconciliar ?? reconciliarAvisosDoServidor;
   const alvo = email
     ? await db
@@ -44,10 +66,10 @@ export async function migrarPlanoParaTodos(db: ReturnType<typeof drizzle>, opcoe
     try {
       if ((await migrar(db, u.id, agora)) === "migrado") {
         migrados.push(u.id);
-        console.log(`Plano migrado para ${u.email}.`);
+        console.log(`Plano migrado para o usuário ${u.id}.`);
       }
     } catch (erro) {
-      console.error(`Migração do plano falhou para ${u.email} (${u.id}):`, erro);
+      console.error(`Migração do plano falhou para o usuário ${u.id}: ${descreverErro(erro)}`);
       falharam.push(u.id);
     }
   }
@@ -55,7 +77,9 @@ export async function migrarPlanoParaTodos(db: ReturnType<typeof drizzle>, opcoe
     try {
       await reconciliar(id);
     } catch (erro) {
-      console.error(`Avisos de ${id} não reconciliados; o cron diário reconcilia:`, erro);
+      console.error(
+        `Avisos de ${id} não reconciliados (${descreverErro(erro)}); o cron diário reconcilia.`,
+      );
     }
   }
   if (falharam.length) {
@@ -68,7 +92,7 @@ if (process.argv[1]?.endsWith("migrar-plano.ts")) {
   const pool = new Pool({ connectionString: urlDoBanco(process.env.DATABASE_URL ?? ""), max: 1 });
   migrarPlanoParaTodos(drizzle(pool), { email: process.argv[2] })
     .catch((e) => {
-      console.error(e);
+      console.error(descreverErro(e));
       process.exitCode = 1;
     })
     .finally(() => pool.end());

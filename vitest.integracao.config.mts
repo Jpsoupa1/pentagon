@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/integracao/**/*.test.ts"],
-    setupFiles: ["./scripts/env.ts"],
+    setupFiles: ["./scripts/env.ts", "./tests/integracao/preparar.ts"],
     env: { TZ: "UTC" },
     fileParallelism: false,
     testTimeout: 30_000,

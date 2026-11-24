@@ -139,6 +139,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   if (donosAntes === undefined) delete process.env.OWNER_EMAILS;
   else process.env.OWNER_EMAILS = donosAntes;
 });
@@ -160,12 +161,13 @@ describe("migração de dados do plano", () => {
       .select({ id: events.id })
       .from(events)
       .where(and(eq(events.userId, id), eq(events.titulo, "Ciber e SecOps")));
-    // Do roadmap, só o DevOps tem progresso (o seed marca "feito" nele); o de Segurança não.
+    // Todos os roadmaps do catálogo, com ou sem progresso.
     expect(await chaves(id)).toEqual(
       [
         "trilha_estudo:devops",
         "trilha_estudo:seguranca",
         "roadmap:devops",
+        "roadmap:seguranca",
         "cards:CKA",
         "cards:SEG",
         "erros:antes_do_plano",
@@ -283,6 +285,60 @@ describe("migração de dados do plano", () => {
     // O próximo deploy migra quem tinha falhado.
     await migrarPlanoParaTodos(banco(), { agora: AGORA, reconciliar });
     expect((await chaves(quebra)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("segurança do passo de dados", () => {
+  it("o log da falha tem o id e não o e-mail nem o objeto do erro", async () => {
+    const quebra = await criarDono(DONO);
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const migrar: typeof migrarPlano = async () => {
+      throw Object.assign(
+        new Error("Failed query: insert ... params: dono-arquivamento@pentagon.local"),
+        {
+          query: "insert ...",
+          params: [DONO],
+        },
+      );
+    };
+
+    const erro = await migrarPlanoParaTodos(banco(), {
+      email: DONO,
+      agora: AGORA,
+      migrar,
+      reconciliar,
+    }).then(
+      () => new Error("não lançou"),
+      (e: Error) => e,
+    );
+
+    const saida = JSON.stringify(log.mock.calls) + erro.message;
+    expect(erro.message).toContain(quebra);
+    expect(saida).toContain(quebra);
+    expect(saida).not.toContain(DONO);
+    expect(saida).not.toContain("params");
+    expect(log.mock.calls.flat().every((x) => typeof x === "string")).toBe(true);
+  });
+
+  it("sem OWNER_EMAILS ninguém é migrado; na Vercel isso quebra o deploy", async () => {
+    const id = await criarDono();
+    process.env.OWNER_EMAILS = "";
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    expect(await migrarPlano(db(), id, AGORA)).toBe("nao_dono");
+    await expect(migrarPlanoParaTodos(banco(), { agora: AGORA, reconciliar })).resolves.toEqual({
+      migrados: [],
+    });
+    expect(await chaves(id)).toEqual([]);
+    const [ajuste] = await db().select().from(settings).where(eq(settings.userId, id));
+    expect(ajuste.planoMigradoEm).toBeNull();
+
+    vi.stubEnv("VERCEL_ENV", "preview");
+    await expect(migrarPlanoParaTodos(banco(), { agora: AGORA, reconciliar })).rejects.toThrow(
+      /OWNER_EMAILS/,
+    );
+    vi.unstubAllEnvs();
+    expect(await chaves(id)).toEqual([]);
   });
 });
 
