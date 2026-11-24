@@ -30,6 +30,7 @@ import {
   verificarTroca,
   type Catalogo,
   type PedidoConclusao,
+  type RegistroDoBloco,
 } from "./plano";
 
 const cat = carregarCatalogo(seed);
@@ -648,7 +649,7 @@ describe("montagem dos blocos", () => {
     ajustes: null,
     intervalo: { de: TERCA, ate: TERCA },
     folgas: new Map<string, number>(),
-    registros: [],
+    registros: [] as RegistroDoBloco[],
   };
 
   it("título com o conteúdo atual: Bloco Teoria: A2. Cálculo de uma variável", () => {

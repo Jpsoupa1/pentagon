@@ -155,10 +155,11 @@ function LinhaDoBloco({
             </label>
             <Botao
               pequeno
+              aria-label={`Fiz este bloco: ${bloco.rotulo}`}
               disabled={ocupado || !valido}
               onClick={() => escrever(url, { feito: true, minutos: Number(minutos) })}
             >
-              Fiz este bloco<span className="sr-only">: {bloco.rotulo}</span>
+              Fiz este bloco
             </Botao>
             <Botao
               variante="secundario"

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { Pool } from "pg";
 import { criarSessaoDeOutroUsuario, EMAIL_FORA_DO_PLANO } from "./sessao";
 
 // Os testes seguem o mesmo dono do começo ao fim: a primeira abertura acontece uma vez só.
@@ -10,6 +11,14 @@ const ATUAL_A4 = "Item atual: A4. Probabilidade";
 test("primeira abertura: A0 e C1 marcados, requisito faltando e a tela não volta", async ({
   page,
 }) => {
+  // Antes da primeira abertura o Hoje só convida; não há blocos nem pergunta da folga.
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Comece o plano" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Blocos de hoje" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Hoje tem folga no estágio?" })).toHaveCount(0);
+  await page.getByRole("link", { name: "Comece o plano" }).click();
+  await expect(page).toHaveURL(/\/plano\/inicio$/);
+
   await page.goto("/plano");
   await expect(page).toHaveURL(/\/plano\/inicio$/);
   await expect(
@@ -170,10 +179,83 @@ test("recrutamento só aparece quando o estado traz; trilhas arquivadas abre a l
   await expect(page.getByText("Nenhuma trilha arquivada.")).toBeVisible();
 });
 
+// A folga só vale em dia útil; as respostas vão pela API para o teste não depender da hora do dia.
+const diaDaSemanaEmSaoPaulo = () =>
+  new Date(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date()) +
+      "T12:00:00Z",
+  ).getUTCDay();
+
+test("Hoje: a folga mostra e esconde o bloco da manhã, e o bloco feito pode ser desmarcado", async ({
+  page,
+}) => {
+  test.skip([0, 6].includes(diaDaSemanaEmSaoPaulo()), "A folga só existe em dia útil.");
+  await page.request.put("/api/plano/folga", { data: { minutos: 0 } });
+  await page.goto("/");
+  const blocos = page.getByRole("region", { name: "Blocos de hoje" });
+  await expect(page.getByRole("heading", { name: "Hoje tem folga no estágio?" })).toBeVisible();
+  await expect(blocos.getByText("Manhã:")).toHaveCount(0);
+  await expect(blocos.getByText("Teoria:")).toBeVisible();
+
+  await page.getByRole("button", { name: "2 h" }).click();
+  await expect(blocos.getByText("Manhã:")).toBeVisible();
+  await expect(blocos.getByText("B1. Building with the Claude API")).toBeVisible();
+  await expect(blocos.getByRole("link", { name: /^Abrir Manhã/ })).toHaveAttribute(
+    "href",
+    "/plano#trilha-cursos",
+  );
+
+  await page.getByRole("button", { name: "Nada" }).click();
+  await expect(blocos.getByText("Manhã:")).toHaveCount(0);
+
+  await blocos.getByRole("button", { name: /^Fiz este bloco: Teoria/ }).click();
+  await expect(blocos.getByRole("button", { name: /^Desmarcar Teoria/ })).toBeVisible();
+  await blocos.getByRole("button", { name: /^Desmarcar Teoria/ }).click();
+  await expect(blocos.getByRole("button", { name: /^Fiz este bloco: Teoria/ })).toBeVisible();
+});
+
+test("Hoje: trilha aguardando mostra 'Aguardando' com o plano B", async ({ page }) => {
+  test.skip([0, 6].includes(diaDaSemanaEmSaoPaulo()), "A folga só existe em dia útil.");
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
+  const feitos = ["B1", "B2", "B3", "B4", "B5"];
+  const donoDe = "(select id from users where email = 'teste@pentagon.local')";
+  try {
+    // B6 pede A8: com B1 a B5 concluídos, Cursos fica aguardando.
+    await pool.query(
+      `insert into plano_progresso (user_id, codigo, concluido_em)
+       select ${donoDe}, c, now() from unnest($1::text[]) c`,
+      [feitos],
+    );
+    await page.request.put("/api/plano/folga", { data: { minutos: 120 } });
+    await page.goto("/");
+    const blocos = page.getByRole("region", { name: "Blocos de hoje" });
+    await expect(blocos.getByText(/Aguardando: B6\..* Plano B: A4\. Probabilidade/)).toBeVisible();
+  } finally {
+    await pool.query(
+      `delete from plano_progresso where user_id = ${donoDe} and codigo = any($1::text[])`,
+      [feitos],
+    );
+    await page.request.put("/api/plano/folga", { data: { minutos: 0 } });
+    await pool.end();
+  }
+});
+
+test("Ajustes recusa horário 25:00 e minutos 0 ou 500 com 400", async ({ page }) => {
+  const patch = (t: object) =>
+    page.request.patch("/api/ajustes", { data: { blocosPlano: { dias_uteis: { teoria: t } } } });
+  expect((await patch({ inicio: "25:00", minutos: 90 })).status()).toBe(400);
+  expect((await patch({ inicio: "13:30", minutos: 0 })).status()).toBe(400);
+  expect((await patch({ inicio: "13:30", minutos: 500 })).status()).toBe(400);
+});
+
 test("conta fora do OWNER_EMAILS não vê o plano nem a entrada no menu", async ({ browser }) => {
   const estado = await criarSessaoDeOutroUsuario(process.env.DATABASE_URL!, EMAIL_FORA_DO_PLANO);
   const contexto = await browser.newContext({ storageState: estado });
   const page = await contexto.newPage();
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Blocos de hoje" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Comece o plano" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Hoje tem folga no estágio?" })).toHaveCount(0);
   for (const caminho of ["/plano", "/plano/inicio", "/plano/arquivadas"]) {
     await page.goto(caminho);
     await expect(page).toHaveURL(new RegExp(`${caminho}$`));
