@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HORARIOS_PADRAO } from "@/lib/estudos";
 import { ROTINA, TODOS_OS_DIAS } from "../estudos/trilha";
-import { dobrar, gerarCalendario } from "./ics";
+import { dobrar, esc, gerarCalendario } from "./ics";
 import { eventosDaTrilha } from "./trilha";
 
 const agora = new Date("2026-10-15T12:00:00Z");
@@ -89,5 +89,11 @@ describe("feed .ics", () => {
     for (const linha of ics.split("\r\n"))
       expect(new TextEncoder().encode(linha).length).toBeLessThanOrEqual(75);
     expect(dobrar("á".repeat(60)).split("\r\n")[0]).toHaveLength(37);
+  });
+});
+
+describe("escape de texto", () => {
+  it("trata \\r sozinho, \\r\\n e \\n como quebra, e escapa ; e ,", () => {
+    expect(esc("a\rb;c,d\r\ne")).toBe("a\\nb\\;c\\,d\\ne");
   });
 });

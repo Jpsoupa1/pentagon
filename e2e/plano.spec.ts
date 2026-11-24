@@ -240,6 +240,40 @@ test("Hoje: trilha aguardando mostra 'Aguardando' com o plano B", async ({ page 
   }
 });
 
+test("Hoje: com sábado e domingo ligados, o bloco da Teoria aparece em qualquer dia e pode ser feito e desmarcado", async ({
+  page,
+}) => {
+  const bloco = { inicio: "13:30", minutos: 90, ligado: true };
+  const dia = {
+    manha: { ...bloco, inicio: "08:00", minutos: 60 },
+    teoria: bloco,
+    projeto: { ...bloco, inicio: "17:20", minutos: 80 },
+  };
+  const salvar = (blocosPlano: object | null) =>
+    page.request.patch("/api/ajustes", { data: { blocosPlano } });
+  try {
+    const r = await salvar({
+      dias_uteis: {
+        manha: { inicio: "08:00" },
+        teoria: { inicio: "13:30", minutos: 90 },
+        projeto: { inicio: "17:20", minutos: 80 },
+      },
+      sabado: dia,
+      domingo: dia,
+    });
+    expect(r.status()).toBe(200);
+    await page.goto("/");
+    const blocos = page.getByRole("region", { name: "Blocos de hoje" });
+    await expect(blocos.getByText("Teoria:")).toBeVisible();
+    await blocos.getByRole("button", { name: /^Fiz este bloco: Teoria/ }).click();
+    await expect(blocos.getByRole("button", { name: /^Desmarcar Teoria/ })).toBeVisible();
+    await blocos.getByRole("button", { name: /^Desmarcar Teoria/ }).click();
+    await expect(blocos.getByRole("button", { name: /^Fiz este bloco: Teoria/ })).toBeVisible();
+  } finally {
+    await salvar(null);
+  }
+});
+
 test("Ajustes recusa horário 25:00 e minutos 0 ou 500 com 400", async ({ page }) => {
   const patch = (t: object) =>
     page.request.patch("/api/ajustes", { data: { blocosPlano: { dias_uteis: { teoria: t } } } });

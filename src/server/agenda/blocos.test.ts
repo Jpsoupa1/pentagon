@@ -108,3 +108,20 @@ describe("blocos do plano na agenda", () => {
     expect(encontrarConflitos(reuniao, [{ ...teoria, feita: true }])).toEqual([]);
   });
 });
+
+describe("blocos em outro fuso", () => {
+  it("23:00 com 120 min em Tokyo vira o dia: início e fim em UTC", () => {
+    const b = montarBlocos({
+      cat,
+      feitos: new Set(["A0", "A1"]),
+      ajustes: { dias_uteis: { teoria: { inicio: "23:00", minutos: 120 } } },
+      intervalo,
+      folgas: new Map(),
+      registros: [],
+    }).find((x) => x.bloco === "teoria")!;
+    const o = ocorrenciaDoBloco(b, "Asia/Tokyo");
+    expect(o.inicio.toISOString()).toBe("2026-11-24T14:00:00.000Z");
+    expect(o.fim.toISOString()).toBe("2026-11-24T16:00:00.000Z");
+    expect(o.dataOriginal).toBe(DIA);
+  });
+});

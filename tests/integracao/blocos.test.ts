@@ -16,10 +16,10 @@ import {
 import { Conflito } from "@/server/erros";
 import { semearCatalogoPlano } from "@/server/plano/seed";
 import { ocorrencias } from "@/server/servicos/agenda";
-import { atualizarAjustes } from "@/server/servicos/ajustes";
+import { atualizarAjustes, obterAjustes } from "@/server/servicos/ajustes";
 import { reconciliarAvisos, salvarInscricao } from "@/server/servicos/avisos";
 import { blocosDoPlano, planoDeHoje } from "@/server/servicos/blocos";
-import { feedPorToken, gerarToken } from "@/server/servicos/calendario";
+import { feedPorToken, gerarToken, revogarTokens } from "@/server/servicos/calendario";
 import { criarComChecagem } from "@/server/servicos/compromissos";
 import { iniciarPlano, marcarBloco, responderFolga, trocarBloco } from "@/server/servicos/plano";
 import { AGORA, apagarUsuarioDeTeste, EMAIL, HOJE, usuarioDeTeste } from "./apoio";
@@ -309,6 +309,78 @@ describe("calendário ICS", () => {
       params: Promise.resolve({ token: `${falso}.ics` }),
     } as never);
     expect(resposta.status).toBe(404);
+  });
+});
+
+describe("feed e Ajustes: lacunas de acesso", () => {
+  it("o feed do amigo não tem blocos mesmo com o plano do dono já iniciado", async () => {
+    await iniciar();
+    const amigo = await criarAmigo();
+    await db().insert(settings).values({ userId: amigo, planoIniciadoEm: new Date() });
+    const { token } = await gerarToken(amigo);
+    const ics = (await feedPorToken(token))!;
+    expect(ics).not.toContain("Bloco ");
+    const dono = (await feedPorToken((await gerarToken(userId)).token))!;
+    expect(dono).toContain("SUMMARY:Bloco Teoria");
+  });
+
+  it("token revogado dá 404 na rota", async () => {
+    const { token } = await gerarToken(userId);
+    await revogarTokens(userId);
+    expect(await feedPorToken(token)).toBeNull();
+    const { GET } = await import("@/app/api/calendario/[token]/route");
+    const resposta = await GET(new Request(`http://localhost/api/calendario/${token}.ics`), {
+      params: Promise.resolve({ token: `${token}.ics` }),
+    } as never);
+    expect(resposta.status).toBe(404);
+  });
+
+  it("dono sem estudos em areasNoFeed não tem blocos no feed", async () => {
+    await iniciar();
+    await atualizarAjustes(userId, { areasNoFeed: ["aulas"] });
+    const { token } = await gerarToken(userId);
+    expect(await feedPorToken(token)).not.toContain("Bloco ");
+  });
+
+  it("não dono: o PATCH grava o resto e descarta os campos do plano", async () => {
+    const amigo = await criarAmigo();
+    await atualizarAjustes(amigo, {
+      avisoMin: 20,
+      blocosPlano: { dias_uteis: { teoria: { inicio: "14:00" } } },
+      perguntaFolga: "06:00",
+      avisoBlocosMin: 30,
+    });
+    const a = await obterAjustes(amigo);
+    expect([a.avisoMin, a.blocosPlano, a.perguntaFolga, a.avisoBlocosMin]).toEqual([
+      20,
+      null,
+      "07:40",
+      5,
+    ]);
+    // Só campos do plano: nada a gravar, e nada quebra.
+    await atualizarAjustes(amigo, { perguntaFolga: "06:00" });
+    expect((await obterAjustes(amigo)).perguntaFolga).toBe("07:40");
+  });
+
+  it("PATCH com planoIniciadoEm ou userId no corpo não altera essas colunas", async () => {
+    const { PATCH } = await import("@/app/api/ajustes/route");
+    const outro = await criarAmigo();
+    sessao.userId = userId;
+    const resposta = await PATCH(
+      new NextRequest("http://localhost/api/ajustes", {
+        method: "PATCH",
+        body: JSON.stringify({
+          planoIniciadoEm: "2020-01-01T00:00:00Z",
+          userId: outro,
+          avisoMin: 7,
+        }),
+      }),
+      { params: Promise.resolve({}) },
+    ).catch(() => null);
+    void resposta; // o 200 depende de `after()`; o que importa é o banco.
+    const [a] = await db().select().from(settings).where(eq(settings.userId, userId));
+    expect(a.planoIniciadoEm).toBeNull();
+    expect(a.userId).toBe(userId);
   });
 });
 
