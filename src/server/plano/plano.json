@@ -1,0 +1,731 @@
+{
+  "versao": 1,
+  "trilhas": [
+    { "slug": "teoria", "nome": "Teoria", "bloco": "teoria" },
+    { "slug": "cursos", "nome": "Cursos e Certificações", "bloco": "manha" },
+    { "slug": "projetos", "nome": "Projetos", "bloco": "projeto" }
+  ],
+  "fases": [
+    { "numero": 0, "nome": "Base de engenharia" },
+    { "numero": 1, "nome": "Matemática" },
+    { "numero": 2, "nome": "ML clássico" },
+    { "numero": 3, "nome": "Deep learning" },
+    { "numero": 4, "nome": "Transformers" },
+    { "numero": 7, "nome": "AI Engineering aplicada" },
+    { "numero": 8, "nome": "MLOps e LLMOps" },
+    { "numero": 5, "nome": "Reinforcement learning" },
+    { "numero": 6, "nome": "LLMs por dentro" },
+    { "numero": 9, "nome": "Especialização (opcional, depois da contratação)" }
+  ],
+  "padraoDeEntrega": [
+    "README com o problema, a arquitetura em diagrama e números medidos",
+    "Evals descritas no README",
+    "Deploy no ar ou vídeo de até 2 minutos",
+    "Post no LinkedIn em português e em inglês"
+  ],
+  "recrutamento": {
+    "liberaCom": ["B5", "C8"],
+    "checklist": [
+      "LinkedIn atualizado com badges e projetos",
+      "Currículo em português e em inglês",
+      "Candidaturas a estágio e júnior de AI Engineer no Brasil",
+      "Candidaturas a vagas remotas no exterior",
+      "Pitch do Pulse AI em português e em inglês"
+    ],
+    "contadores": [{ "chave": "questoes", "titulo": "Questões de programação", "metaSemanal": 2 }]
+  },
+  "itens": [
+    {
+      "codigo": "A0",
+      "trilha": "teoria",
+      "fase": 0,
+      "titulo": "Python científico",
+      "estudar": "NumPy, pandas e uv.",
+      "recurso": "Sessão da Fase 0.",
+      "criterio": "Notebook do ENEM organizado com ambiente uv.",
+      "horas": 10
+    },
+
+    {
+      "codigo": "A1",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Álgebra linear",
+      "estudar": "Terminar o caderno e fazer a prova diagnóstica.",
+      "recurso": "Caderno de álgebra linear no GoodNotes e Essence of Linear Algebra (3Blue1Brown).",
+      "criterio": "10 de 12 na prova diagnóstica, nenhum módulo abaixo de 70%.",
+      "horas": 6
+    },
+    {
+      "codigo": "A2",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Cálculo de uma variável",
+      "estudar": "Limites, derivadas, regra da cadeia, otimização.",
+      "recurso": "Essence of Calculus (3Blue1Brown) e, do curso de cálculo do Mike X Cohen (Udemy), só as seções de limites, derivadas, regra da cadeia e otimização.",
+      "criterio": "Lista de exercícios com 80% ou mais.",
+      "horas": 15,
+      "requisitos": ["A1"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+    {
+      "codigo": "A3",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Cálculo de várias variáveis",
+      "estudar": "Derivadas parciais, gradiente, jacobiano, descida do gradiente.",
+      "recurso": "Sessão da Fase 1 e Mathematics for ML (DeepLearning.AI).",
+      "criterio": "Descida do gradiente implementada do zero em NumPy.",
+      "horas": 12,
+      "requisitos": ["A2"]
+    },
+    {
+      "codigo": "A4",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Probabilidade",
+      "estudar": "Variáveis aleatórias, distribuições, Bayes, esperança e variância.",
+      "recurso": "Sessão da Fase 1.",
+      "criterio": "Lista com 80% ou mais.",
+      "horas": 12,
+      "requisitos": ["A1"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+    {
+      "codigo": "A5",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Estatística para ML",
+      "estudar": "Máxima verossimilhança, entropia cruzada, divergência KL, intervalos.",
+      "recurso": "Sessão da Fase 1.",
+      "criterio": "MLE de uma distribuição implementada do zero.",
+      "horas": 10,
+      "requisitos": ["A3", "A4"]
+    },
+    {
+      "codigo": "A6",
+      "trilha": "teoria",
+      "fase": 1,
+      "titulo": "Prova da Fase 1",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A5"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A7",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Regressão linear e logística do zero",
+      "estudar": "Regressão linear e logística implementadas em NumPy.",
+      "recurso": "Machine Learning Specialization (Andrew Ng), só as seções de regressão linear e logística, e sessão da Fase 2.",
+      "criterio": "As duas implementadas em NumPy e comparadas com scikit learn.",
+      "horas": 12,
+      "requisitos": ["A6"]
+    },
+    {
+      "codigo": "A8",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Avaliação de modelos",
+      "estudar": "Treino, validação e teste, validação cruzada, métricas, overfitting, regularização.",
+      "recurso": "Sessão da Fase 2.",
+      "criterio": "Perguntas de checagem com 80% ou mais.",
+      "horas": 8,
+      "requisitos": ["A7"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+    {
+      "codigo": "A9",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Árvores e ensembles",
+      "estudar": "Árvore de decisão, random forest, gradient boosting (XGBoost ou LightGBM).",
+      "recurso": "Machine Learning A Z (Udemy), só as seções de árvore de decisão, random forest e XGBoost.",
+      "criterio": "Árvore simples do zero e um boosting com scikit learn.",
+      "horas": 10,
+      "requisitos": ["A8"]
+    },
+    {
+      "codigo": "A10",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Aprendizado não supervisionado",
+      "estudar": "k means, PCA, detecção de anomalias (Isolation Forest).",
+      "recurso": "Sessão da Fase 2.",
+      "criterio": "k means do zero e anomalias detectadas em um dataset.",
+      "horas": 8,
+      "requisitos": ["A8"]
+    },
+    {
+      "codigo": "A11",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Séries temporais básicas",
+      "estudar": "Tendência, sazonalidade, previsão simples.",
+      "recurso": "Sessão da Fase 2.",
+      "criterio": "Previsão de uma série com erro medido.",
+      "horas": 6,
+      "requisitos": ["A10"]
+    },
+    {
+      "codigo": "A12",
+      "trilha": "teoria",
+      "fase": 2,
+      "titulo": "Prova da Fase 2",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A9", "A11"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A13",
+      "trilha": "teoria",
+      "fase": 3,
+      "titulo": "Backpropagation do zero",
+      "estudar": "Backpropagation implementada à mão.",
+      "recurso": "Neural Networks Zero to Hero (Karpathy), episódio do micrograd.",
+      "criterio": "Micrograd próprio funcionando.",
+      "horas": 10,
+      "requisitos": ["A12"]
+    },
+    {
+      "codigo": "A14",
+      "trilha": "teoria",
+      "fase": 3,
+      "titulo": "Redes em PyTorch",
+      "estudar": "MLP, otimizadores, inicialização, normalização.",
+      "recurso": "Série makemore (Karpathy) e, do A deep understanding of deep learning (Mike X Cohen, Udemy), só as seções de otimizadores, inicialização e normalização.",
+      "criterio": "MLP treinada com a curva de perda analisada.",
+      "horas": 14,
+      "requisitos": ["A13"]
+    },
+    {
+      "codigo": "A15",
+      "trilha": "teoria",
+      "fase": 3,
+      "titulo": "Visão computacional",
+      "estudar": "CNNs, transfer learning, CLIP.",
+      "recurso": "Sessão da Fase 3.",
+      "criterio": "Classificador de imagens com transfer learning.",
+      "horas": 10,
+      "requisitos": ["A14"]
+    },
+    {
+      "codigo": "A16",
+      "trilha": "teoria",
+      "fase": 3,
+      "titulo": "Prova da Fase 3",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A15"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A17",
+      "trilha": "teoria",
+      "fase": 4,
+      "titulo": "Tokenização e embeddings",
+      "estudar": "BPE, embeddings, similaridade.",
+      "recurso": "Vídeo do tokenizer (Karpathy).",
+      "criterio": "BPE simples do zero.",
+      "horas": 8,
+      "requisitos": ["A16"]
+    },
+    {
+      "codigo": "A18",
+      "trilha": "teoria",
+      "fase": 4,
+      "titulo": "Atenção e transformer do zero",
+      "estudar": "Atenção e transformer implementados do zero.",
+      "recurso": "Let's build GPT (Karpathy).",
+      "criterio": "Mini GPT treinado em texto em português.",
+      "horas": 14,
+      "requisitos": ["A17"]
+    },
+    {
+      "codigo": "A19",
+      "trilha": "teoria",
+      "fase": 4,
+      "titulo": "Hugging Face Transformers",
+      "estudar": "Fine tuning de um modelo de classificação.",
+      "recurso": "LLM Course da Hugging Face, só os capítulos de fine tuning.",
+      "criterio": "Modelo ajustado com métrica medida.",
+      "horas": 8,
+      "requisitos": ["A18"]
+    },
+    {
+      "codigo": "A20",
+      "trilha": "teoria",
+      "fase": 4,
+      "titulo": "Prova da Fase 4",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A19"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A28",
+      "trilha": "teoria",
+      "fase": 7,
+      "titulo": "Prompting e saídas estruturadas",
+      "estudar": "Prompting e saídas estruturadas com schema.",
+      "recurso": "Claude Academy.",
+      "criterio": "Função que sempre devolve JSON válido segundo um schema.",
+      "horas": 6,
+      "requisitos": ["A20"]
+    },
+    {
+      "codigo": "A29",
+      "trilha": "teoria",
+      "fase": 7,
+      "titulo": "RAG",
+      "estudar": "Chunking, embeddings, busca híbrida, reranking.",
+      "recurso": "LLM Zoomcamp (vídeos vistos no B6) e sessão da Fase 7.",
+      "criterio": "RAG avaliado com métricas de busca.",
+      "horas": 12,
+      "requisitos": ["A28", "B6"]
+    },
+    {
+      "codigo": "A30",
+      "trilha": "teoria",
+      "fase": 7,
+      "titulo": "Evals",
+      "estudar": "Conjuntos rotulados, LLM como juiz, análise de erros.",
+      "recurso": "Material de evals do Hamel Husain e da Shreya Shankar e o livro AI Engineering (Chip Huyen).",
+      "criterio": "Suíte de evals rodando em um projeto.",
+      "horas": 10,
+      "requisitos": ["A28"]
+    },
+    {
+      "codigo": "A31",
+      "trilha": "teoria",
+      "fase": 7,
+      "titulo": "Agentes, tool use e MCP",
+      "estudar": "Agentes com ferramentas e servidores MCP.",
+      "recurso": "Claude Academy, Context Course da Hugging Face (só os capítulos de MCP) e trilha do Ed Donner (Udemy), só os módulos de tool use.",
+      "criterio": "Agente com ferramentas em Python puro e um servidor MCP simples.",
+      "horas": 12,
+      "requisitos": ["A29", "A30"]
+    },
+    {
+      "codigo": "A32",
+      "trilha": "teoria",
+      "fase": 7,
+      "titulo": "Prova da Fase 7",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A31"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A33",
+      "trilha": "teoria",
+      "fase": 8,
+      "titulo": "Produção",
+      "estudar": "Deploy, observabilidade (Langfuse), custo, latência, evals no CI.",
+      "recurso": "Trilha do Ed Donner (Udemy), só a parte de deploy.",
+      "criterio": "Um projeto com tracing e evals rodando a cada mudança.",
+      "horas": 12,
+      "requisitos": ["A32"]
+    },
+    {
+      "codigo": "A34",
+      "trilha": "teoria",
+      "fase": 8,
+      "titulo": "Prova da Fase 8",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A33"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A21",
+      "trilha": "teoria",
+      "fase": 5,
+      "titulo": "Fundamentos de RL",
+      "estudar": "MDP, Q learning, policy gradient.",
+      "recurso": "Cursos do Lazy Programmer (Udemy) ou Deep RL Course da Hugging Face.",
+      "criterio": "Agente de Q learning e um policy gradient simples.",
+      "horas": 14,
+      "requisitos": ["A34"]
+    },
+    {
+      "codigo": "A22",
+      "trilha": "teoria",
+      "fase": 5,
+      "titulo": "Prova da Fase 5",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A21"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A23",
+      "trilha": "teoria",
+      "fase": 6,
+      "titulo": "Pré treino e leis de escala",
+      "estudar": "Pré treino de LLMs e leis de escala.",
+      "recurso": "Aulas do CS336 (Stanford, YouTube).",
+      "criterio": "Nota no Cerebro e perguntas de checagem com 80% ou mais.",
+      "horas": 10,
+      "requisitos": ["A22"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+    {
+      "codigo": "A24",
+      "trilha": "teoria",
+      "fase": 6,
+      "titulo": "Pós treino",
+      "estudar": "SFT, RLHF, DPO, GRPO.",
+      "recurso": "CS336.",
+      "criterio": "Perguntas de checagem com 80% ou mais.",
+      "horas": 10,
+      "requisitos": ["A23"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+    {
+      "codigo": "A25",
+      "trilha": "teoria",
+      "fase": 6,
+      "titulo": "Inferência",
+      "estudar": "KV cache, quantização, estratégias de decodificação.",
+      "recurso": "CS336 e vídeos do Umar Jamil.",
+      "criterio": "KV cache implementado no mini GPT da A18.",
+      "horas": 8,
+      "requisitos": ["A24"]
+    },
+    {
+      "codigo": "A26",
+      "trilha": "teoria",
+      "fase": 6,
+      "titulo": "Estudo do nanochat",
+      "estudar": "Ler e rodar em escala pequena.",
+      "recurso": "Repositório nanochat (Karpathy).",
+      "criterio": "Execução pequena rodando e explicada no Cerebro.",
+      "horas": 8,
+      "requisitos": ["A25"]
+    },
+    {
+      "codigo": "A27",
+      "trilha": "teoria",
+      "fase": 6,
+      "titulo": "Prova da Fase 6",
+      "criterio": "80% ou mais na prova.",
+      "horas": 2,
+      "requisitos": ["A26"],
+      "avaliacao": { "tipo": "nota", "minima": 80 }
+    },
+
+    {
+      "codigo": "A35",
+      "trilha": "teoria",
+      "fase": 9,
+      "titulo": "Escolher uma especialização",
+      "estudar": "GPU (GPU MODE) ou interpretabilidade.",
+      "recurso": "Sessão da Fase 9.",
+      "criterio": "Critério definido na sessão da Fase 9.",
+      "horas": 20,
+      "requisitos": ["A27", "A34"],
+      "opcional": true
+    },
+
+    {
+      "codigo": "B1",
+      "trilha": "cursos",
+      "titulo": "Building with the Claude API",
+      "recurso": "Claude Academy.",
+      "criterio": "Curso completo.",
+      "horas": 8
+    },
+    {
+      "codigo": "B2",
+      "trilha": "cursos",
+      "titulo": "Plano oficial AIF C01",
+      "recurso": "Standard Exam Prep Plan no AWS Skill Builder (grátis).",
+      "criterio": "Plano completo e o conjunto oficial de 20 questões feito.",
+      "horas": 8,
+      "antesDeComecar": [
+        "Criar um alarme de cobrança no AWS Budgets antes do primeiro laboratório na AWS"
+      ]
+    },
+    {
+      "codigo": "B3",
+      "trilha": "cursos",
+      "titulo": "Ultimate AWS Certified AI Practitioner",
+      "recurso": "Stéphane Maarek (Udemy).",
+      "criterio": "Curso completo.",
+      "horas": 12,
+      "requisitos": ["B2"]
+    },
+    {
+      "codigo": "B4",
+      "trilha": "cursos",
+      "titulo": "Simulados AIF C01",
+      "recurso": "Practice exams do Maarek (Udemy).",
+      "criterio": "80% ou mais em dois simulados diferentes.",
+      "horas": 6,
+      "requisitos": ["B3"],
+      "avaliacao": { "tipo": "nota", "minima": 80, "aprovacoes": 2 }
+    },
+    {
+      "codigo": "B5",
+      "trilha": "cursos",
+      "titulo": "Prova AWS Certified AI Practitioner",
+      "criterio": "Aprovado e badge no LinkedIn.",
+      "horas": 2,
+      "requisitos": ["B4"],
+      "avaliacao": { "tipo": "aprovacao" }
+    },
+    {
+      "codigo": "B6",
+      "trilha": "cursos",
+      "titulo": "LLM Zoomcamp, módulos de RAG e avaliação de busca",
+      "estudar": "Vídeos dos módulos. A implementação fica para a A29.",
+      "recurso": "LLM Zoomcamp.",
+      "criterio": "Módulos completos.",
+      "horas": 10,
+      "requisitos": ["A8"]
+    },
+    {
+      "codigo": "B7",
+      "trilha": "cursos",
+      "titulo": "Curso MLA C01",
+      "recurso": "AWS Certified Machine Learning Engineer Associate: Hands On (Frank Kane e Stéphane Maarek, Udemy) e Exam Prep Plan do Skill Builder.",
+      "criterio": "Curso completo, com SageMaker praticado.",
+      "horas": 25,
+      "requisitos": ["A12", "B5"]
+    },
+    {
+      "codigo": "B8",
+      "trilha": "cursos",
+      "titulo": "Simulados MLA C01",
+      "recurso": "Practice Exams: AWS Machine Learning Engineer Associate Cert (Udemy).",
+      "criterio": "80% ou mais em dois simulados.",
+      "horas": 8,
+      "requisitos": ["B7"],
+      "avaliacao": { "tipo": "nota", "minima": 80, "aprovacoes": 2 }
+    },
+    {
+      "codigo": "B9",
+      "trilha": "cursos",
+      "titulo": "Prova AWS Certified Machine Learning Engineer Associate",
+      "criterio": "Aprovado.",
+      "horas": 2,
+      "requisitos": ["B8"],
+      "avaliacao": { "tipo": "aprovacao" }
+    },
+    {
+      "codigo": "B11",
+      "trilha": "cursos",
+      "titulo": "Trilha de agentes do Ed Donner: o restante",
+      "estudar": "Os módulos que a A31 e a A33 não usam.",
+      "recurso": "Udemy.",
+      "criterio": "Curso completo.",
+      "horas": 14,
+      "requisitos": ["A16"]
+    },
+    {
+      "codigo": "B10",
+      "trilha": "cursos",
+      "titulo": "LLM Course e Context Course da Hugging Face: o restante",
+      "estudar": "Os capítulos que a A19 e a A31 não usam.",
+      "recurso": "Hugging Face.",
+      "criterio": "Os dois cursos completos.",
+      "horas": 10,
+      "requisitos": ["A20"]
+    },
+    {
+      "codigo": "B12",
+      "trilha": "cursos",
+      "titulo": "Curso AIP C01",
+      "recurso": "Ultimate AWS Certified Generative AI Developer Professional (Frank Kane e Stéphane Maarek, Udemy).",
+      "criterio": "Curso completo, com Bedrock praticado.",
+      "horas": 24,
+      "requisitos": ["A32", "B9"]
+    },
+    {
+      "codigo": "B13",
+      "trilha": "cursos",
+      "titulo": "Simulados AIP C01",
+      "recurso": "Practice Exams: AWS Certified Generative AI Developer Pro (Maarek e Abhishek Singh, Udemy).",
+      "criterio": "80% ou mais em dois simulados.",
+      "horas": 8,
+      "requisitos": ["B12"],
+      "avaliacao": { "tipo": "nota", "minima": 80, "aprovacoes": 2 }
+    },
+    {
+      "codigo": "B14",
+      "trilha": "cursos",
+      "titulo": "Prova AWS Certified Generative AI Developer Professional",
+      "criterio": "Aprovado.",
+      "horas": 3,
+      "requisitos": ["B13", "C15"],
+      "avaliacao": { "tipo": "aprovacao" }
+    },
+
+    {
+      "codigo": "C1",
+      "trilha": "projetos",
+      "titulo": "ENEM: análise exploratória dos microdados",
+      "criterio": "Publicado no GitHub com README.",
+      "horas": 8
+    },
+    {
+      "codigo": "C2",
+      "trilha": "projetos",
+      "titulo": "Pulse AI: pipeline de dados",
+      "estudar": "Coleta diária da API do Meta Ads, armazenamento e anonimização dos clientes.",
+      "criterio": "Histórico de pelo menos uma conta salvo e anonimizado. Conta real só com autorização da agência; até ela chegar, uma conta de teste serve.",
+      "horas": 10,
+      "etapas": [
+        "Pedir a autorização da agência para usar os dados reais",
+        "Coleta diária rodando",
+        "Anonimização dos clientes"
+      ]
+    },
+    {
+      "codigo": "C9",
+      "trilha": "projetos",
+      "titulo": "UPick: busca semântica",
+      "estudar": "Embeddings e pgvector no Supabase com os materiais do aluno.",
+      "criterio": "Busca avaliada com métricas.",
+      "horas": 10
+    },
+    {
+      "codigo": "C12a",
+      "trilha": "projetos",
+      "titulo": "Arqueólogo: indexador de código legado",
+      "estudar": "Grafo de classes, rotas e tabelas de projetos PHP open source antigos. Nunca código da Codevasf ou da PGFN.",
+      "criterio": "Grafo gerado e navegável para um projeto real.",
+      "horas": 8
+    },
+    {
+      "codigo": "C3",
+      "trilha": "projetos",
+      "titulo": "Tutor UPick: TRI parte 1",
+      "estudar": "Modelos de 1, 2 e 3 parâmetros e verossimilhança implementados do zero.",
+      "criterio": "Estimação funcionando em dados simulados.",
+      "horas": 10,
+      "requisitos": ["A5", "C1"]
+    },
+    {
+      "codigo": "C4",
+      "trilha": "projetos",
+      "titulo": "Tutor UPick: TRI parte 2",
+      "estudar": "Calibrar itens com os microdados do ENEM e comparar com as notas oficiais.",
+      "criterio": "Comparação publicada.",
+      "horas": 12,
+      "requisitos": ["C3"]
+    },
+    {
+      "codigo": "C5",
+      "trilha": "projetos",
+      "titulo": "Pulse AI: anomalias e previsão de saldo",
+      "estudar": "Detector de custo por lead fora do padrão e previsão de quando o saldo acaba.",
+      "criterio": "Alertas avaliados contra casos reais marcados por mim.",
+      "horas": 12,
+      "requisitos": ["A11", "C2"]
+    },
+    {
+      "codigo": "C6",
+      "trilha": "projetos",
+      "titulo": "Tutor UPick: simulado adaptativo",
+      "estudar": "Modelo de conhecimento do aluno que escolhe a próxima questão usando a TRI.",
+      "criterio": "Funcionando no UPick em ambiente de teste.",
+      "horas": 14,
+      "requisitos": ["A12", "C4"]
+    },
+    {
+      "codigo": "C7",
+      "trilha": "projetos",
+      "titulo": "Pulse AI: leitor de criativos",
+      "estudar": "Modelo de visão que marca cada criativo e cruza com CTR e custo por lead por nicho.",
+      "criterio": "Análise por nicho publicada com números agregados.",
+      "horas": 14,
+      "requisitos": ["A15", "C2"]
+    },
+    {
+      "codigo": "C8",
+      "trilha": "projetos",
+      "titulo": "Pulse AI v1: entrega",
+      "criterio": "Padrão de entrega completo e demonstração na agência.",
+      "horas": 8,
+      "requisitos": ["C5", "C7"],
+      "entrega": true
+    },
+    {
+      "codigo": "C10",
+      "trilha": "projetos",
+      "titulo": "UPick: geração de flashcards e questões com RAG",
+      "estudar": "Com citação da fonte e previsão de dificuldade pela TRI.",
+      "criterio": "Evals de fidelidade à fonte passando.",
+      "horas": 14,
+      "requisitos": ["A29", "A30", "C6", "C9"],
+      "entrega": true
+    },
+    {
+      "codigo": "C11",
+      "trilha": "projetos",
+      "titulo": "Pulse AI: relatório semanal automático",
+      "estudar": "No estilo das mensagens que mando aos clientes, avaliado contra relatórios que eu aprovei.",
+      "criterio": "Evals passando e um relatório real enviado.",
+      "horas": 12,
+      "requisitos": ["A30", "C8"]
+    },
+    {
+      "codigo": "C12b",
+      "trilha": "projetos",
+      "titulo": "Arqueólogo: perguntas com citação",
+      "estudar": "Perguntas sobre o código indexado na C12a.",
+      "criterio": "Perguntas respondidas com citação de arquivo e linha.",
+      "horas": 6,
+      "requisitos": ["A29", "C12a"]
+    },
+    {
+      "codigo": "C13",
+      "trilha": "projetos",
+      "titulo": "Pulse AI: agente com ferramentas e MCP",
+      "estudar": "Responde perguntas sobre as contas consultando a API e o histórico.",
+      "criterio": "Evals de agente passando.",
+      "horas": 14,
+      "requisitos": ["A31", "C11"]
+    },
+    {
+      "codigo": "C14",
+      "trilha": "projetos",
+      "titulo": "Arqueólogo: agente, testes de caracterização e servidor MCP",
+      "criterio": "Padrão de entrega completo.",
+      "horas": 16,
+      "requisitos": ["A31", "C12b"],
+      "entrega": true
+    },
+    {
+      "codigo": "C15",
+      "trilha": "projetos",
+      "titulo": "Produção na AWS",
+      "estudar": "Pulse AI no Bedrock, com observabilidade, controle de custo e evals no CI.",
+      "criterio": "Rodando com monitoramento.",
+      "horas": 14,
+      "requisitos": ["A33", "C13"],
+      "entrega": true
+    },
+    {
+      "codigo": "C16",
+      "trilha": "projetos",
+      "titulo": "Vitrine final",
+      "estudar": "Os três projetos fixados no GitHub, páginas no portfólio, currículo em português e inglês.",
+      "criterio": "Os três projetos fixados, páginas no portfólio e currículo nas duas línguas.",
+      "horas": 8,
+      "requisitos": ["C10", "C14", "C15"],
+      "entrega": true
+    }
+  ]
+}
