@@ -56,6 +56,7 @@ export function SecaoTrilha({
       {atual && trilha.estado === "aguardando" && (
         <div className={s.aguardando}>
           <p>Aguardando: {pendentesDe(trilha)}</p>
+          <p className={s.meta}>O bloco desta trilha usa o plano B no lugar.</p>
           <p className={s.meta}>Em seguida: {rotuloDe(atual)}</p>
         </div>
       )}

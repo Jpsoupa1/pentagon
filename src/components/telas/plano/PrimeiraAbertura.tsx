@@ -42,16 +42,18 @@ export function PrimeiraAbertura({ inicial }: { inicial: PlanoNaoIniciado }) {
   async function salvar(incluirRequisitos: boolean) {
     setEnviando(true);
     setErro(null);
-    const r = await enviar("POST", "/api/plano/inicio", {
-      marcados: [...marcados],
-      incluirRequisitos,
-    });
-    if (r.ok && !r.enfileirado) {
+    // Fora da fila offline: reenviar depois gravaria a primeira abertura sem a pessoa ver.
+    const r = await enviar(
+      "POST",
+      "/api/plano/inicio",
+      { marcados: [...marcados], incluirRequisitos },
+      { semFila: true },
+    );
+    if (r.ok) {
       router.replace("/plano");
       return;
     }
     setEnviando(false);
-    if (r.ok) return setErro("Sem conexão. Tente salvar de novo quando a internet voltar.");
     // Requisito não marcado: o servidor lista e a pessoa decide se marca junto.
     const requisitos = (r.detalhes as { requisitos?: Requisito[] } | undefined)?.requisitos;
     if (requisitos?.length) setFaltam(requisitos);

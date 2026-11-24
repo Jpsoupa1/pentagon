@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Botao } from "@/components/ui/Botao";
 import { CabecalhoPagina } from "@/components/ui/Pagina";
 import { enviar } from "@/lib/cliente/api";
@@ -20,8 +20,6 @@ import { FolhaConclusao } from "./FolhaConclusao";
 import s from "./Plano.module.css";
 import { Recrutamento } from "./Recrutamento";
 import { SecaoTrilha } from "./SecaoTrilha";
-
-const SEM_CONEXAO = "Sem conexão. A alteração fica guardada e vai quando a internet voltar.";
 
 /**
  * O plano AI Engineer: três trilhas, recrutamento e a folha de conclusão. A tela só mostra o
@@ -45,14 +43,24 @@ export function Plano({ inicial }: { inicial: PlanoIniciado }) {
     return () => clearTimeout(t);
   }, [aviso]);
 
-  /** Escreve e troca o estado da tela pelo que voltou. Numa recusa, relê o estado do servidor. */
+  /** Uma escrita por vez: o clique repetido não chega ao servidor. */
+  const emCurso = useRef(false);
+
+  /**
+   * Escreve e troca o estado da tela pelo que voltou. Numa recusa, relê o estado do servidor.
+   * Só o checklist (idempotente) pode ir para a fila offline; o resto (concluir, desfazer, nota,
+   * contador) reenviado depois repetiria o efeito, então sem conexão vira recusa.
+   */
   async function chamar<T extends RespostaDoPlano>(
     metodo: "POST" | "PUT",
     url: string,
     corpo?: unknown,
+    { fila = false } = {},
   ): Promise<Retorno<T>> {
+    if (emCurso.current) return { ok: false, erro: "Aguarde a ação anterior terminar." };
+    emCurso.current = true;
     setOcupado(true);
-    const r = await enviar<T>(metodo, url, corpo);
+    const r = await enviar<T>(metodo, url, corpo, { semFila: !fila });
     let retorno: Retorno<T>;
     if (!r.ok) {
       retorno = { ok: false, erro: r.erro };
@@ -60,11 +68,12 @@ export function Plano({ inicial }: { inicial: PlanoIniciado }) {
       const atual = await lerEstado();
       if (atual) setPlano(atual);
     } else if (r.enfileirado) {
-      retorno = { ok: false, erro: SEM_CONEXAO };
+      retorno = { ok: false, erro: "Sem conexão. A alteração vai quando a internet voltar." };
     } else {
       retorno = { ok: true, dados: r.dados };
       if (r.dados.plano?.iniciado) setPlano(r.dados.plano);
     }
+    emCurso.current = false;
     setOcupado(false);
     return retorno;
   }
@@ -77,7 +86,7 @@ export function Plano({ inicial }: { inicial: PlanoIniciado }) {
   ) {
     const corpo =
       grupo === "recrutamento" ? { grupo, indice, feito } : { grupo, codigo, indice, feito };
-    const r = await chamar("PUT", "/api/plano/checks", corpo);
+    const r = await chamar("PUT", "/api/plano/checks", corpo, { fila: true });
     if (!r.ok) setAviso(r.erro);
   }
 

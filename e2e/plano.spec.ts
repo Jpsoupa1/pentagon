@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { criarSessaoDeOutroUsuario, EMAIL_FORA_DO_PLANO } from "./sessao";
 
 // Os testes seguem o mesmo dono do começo ao fim: a primeira abertura acontece uma vez só.
 test.describe.configure({ mode: "serial" });
@@ -116,6 +117,21 @@ test("nota abaixo da mínima registra a tentativa e o item continua atual; recus
   await expect(folha.getByText("Aguardando: A1. Álgebra linear.")).toBeVisible();
   await folha.getByRole("button", { name: "Fechar" }).click();
   await expect(atual).toBeVisible();
+  await page.unroute("**/api/plano/itens/A4/concluir");
+
+  // Sem conexão a nota não vai para a fila: avisa e não grava nada.
+  await page.context().setOffline(true);
+  await page.getByRole("button", { name: /^Concluir A4/ }).click();
+  await folha.getByLabel("Nota (0 a 100)").fill("55");
+  await folha.getByRole("button", { name: "Registrar só a nota" }).click();
+  await expect(
+    folha.getByText("Sem conexão. Tente de novo quando a internet voltar."),
+  ).toBeVisible();
+  await page.context().setOffline(false);
+  await page.reload();
+  await expect(page.getByRole("article", { name: ATUAL_A4 })).toBeVisible();
+  await expect(page.getByRole("article", { name: ATUAL_A4 }).getByText("55%")).toHaveCount(0);
+  await expect(page.getByRole("article", { name: ATUAL_A4 }).getByText("72%")).toBeVisible();
 });
 
 test("recrutamento só aparece quando o estado traz; trilhas arquivadas abre a lista vazia", async ({
@@ -152,4 +168,17 @@ test("recrutamento só aparece quando o estado traz; trilhas arquivadas abre a l
   await page.getByRole("link", { name: "Trilhas arquivadas" }).click();
   await expect(page).toHaveURL(/\/plano\/arquivadas$/);
   await expect(page.getByText("Nenhuma trilha arquivada.")).toBeVisible();
+});
+
+test("conta fora do OWNER_EMAILS não vê o plano nem a entrada no menu", async ({ browser }) => {
+  const estado = await criarSessaoDeOutroUsuario(process.env.DATABASE_URL!, EMAIL_FORA_DO_PLANO);
+  const contexto = await browser.newContext({ storageState: estado });
+  const page = await contexto.newPage();
+  for (const caminho of ["/plano", "/plano/inicio", "/plano/arquivadas"]) {
+    await page.goto(caminho);
+    await expect(page).toHaveURL(new RegExp(`${caminho}$`));
+    await expect(page.getByText("Nenhum plano de estudos nesta conta.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Plano", exact: true })).toHaveCount(0);
+  }
+  await contexto.close();
 });
