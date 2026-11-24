@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/server/db";
-import { arquivamentos, events, roadmapTrails, studyTracks, users } from "@/server/db/schema";
+import { arquivamentos, events, studyTracks, users } from "@/server/db/schema";
 import { semearTrilha } from "@/server/estudos/seed";
 import { CHAVE_ERROS_ANTES_DO_PLANO } from "@/server/plano/arquivados";
 import { semearRoadmap } from "@/server/roadmap/seed";
@@ -52,10 +52,6 @@ describe("lista de arquivados", () => {
     await arquivar(userId, "roadmap", "devops", em);
     await arquivar(userId, "trilha_estudo", trilha.slug, em);
 
-    const [roadmap] = await db()
-      .select()
-      .from(roadmapTrails)
-      .where(eq(roadmapTrails.slug, "devops"));
     const lista = await listarArquivadas(userId);
     expect(lista.map((i) => i.nome)).toEqual([
       trilha.nome,
