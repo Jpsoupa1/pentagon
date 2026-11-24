@@ -78,6 +78,13 @@
       "when": 1795540431767,
       "tag": "0010_plano",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795551916391,
+      "tag": "0011_avisos_por_usuario",
+      "breakpoints": true
     }
   ]
 }

@@ -227,7 +227,14 @@ describe("avisos do plano", () => {
 
   it("a pergunta da folga sai às 07:40 de dia útil sem resposta, com a manhã no corpo", () => {
     const datas = ["2026-10-21", "2026-10-22"];
-    const avisos = avisosDaFolga(datas, new Map(), "07:40", "B1. Building", cedo, fuso);
+    const avisos = avisosDaFolga(
+      datas,
+      new Map(),
+      "07:40",
+      new Map(datas.map((d) => [d, "B1. Building"])),
+      cedo,
+      fuso,
+    );
     expect(avisos.map((a) => [a.alvoTipo, a.alvoId, a.titulo, a.corpo, a.url])).toEqual(
       datas.map((d) => [
         "folga",
@@ -242,17 +249,19 @@ describe("avisos do plano", () => {
 
   it("não pergunta a folga respondida (inclusive Nada), no fim de semana nem depois da hora", () => {
     const resposta = (m: number) => new Map([["2026-10-21", m]]);
-    expect(avisosDaFolga(["2026-10-21"], resposta(120), "07:40", "x", cedo, fuso)).toEqual([]);
-    expect(avisosDaFolga(["2026-10-21"], resposta(0), "07:40", "x", cedo, fuso)).toEqual([]);
+    expect(avisosDaFolga(["2026-10-21"], resposta(120), "07:40", new Map(), cedo, fuso)).toEqual(
+      [],
+    );
+    expect(avisosDaFolga(["2026-10-21"], resposta(0), "07:40", new Map(), cedo, fuso)).toEqual([]);
     expect(
-      avisosDaFolga(["2026-10-24", "2026-10-25"], new Map(), "07:40", "x", cedo, fuso),
+      avisosDaFolga(["2026-10-24", "2026-10-25"], new Map(), "07:40", new Map(), cedo, fuso),
     ).toEqual([]);
     expect(
       avisosDaFolga(
         ["2026-10-21"],
         new Map(),
         "07:40",
-        "x",
+        new Map(),
         new Date("2026-10-21T11:00:00Z"),
         fuso,
       ),

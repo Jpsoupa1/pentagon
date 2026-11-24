@@ -94,7 +94,7 @@ async function avisosDesejados(userId: string, agora: Date) {
             datas,
             plano.folgas,
             ajustes.perguntaFolga,
-            plano.textoDaManha,
+            plano.textosDaManha,
             agora,
             ajustes.fuso,
           ),
@@ -168,7 +168,13 @@ export async function reconciliarAvisos(
       })
       // Um aviso cancelado antes pode voltar (ex.: sessão desmarcada como feita).
       .onConflictDoUpdate({
-        target: [notifications.alvoTipo, notifications.alvoId, notifications.enviarEm],
+        target: [
+          notifications.userId,
+          notifications.alvoTipo,
+          notifications.alvoId,
+          notifications.enviarEm,
+        ],
+        setWhere: eq(notifications.userId, userId),
         set: { status: "agendada", titulo: d.titulo, corpo: d.corpo, qstashMessageId: null },
       })
       .returning({ id: notifications.id });
@@ -207,7 +213,7 @@ async function textoAtual(aviso: typeof notifications.$inferSelect, agora: Date)
   if (!plano) return null;
   if (aviso.alvoTipo === "folga") {
     return ehDiaUtil(data) && !plano.folgas.has(data)
-      ? textoDaPerguntaDaFolga(plano.textoDaManha)
+      ? textoDaPerguntaDaFolga(plano.textosDaManha.get(data) ?? "")
       : null;
   }
   const b = plano.blocos.find((x) => x.bloco === bloco);
@@ -273,9 +279,14 @@ export async function reconciliarTodos(agora = new Date()) {
   let agendados = 0;
   let cancelados = 0;
   for (const u of usuarios) {
-    const r = await reconciliarAvisos(u.userId, agora, agendador);
-    agendados += r.agendados;
-    cancelados += r.cancelados;
+    // Um usuário com erro não pode deixar os seguintes sem reconciliar.
+    try {
+      const r = await reconciliarAvisos(u.userId, agora, agendador);
+      agendados += r.agendados;
+      cancelados += r.cancelados;
+    } catch (erro) {
+      console.error("Reconciliar avisos falhou para o usuário", u.userId, erro);
+    }
   }
   // Agendados há mais de 1 h que nunca dispararam: a mensagem se perdeu.
   const orfaos = await db()

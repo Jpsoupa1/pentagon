@@ -203,13 +203,13 @@ export function avisosDeBlocos(
 
 /**
  * Pergunta da folga de cada dia útil das `datas` ainda sem resposta (inclusive o "Nada", que é 0).
- * `folgas` tem os minutos respondidos por data.
+ * `folgas` tem os minutos respondidos por data e `textosDaManha` o conteúdo da manhã de cada data.
  */
 export function avisosDaFolga(
   datas: string[],
   folgas: ReadonlyMap<string, number>,
   horario: string,
-  textoDaManha: string,
+  textosDaManha: ReadonlyMap<string, string>,
   agora: Date,
   fuso: string,
 ): AvisoDesejado[] {
@@ -222,7 +222,7 @@ export function avisosDaFolga(
       alvoId: data,
       ocorrencia: data,
       enviarEm,
-      ...textoDaPerguntaDaFolga(textoDaManha),
+      ...textoDaPerguntaDaFolga(textosDaManha.get(data) ?? ""),
       url: "/",
     }));
 }

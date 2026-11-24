@@ -1,15 +1,28 @@
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/server/db";
-import { notifications, planoProgresso, users } from "@/server/db/schema";
+import { notifications, planoBlocos, planoProgresso, users } from "@/server/db/schema";
 import { semearCatalogoPlano } from "@/server/plano/seed";
 import { atualizarAjustes } from "@/server/servicos/ajustes";
-import { dispararAviso, reconciliarAvisos, salvarInscricao } from "@/server/servicos/avisos";
+import {
+  dispararAviso,
+  reconciliarAvisos,
+  reconciliarTodos,
+  salvarInscricao,
+} from "@/server/servicos/avisos";
 import { iniciarPlano, marcarBloco, responderFolga, trocarBloco } from "@/server/servicos/plano";
 import { AGORA, apagarUsuarioDeTeste, EMAIL, usuarioDeTeste } from "./apoio";
 
 const push = vi.hoisted(() => ({ enviar: vi.fn(async () => "ok" as const) }));
 vi.mock("@/server/avisos/push", () => ({ enviarPush: push.enviar }));
+
+// Sem QStash: o agendador falso deixa o teste do cron provocar um erro no meio do laço.
+const agendamento = vi.hoisted(() => ({
+  agendar: vi.fn<(id: string, quando: Date) => Promise<string | null>>(async () => null),
+}));
+vi.mock("@/server/avisos/agendador", () => ({
+  criarAgendador: () => ({ ativo: false, agendar: agendamento.agendar, cancelar: async () => {} }),
+}));
 
 const AMIGO = "amigo-avisos-plano@pentagon.local";
 const donosAntes = process.env.OWNER_EMAILS;
@@ -57,7 +70,9 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  process.env.OWNER_EMAILS = EMAIL;
   push.enviar.mockClear();
+  agendamento.agendar.mockClear();
   userId = await usuarioDeTeste();
   await inscrever();
 });
@@ -215,5 +230,83 @@ describe("avisos do plano: disparo", () => {
     }
     expect((await porAlvo("bloco", aviso.alvoId)).status).toBe("cancelada");
     expect(push.enviar).not.toHaveBeenCalled();
+  });
+});
+
+describe("avisos do plano: vários donos e manhã trocada", () => {
+  async function segundoDono() {
+    await db().delete(users).where(eq(users.email, AMIGO));
+    const [b] = await db().insert(users).values({ name: AMIGO, email: AMIGO }).returning();
+    process.env.OWNER_EMAILS = `${EMAIL},${AMIGO}`;
+    await iniciar(b.id);
+    await inscrever(b.id);
+    return b.id;
+  }
+  const linhas = async (id: string, tipo: "folga" | "bloco") =>
+    (await db().select().from(notifications).where(eq(notifications.userId, id))).filter(
+      (a) => a.alvoTipo === tipo,
+    );
+
+  it("dois donos com o mesmo horário: cada um fica com a própria linha, e B não mexe na de A", async () => {
+    const b = await segundoDono();
+    await iniciar();
+    await reconciliar();
+    await responderFolga(userId, { minutos: 0 }, CEDO);
+    await reconciliar();
+    const [antes] = (await linhas(userId, "folga")).filter((a) => a.alvoId === HOJE);
+    expect(antes.status).toBe("cancelada");
+
+    await reconciliar(b);
+    const [deB] = (await linhas(b, "folga")).filter((a) => a.alvoId === HOJE);
+    expect(deB).toMatchObject({ status: "agendada", alvoId: HOJE });
+    expect(deB.id).not.toBe(antes.id);
+    const [depois] = (await linhas(userId, "folga")).filter((a) => a.alvoId === HOJE);
+    expect(depois).toMatchObject({
+      id: antes.id,
+      status: "cancelada",
+      titulo: antes.titulo,
+      corpo: antes.corpo,
+    });
+    expect((await linhas(userId, "bloco")).length).toBe(4);
+    expect((await linhas(b, "bloco")).length).toBe(4);
+  });
+
+  it("a manhã trocada para Cards e Cerebro aparece no corpo da pergunta, no agendamento e no envio", async () => {
+    await iniciar();
+    await db()
+      .insert(planoBlocos)
+      .values({ userId, data: HOJE, bloco: "manha", escolha: "cards", minutos: 0 });
+    await reconciliar();
+    const folga = await porAlvo("folga", HOJE);
+    expect(folga.corpo).toBe("Toque para responder. Na manhã: Cards e Cerebro");
+    await dispararAviso(folga.id, CEDO);
+    expect(push.enviar).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ corpo: "Toque para responder. Na manhã: Cards e Cerebro" }),
+    );
+  });
+
+  it("cron: o erro de um usuário não impede a reconciliação do seguinte", async () => {
+    const b = await segundoDono();
+    await iniciar();
+    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
+    agendamento.agendar.mockRejectedValueOnce(new Error("QStash fora"));
+    try {
+      await reconciliarTodos(CEDO);
+      expect(erro).toHaveBeenCalledTimes(1);
+      // Só o id do usuário vai para o log, nunca o conteúdo dos avisos.
+      expect(erro.mock.calls[0].slice(0, 2)).toEqual([
+        "Reconciliar avisos falhou para o usuário",
+        expect.stringMatching(/^[0-9a-f-]{36}$/),
+      ]);
+    } finally {
+      erro.mockRestore();
+    }
+    const total = [
+      (await linhas(userId, "bloco")).length + (await linhas(userId, "folga")).length,
+      (await linhas(b, "bloco")).length + (await linhas(b, "folga")).length,
+    ];
+    // Quem falhou parou no primeiro aviso; o outro foi reconciliado inteiro (3 avisos por dia, hoje e amanhã).
+    expect(total.sort((x, y) => x - y)).toEqual([1, 6]);
   });
 });
