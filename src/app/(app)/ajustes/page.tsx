@@ -5,16 +5,16 @@ import { AtivarAvisos } from "@/components/telas/AtivarAvisos";
 import { FeedCalendario } from "@/components/telas/FeedCalendario";
 import { AreasNoFeed, Feriados } from "@/components/telas/Feriados";
 import { FormAjustes } from "@/components/telas/FormAjustes";
-import { HorariosEstudo } from "@/components/telas/HorariosEstudo";
+import { BlocosDeEstudo } from "@/components/telas/BlocosDeEstudo";
 import { Botao } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import uiS from "@/components/ui/ui.module.css";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { signOut } from "@/server/auth";
 import { exigirUsuario } from "@/server/sessao";
-import { horariosComPadrao } from "@/lib/estudos";
 import { chavePublicaVapid } from "@/server/avisos/push";
 import { obterAjustes } from "@/server/servicos/ajustes";
+import { ehDono } from "@/server/servicos/plano";
 import { tokenAtivo } from "@/server/servicos/calendario";
 import { consumoDoMes } from "@/server/assistente/consumo";
 import { CREDITOS_MENSAIS_USD } from "@/lib/assistente";
@@ -25,11 +25,12 @@ export const metadata: Metadata = { title: "Ajustes" };
 
 export default async function Ajustes() {
   const usuario = await exigirUsuario();
-  const [ajustes, token, cabecalhos, feriados] = await Promise.all([
+  const [ajustes, token, cabecalhos, feriados, dono] = await Promise.all([
     obterAjustes(usuario.id),
     tokenAtivo(usuario.id),
     headers(),
     listarFeriados(usuario.id),
+    ehDono(usuario.id),
   ]);
   const consumo = await consumoDoMes(usuario.id, ajustes.fuso);
   const ano = new Date().getFullYear();
@@ -50,10 +51,18 @@ export default async function Ajustes() {
             }}
           />
         </Cartao>
-        <Cartao>
-          <CartaoCabeca titulo="Horários de estudo" />
-          <HorariosEstudo inicial={horariosComPadrao(ajustes.horariosEstudo)} />
-        </Cartao>
+        {dono && (
+          <Cartao>
+            <CartaoCabeca titulo="Blocos de estudo" />
+            <BlocosDeEstudo
+              inicial={{
+                blocosPlano: ajustes.blocosPlano,
+                perguntaFolga: ajustes.perguntaFolga,
+                avisoBlocosMin: ajustes.avisoBlocosMin,
+              }}
+            />
+          </Cartao>
+        )}
         <Cartao>
           <CartaoCabeca titulo="Feriados" />
           <Feriados feriados={feriados} anos={[ano, ano + 1]} />

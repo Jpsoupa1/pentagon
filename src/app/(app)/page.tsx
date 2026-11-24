@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CartaoAgora, type OcorrenciaCliente } from "@/components/telas/CartaoAgora";
 import { ListaLembretes } from "@/components/telas/ListaLembretes";
 import { ListaSessoes } from "@/components/telas/ListaSessoes";
+import { PlanoNoHoje } from "@/components/telas/plano/PlanoNoHoje";
 import { CartaoCardsHoje } from "@/components/telas/cards/CartaoCardsHoje";
 import { Icone } from "@/components/shell/icones";
 import { BotaoLink } from "@/components/ui/Botao";
@@ -75,6 +76,18 @@ export default async function Hoje() {
             fuso={p.fuso}
             agoraServidor={Math.floor(agora.getTime() / 60_000) * 60_000}
           />
+          {p.plano?.iniciado === false && (
+            <Cartao aria-labelledby="comece-plano">
+              <CartaoCabeca titulo={<span id="comece-plano">Comece o plano</span>} />
+              <p className={layout.meta} style={{ marginBottom: 14 }}>
+                Marque o que você já concluiu e o plano libera o resto, um conteúdo de cada vez.
+              </p>
+              <BotaoLink href="/plano/inicio" variante="primario">
+                Comece o plano
+              </BotaoLink>
+            </Cartao>
+          )}
+          {p.plano?.iniciado && <PlanoNoHoje plano={p.plano} />}
           <CartaoCardsHoje inicial={p.cards} />
           <Cartao aria-labelledby="linha-do-dia">
             <CartaoCabeca

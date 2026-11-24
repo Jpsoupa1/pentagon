@@ -137,12 +137,39 @@ const horarioEstudo = z.object({
   minutos: z.number().int().min(15).max(600),
 });
 
+const blocoDeAjuste = z.strictObject({
+  inicio: horaSchema,
+  minutos: z
+    .number()
+    .int()
+    .min(15, "No mínimo 15 minutos")
+    .max(480, "No máximo 8 horas")
+    .optional(),
+  ligado: z.boolean().optional(),
+});
+
+const blocosDeUmDia = z.strictObject({
+  manha: blocoDeAjuste.optional(),
+  teoria: blocoDeAjuste.optional(),
+  projeto: blocoDeAjuste.optional(),
+});
+
+/** Formato de `settings.blocos_plano`: início, duração e chave de cada bloco por tipo de dia. */
+export const blocosPlanoSchema = z.strictObject({
+  dias_uteis: blocosDeUmDia.optional(),
+  sabado: blocosDeUmDia.optional(),
+  domingo: blocosDeUmDia.optional(),
+});
+
 export const ajustesSchema = z
   .object({
     avisoMin: z.number().int().min(0).max(1440),
     periodoInicio: dataSchema.nullable(),
     periodoFim: dataSchema.nullable(),
     horariosEstudo: z.record(z.enum(CHAVES_TURNO), horarioEstudo).nullable(),
+    blocosPlano: blocosPlanoSchema.nullable(),
+    perguntaFolga: horaSchema,
+    avisoBlocosMin: z.number().int().min(0).max(1440),
     areasNoFeed: z.array(areaSchema),
     limiteCards: z.number().int().min(1, "No mínimo 1 card").max(500, "No máximo 500 cards"),
   })

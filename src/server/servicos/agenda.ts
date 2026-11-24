@@ -10,6 +10,7 @@ import { obterAjustes } from "./ajustes";
 import { cardsDeHoje } from "./cards";
 import { eventosNoIntervalo } from "./eventos";
 import { feriadosEntre } from "./feriados";
+import { ocorrenciasDeBlocos, planoDeHoje } from "./blocos";
 import { tarefaDaSeguranca } from "../estudos/seguranca";
 import { idDaTrilhaSeguranca, ocorrenciasDeEstudo, sessoesPendentes } from "./estudos";
 import { lembretesDeHoje } from "./lembretes";
@@ -46,21 +47,23 @@ export async function compromissos(userId: string, intervalo: Intervalo, excluir
 const porHorario = (a: Ocorrencia, b: Ocorrencia) =>
   a.inicio.getTime() - b.inicio.getTime() || a.titulo.localeCompare(b.titulo);
 
-/** Tudo o que ocupa a agenda no intervalo: compromissos, feriados, sessões e marcos da trilha. */
+/** Tudo o que ocupa a agenda no intervalo: compromissos, feriados, sessões e marcos da trilha e blocos do plano. */
 export async function ocorrencias(
   userId: string,
   intervalo: Intervalo,
   excluirEvento?: string,
 ): Promise<Ocorrencia[]> {
-  const [c, estudo, { fuso }] = await Promise.all([
+  const [c, estudo, blocos, { fuso }] = await Promise.all([
     compromissos(userId, intervalo, excluirEvento),
     ocorrenciasDeEstudo(userId, intervalo),
+    ocorrenciasDeBlocos(userId, intervalo),
     obterAjustes(userId),
   ]);
   return marcarNoEstagio([
     ...c.ocorrencias,
     ...ocorrenciasDeFeriados(c.feriados, intervalo, fuso),
     ...estudo,
+    ...blocos,
   ]).sort(porHorario);
 }
 
@@ -106,12 +109,13 @@ export async function painelHoje(userId: string, agora = new Date()) {
   const { fuso, limiteCards } = await obterAjustes(userId);
   const hoje = hojeLocal(agora, fuso);
   const semana = semanaDe(hoje);
-  const [daSemana, prazos, lembretes, pendentes, cards] = await Promise.all([
+  const [daSemana, prazos, lembretes, pendentes, cards, plano] = await Promise.all([
     ocorrencias(userId, semana),
     proximosPrazos(userId, paraUtc(hoje, "00:00", fuso)),
     lembretesDeHoje(userId, hoje, fuso),
     sessoesPendentes(userId, hoje),
     cardsDeHoje(userId, hoje, limiteCards),
+    planoDeHoje(userId, agora),
   ]);
   const doDia = daSemana.filter(
     (o) =>
@@ -135,5 +139,6 @@ export async function painelHoje(userId: string, agora = new Date()) {
     lembretes,
     pendentes,
     cards,
+    plano,
   };
 }

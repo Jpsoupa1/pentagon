@@ -7,6 +7,7 @@ import { urlPublica } from "../avisos/agendador";
 import { gerarCalendario } from "../calendario/ics";
 import {
   eventosDeAvaliacoes,
+  eventosDeBlocos,
   eventosDeCompromissos,
   eventosDeFeriados,
 } from "../calendario/agenda";
@@ -16,6 +17,7 @@ import { assessments, calendarTokens, studySessions, studyWeeks, subjects } from
 import { obterAjustes } from "./ajustes";
 import { obterTrilha } from "./estudos";
 import { compromissos } from "./agenda";
+import { blocosDoPlano } from "./blocos";
 
 export async function tokenAtivo(userId: string) {
   const [t] = await db()
@@ -70,7 +72,10 @@ export async function feedPorToken(token: string) {
   const areas = new Set(ajustes.areasNoFeed);
   const hoje = hojeLocal(new Date(), ajustes.fuso);
   const intervalo = { de: addDias(hoje, -30), ate: addDias(hoje, 365) };
-  const c = await compromissos(t.userId, intervalo);
+  const [c, blocos] = await Promise.all([
+    compromissos(t.userId, intervalo),
+    areas.has("estudos") ? blocosDoPlano(t.userId, intervalo) : Promise.resolve([]),
+  ]);
   const proprios = eventosDeCompromissos(
     c.ocorrencias.filter((o) => areas.has(o.areaId)),
     {
@@ -100,6 +105,10 @@ export async function feedPorToken(token: string) {
       ...proprios,
       ...eventosDeFeriados(c.feriados),
       ...eventosDeAvaliacoes(avaliacoes, ajustes.fuso, ajustes.avisoMin),
+      ...eventosDeBlocos(blocos, {
+        avisoBlocosMin: ajustes.avisoBlocosMin,
+        urlApp: urlPublica() ?? undefined,
+      }),
       ...(trilha && areas.has("estudos")
         ? eventosDaTrilha({
             sessoes,

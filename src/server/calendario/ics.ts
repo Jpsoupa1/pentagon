@@ -25,7 +25,7 @@ export function esc(t: string) {
     .replace(/\\/g, "\\\\")
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n");
+    .replace(/\r\n|\r|\n/g, "\\n");
 }
 
 /** No máximo 75 octetos por linha; a continuação começa com espaço. */

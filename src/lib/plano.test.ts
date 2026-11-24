@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import seed from "@/server/plano/plano.json";
 import {
+  blocosDoDia,
   carregarCatalogo,
   conteudoDoBloco,
   estadoDoItem,
@@ -10,6 +11,9 @@ import {
   horasRestantes,
   lerCatalogo,
   lerEscolha,
+  minutosDoBloco,
+  montarBlocos,
+  perguntaDaFolgaAberta,
   liberadosApos,
   mensagemTentativa,
   opcoesDeTroca,
@@ -17,6 +21,7 @@ import {
   recrutamentoLiberado,
   requisitosNaoMarcados,
   textoBloco,
+  tituloDoBloco,
   textoHoras,
   textoLiberacao,
   validarCatalogo,
@@ -25,6 +30,7 @@ import {
   verificarTroca,
   type Catalogo,
   type PedidoConclusao,
+  type RegistroDoBloco,
 } from "./plano";
 
 const cat = carregarCatalogo(seed);
@@ -549,5 +555,193 @@ describe("validação do seed", () => {
     const t = seedBase();
     t.itens[0].requisitos = ["X9"];
     expect(() => carregarCatalogo(t)).toThrow(/plano.json inválido/);
+  });
+});
+
+// Terça, sábado e domingo de novembro de 2026.
+const TERCA = "2026-11-24";
+const SABADO = "2026-11-28";
+const DOMINGO = "2026-11-29";
+
+describe("blocos do dia", () => {
+  it("dia útil sem folga tem Teoria e Projeto nos horários padrão; a manhã não existe", () => {
+    expect(blocosDoDia(TERCA, null, null)).toEqual([
+      { bloco: "teoria", inicio: "13:30", minutos: 90 },
+      { bloco: "projeto", inicio: "17:20", minutos: 80 },
+    ]);
+  });
+
+  it("a manhã só existe com folga de 60 a 180, e a folga dá a duração", () => {
+    for (const folga of [60, 120, 180]) {
+      expect(blocosDoDia(TERCA, null, folga)[0]).toEqual({
+        bloco: "manha",
+        inicio: "08:00",
+        minutos: folga,
+      });
+    }
+    for (const folga of [null, 0, 30, 240]) {
+      expect(blocosDoDia(TERCA, null, folga).map((b) => b.bloco)).toEqual(["teoria", "projeto"]);
+    }
+  });
+
+  it("Ajustes mudam início e duração; folga não vale no fim de semana", () => {
+    const ajustes = { dias_uteis: { teoria: { inicio: "14:00", minutos: 60 } } };
+    expect(blocosDoDia(TERCA, ajustes, null)[0]).toEqual({
+      bloco: "teoria",
+      inicio: "14:00",
+      minutos: 60,
+    });
+    expect(blocosDoDia(SABADO, null, 120)).toEqual([]);
+  });
+
+  it("sábado e domingo vêm desligados e só os blocos ligados entram", () => {
+    expect(blocosDoDia(SABADO, null, null)).toEqual([]);
+    expect(blocosDoDia(DOMINGO, {}, null)).toEqual([]);
+    const ajustes = {
+      sabado: {
+        teoria: { inicio: "10:00", minutos: 120, ligado: true },
+        projeto: { inicio: "15:00", ligado: false },
+      },
+    };
+    expect(blocosDoDia(SABADO, ajustes, null)).toEqual([
+      { bloco: "teoria", inicio: "10:00", minutos: 120 },
+    ]);
+    expect(blocosDoDia(DOMINGO, ajustes, null)).toEqual([]);
+  });
+
+  it("minutosDoBloco segue o agendado, depois Ajustes, a folga e o padrão", () => {
+    expect(minutosDoBloco(TERCA, "manha", null, 120)).toBe(120);
+    expect(minutosDoBloco(TERCA, "manha", null, null)).toBe(60);
+    expect(minutosDoBloco(TERCA, "projeto", null, null)).toBe(80);
+    expect(
+      minutosDoBloco(
+        TERCA,
+        "teoria",
+        { dias_uteis: { teoria: { inicio: "13:30", minutos: 45 } } },
+        null,
+      ),
+    ).toBe(45);
+  });
+});
+
+describe("pergunta da folga", () => {
+  const MANHA = 7 * 60 + 40;
+  it("dia útil: aberta antes de 12:00 sem resposta, fechada depois", () => {
+    expect(perguntaDaFolgaAberta(TERCA, null, MANHA)).toBe(true);
+    expect(perguntaDaFolgaAberta(TERCA, null, 12 * 60)).toBe(false);
+    expect(perguntaDaFolgaAberta(TERCA, null, 15 * 60)).toBe(false);
+  });
+
+  it("respondida continua aberta o dia todo, para mudar a resposta", () => {
+    expect(perguntaDaFolgaAberta(TERCA, 0, 15 * 60)).toBe(true);
+    expect(perguntaDaFolgaAberta(TERCA, 120, 23 * 60)).toBe(true);
+  });
+
+  it("fim de semana nunca pergunta", () => {
+    expect(perguntaDaFolgaAberta(SABADO, null, MANHA)).toBe(false);
+    expect(perguntaDaFolgaAberta(DOMINGO, 120, MANHA)).toBe(false);
+  });
+});
+
+describe("montagem dos blocos", () => {
+  const base = {
+    cat,
+    ajustes: null,
+    intervalo: { de: TERCA, ate: TERCA },
+    folgas: new Map<string, number>(),
+    registros: [] as RegistroDoBloco[],
+  };
+
+  it("título com o conteúdo atual: Bloco Teoria: A2. Cálculo de uma variável", () => {
+    const [teoria] = montarBlocos({ ...base, feitos: feitos("A0", "A1") });
+    expect(teoria).toMatchObject({
+      bloco: "teoria",
+      texto: "A2. Cálculo de uma variável",
+      titulo: "Bloco Teoria: A2. Cálculo de uma variável",
+      feito: false,
+      minutosFeitos: null,
+    });
+    expect(tituloDoBloco("projeto", "C2. Pulse AI: pipeline de dados")).toBe(
+      "Bloco Projeto: C2. Pulse AI: pipeline de dados",
+    );
+  });
+
+  it("a manhã mostra o conteúdo de Cursos só no dia com folga", () => {
+    const f = feitos("A0", "A1");
+    const sem = montarBlocos({ ...base, feitos: f });
+    expect(sem.map((b) => b.bloco)).toEqual(["teoria", "projeto"]);
+    const com = montarBlocos({ ...base, feitos: f, folgas: new Map([[TERCA, 120]]) });
+    expect(com[0]).toMatchObject({ bloco: "manha", minutos: 120 });
+    expect(com[0].titulo).toMatch(/^Bloco Manhã: B1\. /);
+  });
+
+  it("intervalo: a folga de um dia não abre a manhã dos outros, e o fim de semana vem vazio", () => {
+    const blocos = montarBlocos({
+      ...base,
+      feitos: feitos("A0", "A1"),
+      intervalo: { de: TERCA, ate: DOMINGO },
+      folgas: new Map([[TERCA, 60]]),
+    });
+    expect(blocos.filter((b) => b.bloco === "manha").map((b) => b.data)).toEqual([TERCA]);
+    expect(blocos.some((b) => b.data >= SABADO)).toBe(false);
+    expect(blocos).toHaveLength(9);
+  });
+
+  it("plano B: trilha aguardando mostra o motivo e o conteúdo que entrou no lugar", () => {
+    const f = feitos("A0", "A1", "B1", "B2", "B3", "B4", "B5");
+    const manha = montarBlocos({ ...base, feitos: f, folgas: new Map([[TERCA, 180]]) })[0];
+    expect(manha.conteudo.origem).toBe("plano_b");
+    expect(manha.texto).toMatch(/^Aguardando: B6\. .* Plano B: A2\. Cálculo de uma variável$/);
+    expect(manha.titulo).toBe(`Bloco Manhã: ${manha.texto}`);
+  });
+
+  it("troca gravada vale no dia; bloco feito mostra o que foi estudado, com os minutos", () => {
+    const registro = (r: Partial<(typeof base.registros)[number]>) => ({
+      data: TERCA,
+      bloco: "teoria",
+      escolha: null,
+      codigoEstudado: null,
+      minutos: 0,
+      feitoEm: null,
+      ...r,
+    });
+    const f = feitos("A0", "A1");
+    const trocado = montarBlocos({
+      ...base,
+      feitos: f,
+      registros: [registro({ escolha: "cards" })],
+    });
+    expect(trocado[0].texto).toBe("Cards e Cerebro");
+    const feito = montarBlocos({
+      ...base,
+      feitos: feitos("A0", "A1", "A2"),
+      registros: [registro({ codigoEstudado: "A2", minutos: 75, feitoEm: new Date() })],
+    });
+    expect(feito[0]).toMatchObject({
+      feito: true,
+      minutosFeitos: 75,
+      texto: "A2. Cálculo de uma variável",
+    });
+  });
+
+  it("Teoria já estudada no dia sai do plano B da manhã, que cai em Cards e Cerebro", () => {
+    const f = feitos("A0", "A1", "B1", "B2", "B3", "B4", "B5");
+    const [manha] = montarBlocos({
+      ...base,
+      feitos: f,
+      folgas: new Map([[TERCA, 60]]),
+      registros: [
+        {
+          data: TERCA,
+          bloco: "teoria",
+          escolha: null,
+          codigoEstudado: "A2",
+          minutos: 90,
+          feitoEm: new Date(),
+        },
+      ],
+    });
+    // Projetos não entra no plano B: sobra Cards e Cerebro.
+    expect(manha.texto).toMatch(/Plano B: Cards e Cerebro$/);
   });
 });

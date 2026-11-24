@@ -274,18 +274,20 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     ).toContainText("08:00–09:30");
   });
 
-  test("Ajustes tem os dois blocos de segunda a quinta", async ({ page }) => {
+  test("Ajustes mostra os blocos de estudo do plano, com fim de semana desligado", async ({
+    page,
+  }) => {
     await page.goto("/ajustes");
-    await expect(page.getByLabel("Segunda (conteúdo, no estágio)", { exact: true })).toBeChecked();
-    await expect(page.getByLabel("Início de Segunda (conteúdo, no estágio)")).toHaveValue("08:00");
-    await expect(page.getByLabel("Início de Segunda (prática)")).toHaveValue("14:00");
-    await expect(page.getByLabel("Início de Sexta (revisão da semana, no estágio)")).toHaveValue(
-      "08:00",
-    );
-    await expect(page.getByLabel("Início de Sexta (reposição do que atrasou)")).toHaveValue(
-      "14:00",
-    );
-    await expect(page.getByLabel("Início de Domingo (revisão espaçada)")).toHaveValue("19:00");
+    await expect(page.getByRole("heading", { name: "Blocos de estudo" })).toBeVisible();
+    await expect(page.getByLabel("Início de Dias úteis: Manhã")).toHaveValue("08:00");
+    await expect(page.getByLabel("Início de Dias úteis: Teoria")).toHaveValue("13:30");
+    await expect(page.getByLabel("Duração de Dias úteis: Teoria em minutos")).toHaveValue("90");
+    await expect(page.getByLabel("Início de Dias úteis: Projeto")).toHaveValue("17:20");
+    await expect(page.getByLabel("Duração de Dias úteis: Projeto em minutos")).toHaveValue("80");
+    await expect(page.getByLabel("Hora da pergunta da folga")).toHaveValue("07:40");
+    await expect(page.getByLabel("Avisar quantos minutos antes dos blocos")).toHaveValue("5");
+    await expect(page.getByRole("checkbox", { name: "Sábado: Teoria" })).not.toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Domingo: Projeto" })).not.toBeChecked();
   });
 
   test("Hoje mostra o bloco Ciber e SecOps com a tarefa do dia", async ({ page }) => {

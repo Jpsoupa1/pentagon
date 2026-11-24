@@ -60,7 +60,7 @@ describe("trilha Segurança na agenda", () => {
     const terca = (await dia("2026-10-27")).filter((o) => o.areaId !== "estagio" && !o.noEstagio);
     expect(linha(terca)).toEqual([
       "14:00-15:30 Drill: criar tudo por comando imperativo com $do; refazer o seletor imutável do ReplicaSet (lacuna)",
-      "16:00-17:30 Academia",
+      "16:00-17:20 Academia",
       "17:30-18:40 Ciber e SecOps",
       "19:10-22:00 Análise e Projeto de Sistemas",
     ]);

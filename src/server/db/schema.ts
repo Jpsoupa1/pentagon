@@ -792,7 +792,7 @@ export type DescricaoDaAcao = {
 export type ConflitoDaAcao = {
   titulo: string;
   horario: string;
-  origem: "evento" | "sessao" | "marco" | "feriado";
+  origem: "evento" | "sessao" | "bloco" | "marco" | "feriado";
   id: string;
   /** Data original da ocorrência (a que a exceção usa) e o dia em que ela acontece de fato. */
   data: string;

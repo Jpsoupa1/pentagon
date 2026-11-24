@@ -104,3 +104,32 @@ describe("provas e feriados no feed", () => {
     expect(ics).toContain("SUMMARY:Feriado: Finados");
   });
 });
+
+describe("blocos do plano no feed", () => {
+  it("cada bloco vira um evento com o título do conteúdo, o horário do dia e o aviso de Ajustes", async () => {
+    const { eventosDeBlocos } = await import("./agenda");
+    const { carregarCatalogo, montarBlocos } = await import("@/lib/plano");
+    const { default: seed } = await import("../plano/plano.json");
+    const blocos = montarBlocos({
+      cat: carregarCatalogo(seed),
+      feitos: new Set(["A0", "A1"]),
+      ajustes: { dias_uteis: { teoria: { inicio: "14:00", minutos: 60 } } },
+      intervalo: { de: "2026-11-24", ate: "2026-11-24" },
+      folgas: new Map([["2026-11-24", 120]]),
+      registros: [],
+    });
+    const ics = gerarCalendario({
+      nome: "Pentagon",
+      fuso,
+      eventos: eventosDeBlocos(blocos, { avisoBlocosMin: 5 }),
+      agora: new Date("2026-11-20T12:00:00Z"),
+    });
+    expect(ics).toContain("SUMMARY:Bloco Teoria: A2. Cálculo de uma variável");
+    expect(ics).toContain("DTSTART;TZID=America/Sao_Paulo:20261124T140000");
+    expect(ics).toContain("DTEND;TZID=America/Sao_Paulo:20261124T150000");
+    expect(ics).toContain("SUMMARY:Bloco Manhã: B1. Building with the Claude API");
+    expect(ics).toContain("DTEND;TZID=America/Sao_Paulo:20261124T100000");
+    expect(ics).toContain("UID:bloco-2026-11-24-teoria@pentagon");
+    expect(ics).toContain("TRIGGER:-PT5M");
+  });
+});

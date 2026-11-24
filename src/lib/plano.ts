@@ -2,6 +2,7 @@
 // seed, item atual de cada trilha, conclusão, desfazer, conteúdo do bloco, troca, horas e
 // recrutamento. O servidor usa estas funções para decidir; a tela, só para mostrar.
 import { z } from "zod";
+import { addDias, diaDaSemana } from "./tempo";
 
 export const slugsTrilha = ["teoria", "cursos", "projetos"] as const;
 export type SlugTrilha = (typeof slugsTrilha)[number];
@@ -651,6 +652,172 @@ export function verificarTroca(cat: Catalogo, e: Escolha, feitos: Concluidos): V
     case "bloqueado":
       return { ok: false, motivo: "bloqueado", mensagem: "Este conteúdo ainda não foi liberado." };
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Blocos do dia: quais existem, a que horas, por quanto tempo e com que conteúdo
+
+export const ROTULO_BLOCO: Record<BlocoPlano, string> = {
+  manha: "Manhã",
+  teoria: "Teoria",
+  projeto: "Projeto",
+};
+
+/** Início padrão de cada bloco quando Ajustes não define. */
+export const INICIO_PADRAO_BLOCO: Record<BlocoPlano, string> = {
+  manha: "08:00",
+  teoria: "13:30",
+  projeto: "17:20",
+};
+
+/** Folga que abre o bloco da manhã, em minutos. */
+export const FOLGA_MINIMA = 60;
+export const FOLGA_MAXIMA = 180;
+
+/** A pergunta da folga some ao meio-dia se ainda não foi respondida. */
+const LIMITE_DA_PERGUNTA_MIN = 12 * 60;
+
+export type TipoDeDia = keyof BlocosPlanoAjustes;
+
+export function tipoDeDia(data: string): TipoDeDia {
+  const dia = diaDaSemana(data);
+  return dia === 0 ? "domingo" : dia === 6 ? "sabado" : "dias_uteis";
+}
+
+export const ehDiaUtil = (data: string) => tipoDeDia(data) === "dias_uteis";
+
+export type BlocoAgendado = { bloco: BlocoPlano; inicio: string; minutos: number };
+
+/**
+ * Blocos que existem num dia, em ordem de horário. Dia útil: Teoria e Projeto sempre (salvo
+ * `ligado: false`) e a manhã só com folga de 60 a 180 minutos, que também dá a duração. Fim de
+ * semana: só o que Ajustes liga.
+ */
+export function blocosDoDia(
+  data: string,
+  ajustes: BlocosPlanoAjustes | null | undefined,
+  folga: number | null,
+): BlocoAgendado[] {
+  const tipo = tipoDeDia(data);
+  const util = tipo === "dias_uteis";
+  const saida: BlocoAgendado[] = [];
+  for (const bloco of blocosPlano) {
+    const config = ajustes?.[tipo]?.[bloco];
+    if (bloco === "manha" && util) {
+      if (folga == null || folga < FOLGA_MINIMA || folga > FOLGA_MAXIMA) continue;
+      if (config?.ligado === false) continue;
+      saida.push({ bloco, inicio: config?.inicio ?? INICIO_PADRAO_BLOCO.manha, minutos: folga });
+      continue;
+    }
+    if (util ? config?.ligado === false : config?.ligado !== true) continue;
+    saida.push({
+      bloco,
+      inicio: config?.inicio ?? INICIO_PADRAO_BLOCO[bloco],
+      minutos: config?.minutos ?? MINUTOS_PADRAO_BLOCO[bloco],
+    });
+  }
+  return saida.sort((a, b) => a.inicio.localeCompare(b.inicio));
+}
+
+/** O agendamento do bloco no dia, ou nulo se ele não existe naquele dia. */
+export const blocoAgendado = (
+  data: string,
+  bloco: BlocoPlano,
+  ajustes: BlocosPlanoAjustes | null | undefined,
+  folga: number | null,
+) => blocosDoDia(data, ajustes, folga).find((b) => b.bloco === bloco) ?? null;
+
+/** Duração do bloco: a agendada no dia, senão Ajustes, a folga (manhã) ou o padrão. */
+export function minutosDoBloco(
+  data: string,
+  bloco: BlocoPlano,
+  ajustes: BlocosPlanoAjustes | null | undefined,
+  folga: number | null,
+) {
+  const agendado = blocoAgendado(data, bloco, ajustes, folga);
+  if (agendado) return agendado.minutos;
+  const configurado = ajustes?.[tipoDeDia(data)]?.[bloco]?.minutos;
+  return configurado ?? (bloco === "manha" && folga ? folga : MINUTOS_PADRAO_BLOCO[bloco]);
+}
+
+/** "Hoje tem folga no estágio?": dia útil, até a resposta ou até 12:00 no fuso do usuário. */
+export function perguntaDaFolgaAberta(data: string, folga: number | null, minutosLocais: number) {
+  return ehDiaUtil(data) && (folga != null || minutosLocais < LIMITE_DA_PERGUNTA_MIN);
+}
+
+/** "Bloco Teoria: A2. Cálculo de uma variável": título na Agenda e no calendário. */
+export const tituloDoBloco = (bloco: BlocoPlano, texto: string) =>
+  `Bloco ${ROTULO_BLOCO[bloco]}: ${texto}`;
+
+/** Linha de `plano_blocos` como a montagem dos blocos precisa. */
+export type RegistroDoBloco = {
+  data: string;
+  bloco: string;
+  escolha: string | null;
+  codigoEstudado: string | null;
+  minutos: number;
+  feitoEm: Date | null;
+};
+
+/** Códigos estudados no dia em blocos já marcados como feitos, sem contar o próprio bloco. */
+export function estudadosNoDia(
+  registros: readonly RegistroDoBloco[],
+  data: string,
+  exceto: string,
+): string[] {
+  return registros
+    .filter((r) => r.data === data && r.bloco !== exceto && r.feitoEm && r.codigoEstudado)
+    .map((r) => r.codigoEstudado!);
+}
+
+export type BlocoMontado = BlocoAgendado & {
+  data: string;
+  conteudo: ConteudoBloco;
+  /** "A2. Cálculo de uma variável" ou "Aguardando: X. Plano B: Y". */
+  texto: string;
+  titulo: string;
+  feito: boolean;
+  /** Minutos registrados no bloco feito; nulo enquanto não foi feito. */
+  minutosFeitos: number | null;
+};
+
+/**
+ * Os blocos de cada dia do intervalo (inclusivo) com o conteúdo resolvido. Bloco feito mostra o
+ * que foi estudado; o do dia mostra a troca gravada; os demais, o conteúdo atual do plano.
+ */
+export function montarBlocos(entrada: {
+  cat: Catalogo;
+  feitos: Concluidos;
+  ajustes: BlocosPlanoAjustes | null | undefined;
+  intervalo: { de: string; ate: string };
+  folgas: ReadonlyMap<string, number>;
+  registros: readonly RegistroDoBloco[];
+}): BlocoMontado[] {
+  const { cat, feitos, ajustes, intervalo, folgas, registros } = entrada;
+  const saida: BlocoMontado[] = [];
+  for (let data = intervalo.de; data <= intervalo.ate; data = addDias(data, 1)) {
+    for (const agendado of blocosDoDia(data, ajustes, folgas.get(data) ?? null)) {
+      const registro = registros.find((r) => r.data === data && r.bloco === agendado.bloco);
+      const feito = !!registro?.feitoEm;
+      const estudado = registro?.codigoEstudado ? `item:${registro.codigoEstudado}` : "cards";
+      const conteudo = conteudoDoBloco(cat, agendado.bloco, {
+        feitos,
+        troca: feito ? estudado : registro?.escolha,
+        estudadosHoje: estudadosNoDia(registros, data, agendado.bloco),
+      });
+      const texto = textoBloco(conteudo);
+      saida.push({
+        ...agendado,
+        data,
+        conteudo,
+        texto,
+        titulo: tituloDoBloco(agendado.bloco, texto),
+        feito,
+        minutosFeitos: feito ? registro!.minutos : null,
+      });
+    }
+  }
+  return saida;
 }
 
 // ---------------------------------------------------------------------------------------------

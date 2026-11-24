@@ -1,4 +1,5 @@
-import { partesLocais } from "@/lib/tempo";
+import type { BlocoMontado } from "@/lib/plano";
+import { hmParaMin, partesLocais } from "@/lib/tempo";
 import type { Ocorrencia } from "../agenda/recorrencia";
 import type { EventoIcs } from "./ics";
 
@@ -36,6 +37,30 @@ export function eventosDeCompromissos(
         alarmeMin: opcoes.lembrarPorEvento.get(o.eventId) ?? opcoes.avisoPadrao,
       };
     });
+}
+
+/**
+ * Blocos do plano (já montados pela função única do servidor) como eventos do feed, com o alerta
+ * "avisar antes" dos blocos de Ajustes.
+ */
+export function eventosDeBlocos(
+  blocos: BlocoMontado[],
+  opcoes: { avisoBlocosMin: number; urlApp?: string },
+): EventoIcs[] {
+  return blocos.map((b): EventoIcs => {
+    const inicio = hmParaMin(b.inicio);
+    return {
+      tipo: "hora",
+      uid: `bloco-${b.data}-${b.bloco}@pentagon`,
+      data: b.data,
+      inicioMin: inicio,
+      minutos: b.minutos,
+      titulo: b.titulo,
+      descricao: opcoes.urlApp ? `Abrir o plano: ${opcoes.urlApp}/plano` : undefined,
+      categoria: "Plano AI",
+      alarmeMin: opcoes.avisoBlocosMin,
+    };
+  });
 }
 
 export type AvaliacaoFeed = {
