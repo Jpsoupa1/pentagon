@@ -7,18 +7,20 @@ import { AREAS } from "@/lib/areas";
 import { duracaoTexto } from "@/lib/tempo";
 import { Logo } from "../ui/Logo";
 import { Icone } from "./icones";
-import { ativo, MENU, SECUNDARIO, type Contadores } from "./navegacao";
+import { ativo, MENU, menuDe, type Contadores } from "./navegacao";
 import { useNovoItem } from "./NovoItemProvider";
 import s from "./Shell.module.css";
 
 type Props = {
   contadores: Contadores;
+  /** Calculado no servidor: quem não é dono não vê a entrada do plano. */
+  dono: boolean;
   minutosPorArea: Record<AreaId, number>;
   usuario: { nome: string; email: string; imagem: string | null };
 };
 
 /** Notebook: barra lateral de 220 px. */
-export function BarraLateral({ contadores, minutosPorArea, usuario }: Props) {
+export function BarraLateral({ contadores, dono, minutosPorArea, usuario }: Props) {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
   return (
@@ -30,7 +32,7 @@ export function BarraLateral({ contadores, minutosPorArea, usuario }: Props) {
         <Icone nome="mais" tamanho={18} /> Novo item
       </button>
       <ul className={s.lateralMenu}>
-        {[...MENU, ...SECUNDARIO].map((item) => {
+        {menuDe(dono).map((item) => {
           const atual = ativo(pathname, item.href);
           const n = item.contador ? contadores[item.contador] : 0;
           return (
@@ -79,7 +81,7 @@ export function BarraLateral({ contadores, minutosPorArea, usuario }: Props) {
 }
 
 /** iPad horizontal: trilho de ícones de 76 px com "Novo" no pé. */
-export function Trilho({ contadores }: Pick<Props, "contadores">) {
+export function Trilho({ contadores, dono }: Pick<Props, "contadores" | "dono">) {
   const pathname = usePathname();
   const { abrir } = useNovoItem();
   return (
@@ -88,7 +90,7 @@ export function Trilho({ contadores }: Pick<Props, "contadores">) {
         <Logo tamanho={30} />
       </Link>
       <ul>
-        {[...MENU, ...SECUNDARIO].map((item) => {
+        {menuDe(dono).map((item) => {
           const n = item.contador ? contadores[item.contador] : 0;
           return (
             <li key={item.href}>

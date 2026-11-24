@@ -1,0 +1,230 @@
+/*
+  Plano AI Engineer: primeira abertura, as três trilhas, recrutamento e a folha de conclusão.
+  Uma coluna em qualquer tela; no notebook a coluna fica mais larga e o texto não estica.
+*/
+.plano {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  max-width: 820px;
+}
+.pilha {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.pilha > section {
+  display: grid;
+  gap: 16px;
+}
+
+.meta {
+  display: block;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.discreto {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.discreto a {
+  color: inherit;
+  text-decoration: underline;
+}
+.rotuloBloco {
+  margin-bottom: 4px;
+  color: var(--text-2);
+  font-size: var(--fs-label);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------- Trilha */
+.progresso {
+  display: grid;
+  gap: 6px;
+}
+
+/* ---------- Item atual */
+.atual {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--sidebar);
+}
+.codigo {
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.tituloItem {
+  font-size: var(--fs-card);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.aguardando {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--active);
+}
+
+.checklist {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.checklist ul,
+.linhas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.checklist li + li,
+.linhas > li + li {
+  border-top: 1px solid var(--line-soft);
+}
+.tentativas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+}
+.tentativas li {
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--active);
+}
+.tentativas li[data-aprovada="true"] {
+  background: var(--estudos-bg);
+  color: var(--estudos-text);
+}
+
+.linhas > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--touch);
+  padding: 6px 0;
+}
+.linhas > li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.recolhivel summary {
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Resultado da conclusão e erros */
+.resultado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--estudos-bg);
+  color: var(--estudos-text);
+}
+.resultado ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.erro {
+  color: var(--danger);
+  font-size: var(--fs-small);
+}
+.erro:empty {
+  display: none;
+}
+
+/* ---------- Folha de conclusão */
+.folha {
+  display: grid;
+  gap: 14px;
+}
+.campo {
+  display: grid;
+  gap: 6px;
+}
+.campo label {
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+.campo input {
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font: inherit;
+}
+.acoesFolha {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ---------- Aviso de erro (mesmo desenho do Roadmap) */
+.aviso {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + var(--safe-bottom));
+  z-index: 60;
+  width: min(440px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.aviso p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 10px 16px;
+  border-radius: var(--r-md);
+  background: var(--destaque);
+  color: var(--on-destaque);
+  font-size: var(--fs-small);
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
+}
+.aviso button {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--on-destaque);
+  font-size: 20px;
+}
+
+@media (min-width: 1024px) {
+  .aviso {
+    bottom: 32px;
+  }
+}

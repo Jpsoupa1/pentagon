@@ -34,7 +34,9 @@ export default defineConfig({
       AUTH_SECRET: process.env.AUTH_SECRET ?? "segredo-de-teste-local-com-32-caracteres!",
       AUTH_GITHUB_ID: process.env.AUTH_GITHUB_ID ?? "teste",
       AUTH_GITHUB_SECRET: process.env.AUTH_GITHUB_SECRET ?? "teste",
-      ALLOWED_EMAILS: process.env.ALLOWED_EMAILS ?? "teste@pentagon.local",
+      // O segundo email entra no app mas fica fora do OWNER_EMAILS: ele não recebe o plano.
+      ALLOWED_EMAILS: `${process.env.ALLOWED_EMAILS ?? "teste@pentagon.local"},amigo@pentagon.local`,
+      OWNER_EMAILS: "teste@pentagon.local",
       AUTH_URL: `http://localhost:${porta}`,
       // API do Claude simulada (e2e/claude-falso.ts), iniciada no globalSetup.
       ANTHROPIC_BASE_URL: `http://localhost:${porta + 99}`,

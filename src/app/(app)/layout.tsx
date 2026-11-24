@@ -4,6 +4,7 @@ import { EditarOcorrenciaProvider } from "@/components/shell/EditarOcorrencia";
 import { FilaOffline } from "@/components/shell/FilaOffline";
 import { NovoItemProvider } from "@/components/shell/NovoItemProvider";
 import s from "@/components/shell/Shell.module.css";
+import { recebeConteudoPessoal } from "@/server/permissao";
 import { exigirUsuario } from "@/server/sessao";
 import { obterAjustes } from "@/server/servicos/ajustes";
 import { listarDisciplinas } from "@/server/servicos/disciplinas";
@@ -22,12 +23,18 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     email: usuario.email ?? "",
     imagem: usuario.image ?? null,
   };
+  const dono = recebeConteudoPessoal(usuario.email);
   return (
     <NovoItemProvider disciplinas={opcoesDisciplina}>
       <EditarOcorrenciaProvider disciplinas={opcoesDisciplina} fuso={ajustes.fuso}>
         <div className={s.app}>
-          <BarraLateral contadores={contadores} minutosPorArea={minutosPorArea} usuario={perfil} />
-          <Trilho contadores={contadores} />
+          <BarraLateral
+            contadores={contadores}
+            dono={dono}
+            minutosPorArea={minutosPorArea}
+            usuario={perfil}
+          />
+          <Trilho contadores={contadores} dono={dono} />
           <main className={s.principal} id="conteudo">
             <div className={s.conteudo}>{children}</div>
           </main>

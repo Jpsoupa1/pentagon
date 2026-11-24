@@ -31,6 +31,7 @@ import {
   type Catalogo,
   type Conclusao,
   type ItemPlano,
+  type Pendente,
 } from "@/lib/plano";
 import { diaDaSemana, hojeLocal, segundaDe } from "@/lib/tempo";
 import type {
@@ -210,7 +211,7 @@ export async function estadoDoPlano(userId: string, agora = new Date()) {
     .filter((b) => b.feitoEm)
     .map((b) => ({ codigo: b.codigoEstudado, minutos: b.minutos }));
 
-  const estadoDoItemAtual = (item: ItemPlano, estado: string, pendentes: unknown[]) => ({
+  const estadoDoItemAtual = (item: ItemPlano, estado: string, pendentes: Pendente[]) => ({
     codigo: item.codigo,
     titulo: item.titulo,
     fase: item.fase ?? null,
@@ -278,6 +279,10 @@ export async function estadoDoPlano(userId: string, agora = new Date()) {
     plano: {
       iniciado: true as const,
       hoje,
+      /** Fuso do usuário: a tela mostra a data de conclusão no dia local. */
+      fuso: ctx.ajustes.fuso,
+      /** Texto do checklist de entrega; `checks.entrega` do item atual aponta para estes índices. */
+      padraoDeEntrega: cat.padraoDeEntrega,
       trilhas,
       fases: cat.fases.map((f) => ({
         ...f,

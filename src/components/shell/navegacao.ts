@@ -8,6 +8,8 @@ export type ItemNav = {
   icone: NomeIcone;
   area?: AreaId;
   contador?: keyof Contadores;
+  /** Só aparece para quem recebe o conteúdo pessoal (OWNER_EMAILS). */
+  soDono?: boolean;
 };
 
 export type Contadores = { aulas: number; provas: number; estudos: number; lembretes: number };
@@ -40,6 +42,7 @@ export const MENU: ItemNav[] = [
     contador: "estudos",
   },
   { href: "/trilhas", rotulo: "Trilhas", curto: "Trilhas", icone: "trilhas", area: "estudos" },
+  { href: "/plano", rotulo: "Plano", curto: "Plano", icone: "plano", soDono: true },
   { href: "/cards", rotulo: "Cards", curto: "Cards", icone: "cards", area: "estudos" },
   { href: "/estagio", rotulo: "Estágio", curto: "Estágio", icone: "estagio", area: "estagio" },
   {
@@ -56,6 +59,9 @@ export const SECUNDARIO: ItemNav[] = [
   { href: "/areas", rotulo: "Áreas", curto: "Áreas", icone: "areas" },
   { href: "/ajustes", rotulo: "Ajustes", curto: "Ajustes", icone: "ajustes" },
 ];
+
+/** O menu que a pessoa enxerga: a entrada do plano some para quem não é dono. */
+export const menuDe = (dono: boolean) => [...MENU, ...SECUNDARIO].filter((i) => dono || !i.soDono);
 
 export function ativo(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);

@@ -155,6 +155,14 @@ describe("primeira abertura", () => {
     ]);
   });
 
+  it("o estado traz o fuso e o texto do padrão de entrega para a tela", async () => {
+    await iniciar(["A0"]);
+    const plano = await estado();
+    expect(plano.fuso).toBe("America/Sao_Paulo");
+    expect(plano.padraoDeEntrega).toEqual(carregarCatalogo(planoJson).padraoDeEntrega);
+    expect(plano.padraoDeEntrega.length).toBeGreaterThan(0);
+  });
+
   it("repetir a primeira abertura dá 409 e não grava nada", async () => {
     await iniciar(["A0"]);
     await recusado(iniciar(["A0", "C1"]), "ja_iniciado");

@@ -6,6 +6,7 @@ import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
 import { AREAS } from "@/lib/areas";
 import type { AreaId } from "@/lib/dominio";
 import { duracaoTexto } from "@/lib/tempo";
+import { recebeConteudoPessoal } from "@/server/permissao";
 import { exigirUsuario } from "@/server/sessao";
 import { resumoNavegacao } from "@/server/servicos/navegacao";
 
@@ -22,6 +23,7 @@ const DESTINO: Record<AreaId, string> = {
 export default async function Areas() {
   const usuario = await exigirUsuario();
   const { minutosPorArea } = await resumoNavegacao(usuario.id);
+  const dono = recebeConteudoPessoal(usuario.email);
   return (
     <>
       <CabecalhoPagina titulo="Áreas" sobre="Os cinco lados da semana" />
@@ -60,6 +62,14 @@ export default async function Areas() {
                 <span className={layout.itemTitulo}>Trilhas</span>
               </Link>
             </li>
+            {dono && (
+              <li>
+                <Link href="/plano" className={layout.itemLink}>
+                  <Icone nome="plano" />
+                  <span className={layout.itemTitulo}>Plano</span>
+                </Link>
+              </li>
+            )}
             <li>
               <Link href="/cards" className={layout.itemLink}>
                 <Icone nome="cards" />
