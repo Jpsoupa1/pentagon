@@ -24,6 +24,9 @@ export default async function globalSetup() {
     await semearRotina(drizzle(pool), userId, SEMEADO_EM);
     await semearSeguranca(drizzle(pool), userId, SEMEADO_EM);
     await semearRoadmap(drizzle(pool), [userId]);
+    // De propósito, sem `migrarPlano`: os e2e de Estudos e Trilhas dependem da DevOps e da
+    // Segurança ativas até o 6b removê-los. O dono migrado é coberto em
+    // tests/integracao/arquivamento.test.ts.
   } finally {
     await pool.end();
   }
