@@ -24,6 +24,8 @@ const URL_DO_ALVO: Record<AlvoAviso, string> = {
   evento: "/agenda",
   avaliacao: "/provas",
   lembrete: "/lembretes",
+  bloco: "/",
+  folga: "/",
 };
 
 export async function listarInscricoes(userId: string) {

@@ -9,6 +9,21 @@ export type SlugTrilha = (typeof slugsTrilha)[number];
 export const blocosPlano = ["manha", "teoria", "projeto"] as const;
 export type BlocoPlano = (typeof blocosPlano)[number];
 
+/** Início e duração de cada bloco, por tipo de dia (Ajustes; nulo no banco usa os padrões). */
+export type BlocosPlanoAjustes = Partial<
+  Record<
+    "dias_uteis" | "sabado" | "domingo",
+    Partial<Record<BlocoPlano, { inicio: string; minutos?: number; ligado?: boolean }>>
+  >
+>;
+
+/** Duração padrão de cada bloco, em minutos, quando Ajustes não define (a manhã segue a folga do dia). */
+export const MINUTOS_PADRAO_BLOCO: Record<BlocoPlano, number> = {
+  manha: 60,
+  teoria: 90,
+  projeto: 80,
+};
+
 export const SUGESTAO_INICIAL = ["A0", "C1"] as const;
 
 // ---------------------------------------------------------------------------------------------

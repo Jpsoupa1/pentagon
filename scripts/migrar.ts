@@ -4,6 +4,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import { urlDoBanco } from "../src/server/db/url";
 import { semearAreas } from "./seed-areas";
+import { semearCatalogoPlano } from "./seed-plano";
 import { semearRoadmapParaTodos } from "./seed-roadmap";
 import { semearRotinaParaTodos } from "./seed-rotina";
 import { semearSegurancaParaTodos } from "./seed-seguranca";
@@ -21,7 +22,8 @@ export async function migrar() {
     await semearRotinaParaTodos(db);
     await semearSegurancaParaTodos(db);
     await semearRoadmapParaTodos(db);
-    console.log("Migrações aplicadas; áreas, trilhas, roadmap e rotina conferidos.");
+    await semearCatalogoPlano(db);
+    console.log("Migrações aplicadas; áreas, trilhas, roadmap, plano e rotina conferidos.");
   } finally {
     await pool.end();
   }

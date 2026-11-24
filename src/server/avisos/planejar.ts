@@ -2,7 +2,7 @@ import type { Ocorrencia } from "../agenda/recorrencia";
 
 // Regras puras de agendamento de avisos: o que deveria estar agendado e o que muda.
 
-export type AlvoAviso = "evento" | "avaliacao" | "sessao" | "lembrete";
+export type AlvoAviso = "evento" | "avaliacao" | "sessao" | "lembrete" | "bloco" | "folga";
 
 export type AvisoDesejado = {
   alvoTipo: AlvoAviso;
