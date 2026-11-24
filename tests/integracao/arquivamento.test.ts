@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
-import type { drizzle } from "drizzle-orm/node-postgres";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { eventoSchema } from "@/lib/validacao";
 import { horaLocal } from "@/lib/tempo";
@@ -14,7 +13,6 @@ import {
   roadmapRequirementProgress,
   settings,
   studyErrors,
-  studyReviews,
   studySessions,
   studyTracks,
   studyWeeks,
@@ -27,101 +25,34 @@ import { BLOCOS_PLANO_PADRAO, migrarPlano } from "@/server/plano/migracao";
 import { semearRoadmap } from "@/server/roadmap/seed";
 import { semearRotina } from "@/server/rotina/seed";
 import { ocorrencias, painelHoje } from "@/server/servicos/agenda";
-import { acervo, cardsDeHoje, importarCards, responderCard } from "@/server/servicos/cards";
+import { acervo, cardsDeHoje, importarCards } from "@/server/servicos/cards";
 import { feedPorToken } from "@/server/servicos/calendario";
 import { criarComChecagem } from "@/server/servicos/compromissos";
 import { exportarTudo } from "@/server/servicos/exportar";
 import { listarEventos } from "@/server/servicos/eventos";
 import { resumoDoCaderno, criarErro, errosParaRevisar } from "@/server/servicos/revisao";
-import { reconciliarAvisos, salvarInscricao } from "@/server/servicos/avisos";
 import { resumoNavegacao } from "@/server/servicos/navegacao";
 import { migrarPlanoParaTodos } from "../../scripts/migrar-plano";
 import { semearRoadmapParaTodos } from "../../scripts/seed-roadmap";
 import { semearSegurancaParaTodos } from "../../scripts/seed-seguranca";
 import { semearTrilhaParaTodos } from "../../scripts/seed-trilha";
 import { exemplo } from "./exemplo";
+import {
+  AGORA,
+  banco,
+  criarDono as criarDonoAntigo,
+  criarUsuario,
+  FUSO,
+  HOJE,
+  reconciliar,
+  TERCA,
+} from "./dono-antigo";
 
 const DONO = "dono-arquivamento@pentagon.local";
 const OUTRO_DONO = "outro-dono-arquivamento@pentagon.local";
 const AMIGO = "amigo-arquivamento@pentagon.local";
 
-/** Como o e2e: a rotina e a Segurança começam na semana de 19/10/2026. */
-const SEMEADO_EM = new Date("2026-10-19T12:00:00-03:00");
-/** Quarta 21/10/2026, 10:00 em São Paulo. */
-const AGORA = new Date("2026-10-21T13:00:00Z");
-const HOJE = "2026-10-21";
-const TERCA = "2026-10-27";
-const SEM_AGENDADOR = { ativo: false, agendar: async () => null, cancelar: async () => {} };
-const FUSO = "America/Sao_Paulo";
-
-const banco = () => db() as unknown as ReturnType<typeof drizzle>;
-const reconciliar = (id: string) => reconciliarAvisos(id, AGORA, SEM_AGENDADOR);
-
-async function criarUsuario(email: string) {
-  await db().delete(users).where(eq(users.email, email));
-  const [u] = await db().insert(users).values({ email }).returning();
-  return u.id;
-}
-
-/**
- * Dono no formato real de antes do plano: DevOps, Segurança, roadmaps com progresso, Academia de
- * 90 min, cards CKA e SEG (um respondido), erros antigos, revisão de sexta e avisos agendados.
- */
-async function criarDono(email = DONO) {
-  const id = await criarUsuario(email);
-  await semearTrilha(db(), id);
-  await semearRotina(db(), id, SEMEADO_EM);
-  await semearSeguranca(db(), id, SEMEADO_EM);
-  await semearRoadmap(db(), [id]);
-  await db()
-    .update(events)
-    .set({ duracaoMin: 90 })
-    .where(and(eq(events.userId, id), eq(events.titulo, "Academia")));
-
-  await importarCards(id, {
-    cards: [...exemplo.cards, { ...exemplo.cards[0], id: "seg-teste-001", trilha: "SEG" }],
-  });
-  const [card] = (await acervo(id, AGORA)).cards;
-  await responderCard(id, {
-    id: randomUUID(),
-    cardId: card.id,
-    resultado: "acertou",
-    modo: "dia",
-    data: HOJE,
-    respondidaEm: AGORA.toISOString(),
-  });
-
-  const [trilha] = await db()
-    .select({ id: studyTracks.id })
-    .from(studyTracks)
-    .where(and(eq(studyTracks.userId, id), eq(studyTracks.slug, "devops")));
-  const [semana] = await db()
-    .select({ id: studyWeeks.id })
-    .from(studyWeeks)
-    .where(eq(studyWeeks.trackId, trilha.id))
-    .limit(1);
-  await db().insert(studyReviews).values({ userId: id, weekId: semana.id, nota: 7 });
-  await db()
-    .insert(studyErrors)
-    .values({
-      userId: id,
-      data: "2026-09-01",
-      tema: "etcd",
-      errei: "achei que o scheduler gravava no etcd",
-      correto: "só o kube-apiserver grava",
-      revisarEm: "2026-10-25",
-      createdAt: new Date("2026-09-01T12:00:00Z"),
-    });
-
-  await salvarInscricao(id, {
-    endpoint: `https://push.exemplo/${id}`,
-    p256dh: "p",
-    auth: "a",
-    aparelho: "teste",
-  });
-  await reconciliar(id);
-  return id;
-}
+const criarDono = (email = DONO) => criarDonoAntigo(email);
 
 type Conexao = Parameters<typeof migrarPlano>[0];
 
