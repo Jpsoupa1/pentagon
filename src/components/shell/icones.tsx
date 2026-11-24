@@ -36,6 +36,7 @@ const caminhos = {
       <path d="M7.5 4.5A1.5 1.5 0 0 1 9 3.5h9.5A2 2 0 0 1 20.5 5.5V16a1.5 1.5 0 0 1-1 1.4" />
     </>
   ),
+  plano: <path d="M6 20.5V3.5M6 4.5h11.5l-2.5 4 2.5 4H6" />,
   estagio: (
     <>
       <rect x="3.5" y="7" width="17" height="12.5" rx="2.5" />
