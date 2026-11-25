@@ -2,10 +2,23 @@
 import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
 
+/** Só banco da própria máquina (o CI também usa localhost): qualquer outro host é recusado. */
+export function exigirBancoLocal(url: string) {
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    throw new Error("Recusado: DATABASE_URL inválida.");
+  }
+  if (!["localhost", "127.0.0.1"].includes(host)) {
+    throw new Error("Recusado: o e2e só roda em banco local.");
+  }
+}
+
 export const EMAIL_TESTE = "teste@pentagon.local";
 
 export async function criarSessaoDeTeste(url: string) {
-  if (/neon\.tech|vercel/.test(url)) throw new Error("Recusado: banco parece ser de produção.");
+  exigirBancoLocal(url);
   const pool = new Pool({ connectionString: url, max: 1 });
   try {
     const { rows } = await pool.query(
@@ -46,10 +59,12 @@ export async function criarSessaoDeTeste(url: string) {
 }
 
 export const EMAIL_FORA_DO_PLANO = "amigo@pentagon.local";
+/** Sessão da conta fora do plano, já com a DevOps, a Segurança e o roadmap semeados (global-setup). */
+export const ESTADO_AMIGO = "e2e/.auth/amigo.json";
 
 /** Sessão de um segundo usuário (sem mexer nos dados de ninguém): cookie pronto para o Playwright. */
 export async function criarSessaoDeOutroUsuario(url: string, email: string) {
-  if (/neon\.tech|vercel/.test(url)) throw new Error("Recusado: banco parece ser de produção.");
+  exigirBancoLocal(url);
   const pool = new Pool({ connectionString: url, max: 1 });
   try {
     const { rows } = await pool.query(

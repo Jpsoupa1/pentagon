@@ -15,8 +15,8 @@ type Resultado = { importados: number; repetidos: string[]; erros: ErroImportaca
 const EXEMPLO = `{
   "cards": [
     {
-      "id": "cka-arq-001",
-      "trilha": "CKA",
+      "id": "teoria-arq-001",
+      "trilha": "TEORIA",
       "tema": "Arquitetura do cluster",
       "frente": "Qual é o único componente que lê e grava no etcd?",
       "verso": "O kube-apiserver.",

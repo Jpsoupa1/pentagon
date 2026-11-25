@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Roadmap } from "@/components/telas/roadmap/Roadmap";
 import { ABAS, type Aba } from "@/components/telas/roadmap/comum";
 import { NaoEncontrado } from "@/server/erros";
+import { recebeConteudoPessoal } from "@/server/permissao";
 import { exigirUsuario } from "@/server/sessao";
 import { obterRoadmap } from "@/server/servicos/roadmap";
 
@@ -13,6 +14,7 @@ export default async function PaginaRoadmap({
   searchParams,
 }: PageProps<"/trilhas/[slug]/roadmap">) {
   const usuario = await exigirUsuario();
+  if (recebeConteudoPessoal(usuario.email)) redirect("/plano");
   const [{ slug }, { aba }] = await Promise.all([params, searchParams]);
   const dados = await obterRoadmap(usuario.id, slug).catch((e) => {
     if (e instanceof NaoEncontrado) notFound();

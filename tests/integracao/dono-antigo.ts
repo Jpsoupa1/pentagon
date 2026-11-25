@@ -4,6 +4,7 @@ import type { drizzle } from "drizzle-orm/node-postgres";
 import { db } from "@/server/db";
 import {
   events,
+  flashcards,
   studyErrors,
   studyReviews,
   studyTracks,
@@ -15,7 +16,7 @@ import { semearSeguranca } from "@/server/estudos/seguranca";
 import { semearRoadmap } from "@/server/roadmap/seed";
 import { semearRotina } from "@/server/rotina/seed";
 import { reconciliarAvisos, salvarInscricao } from "@/server/servicos/avisos";
-import { acervo, importarCards, responderCard } from "@/server/servicos/cards";
+import { acervo, responderCard } from "@/server/servicos/cards";
 import { exemplo } from "./exemplo";
 
 // Um dono no formato de dados que o app tinha antes do plano AI. Serve aos testes de arquivamento
@@ -56,9 +57,26 @@ export async function criarDono(email: string, agora = AGORA) {
     .set({ duracaoMin: 90 })
     .where(and(eq(events.userId, id), eq(events.titulo, "Academia")));
 
-  await importarCards(id, {
-    cards: [...exemplo.cards, { ...exemplo.cards[0], id: "seg-teste-001", trilha: "SEG" }],
-  });
+  // O dono antigo já tinha cards CKA e SEG, que a importação de hoje recusaria: entram direto.
+  const antigos: Record<string, unknown>[] = [
+    ...exemplo.cards.map((c) => ({ ...c, trilha: "CKA" })),
+    { ...exemplo.cards[0], id: "seg-teste-001", trilha: "SEG" },
+  ];
+  await db()
+    .insert(flashcards)
+    .values(
+      antigos.map((c) => ({
+        userId: id,
+        chave: String(c.id),
+        trilha: String(c.trilha),
+        tema: String(c.tema),
+        frente: String(c.frente),
+        verso: String(c.verso),
+        codigo: (c.codigo as string | null) ?? null,
+        origem: c.origem as "aula" | "erro",
+        criadoEm: String(c.criado_em),
+      })),
+    );
   const [card] = (await acervo(id, AGORA)).cards;
   await responderCard(id, {
     id: randomUUID(),

@@ -2,8 +2,10 @@ import "server-only";
 import { and, asc, eq, gte } from "drizzle-orm";
 import type { z } from "zod";
 import {
+  AVISO_TRILHA_DE_CARDS,
   responder,
   sessaoDoDia,
+  TRILHAS_DE_CARDS_DO_PLANO,
   validarImportacao,
   type CardCliente,
   type ErroImportacao,
@@ -16,6 +18,7 @@ import { flashcardAnswers, flashcards } from "../db/schema";
 import { EntradaInvalida, NaoEncontrado } from "../erros";
 import { semCardsArquivados } from "../plano/arquivados";
 import { obterAjustes } from "./ajustes";
+import { ehDono } from "./plano";
 import { arquivados } from "./arquivamentos";
 
 const colunasCard = {
@@ -86,6 +89,12 @@ export async function cardsDeHoje(userId: string, hoje: string, limite: number) 
   return { faltam: sessaoDoDia(cards, respostas, limite, hoje).length, total: cards.length };
 }
 
+/** O dono guarda cards só nas trilhas do plano; as demais contas seguem como antes. */
+async function exigirTrilhaDoPlano(userId: string, trilhas: string[]) {
+  const fora = trilhas.some((t) => !TRILHAS_DE_CARDS_DO_PLANO.some((p) => p === t));
+  if (fora && (await ehDono(userId))) throw new EntradaInvalida(AVISO_TRILHA_DE_CARDS);
+}
+
 /**
  * Importa o JSON colado. Ids que já estão no acervo são ignorados (o card salvo não muda);
  * cards inválidos voltam com o motivo e não impedem os válidos de entrar.
@@ -103,6 +112,11 @@ export async function importarCards(
     existentes.map((e) => e.chave),
   );
   if (!r.ok) throw new EntradaInvalida(r.erro);
+  // O dono guarda cards só nas trilhas do plano; as demais contas importam como antes.
+  await exigirTrilhaDoPlano(
+    userId,
+    r.validos.map((c) => c.trilha),
+  );
   let importados = 0;
   const repetidos = [...r.repetidos];
   // Em lotes, para não estourar o limite de parâmetros do Postgres.
@@ -182,6 +196,7 @@ export async function editarCard(
   id: string,
   mudancas: z.output<typeof cardEdicaoSchema>,
 ) {
+  if (mudancas.trilha !== undefined) await exigirTrilhaDoPlano(userId, [mudancas.trilha]);
   const [salvo] = await db()
     .update(flashcards)
     .set(mudancas)

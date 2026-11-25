@@ -10,6 +10,10 @@ export const CAIXAS = [1, 2, 3, 4] as const;
 export const INTERVALO_DIAS: Record<number, number> = { 1: 1, 2: 3, 3: 7, 4: 21 };
 export const LIMITE_PADRAO = 20;
 
+/** Trilhas de cards que o dono importa depois da migração: as três do plano AI. */
+export const TRILHAS_DE_CARDS_DO_PLANO = ["TEORIA", "CURSOS", "PROJETOS"] as const;
+export const AVISO_TRILHA_DE_CARDS = "Use a trilha TEORIA, CURSOS ou PROJETOS.";
+
 export type EstadoCard = {
   caixa: number;
   /** Sem data: card novo, nunca revisado. */

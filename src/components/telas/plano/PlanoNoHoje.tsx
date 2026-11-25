@@ -6,6 +6,8 @@ import { Botao, BotaoLink } from "@/components/ui/Botao";
 import { Cartao, CartaoCabeca } from "@/components/ui/Cartao";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { enviar } from "@/lib/cliente/api";
+import { AnotarErro } from "../AnotarErro";
+import { RevisaoEspacada } from "../RevisaoEspacada";
 import { duracaoTexto, minParaHm, hmParaMin } from "@/lib/tempo";
 import type { PlanoDeHoje } from "@/server/servicos/blocos";
 import s from "./PlanoNoHoje.module.css";
@@ -77,6 +79,7 @@ export function PlanoNoHoje({ plano }: { plano: Plano }) {
                 // Muda quando o servidor devolve outro estado e recomeça os campos do bloco.
                 key={`${b.bloco}:${b.feito}:${b.minutosFeitos}:${b.minutos}`}
                 bloco={b}
+                hoje={plano.hoje}
                 opcoes={plano.opcoesDeTroca}
                 ocupado={ocupado}
                 escrever={escrever}
@@ -87,17 +90,56 @@ export function PlanoNoHoje({ plano }: { plano: Plano }) {
           <EstadoVazio>Nenhum bloco de estudo hoje.</EstadoVazio>
         )}
       </Cartao>
+      {plano.cardsECerebro && <CartaoCardsECerebro material={plano.cardsECerebro} />}
     </>
+  );
+}
+
+/** Plano B do dia: revisão de cards, erros do caderno já vencidos e o lembrete do Cerebro. */
+function CartaoCardsECerebro({ material }: { material: NonNullable<Plano["cardsECerebro"]> }) {
+  const { cards, erros } = material;
+  return (
+    <Cartao aria-labelledby="cards-e-cerebro-titulo">
+      <CartaoCabeca titulo={<span id="cards-e-cerebro-titulo">Cards e Cerebro</span>} />
+      <ul className={s.lista}>
+        <li className={s.bloco}>
+          <p className={s.titulo}>
+            <strong>Revisão de cards do dia:</strong>{" "}
+            {cards.faltam === 0
+              ? "tudo revisado por hoje."
+              : `${cards.faltam} ${cards.faltam === 1 ? "card falta" : "cards faltam"} revisar.`}
+          </p>
+          {cards.faltam > 0 && (
+            <div className={s.acoes}>
+              <BotaoLink href="/cards/dia" variante="fantasma" pequeno>
+                Começar os cards
+              </BotaoLink>
+            </div>
+          )}
+        </li>
+        <li className={s.bloco}>
+          <p className={s.titulo}>
+            <strong>Erros para revisar ({erros.length})</strong>
+          </p>
+          {erros.length > 0 && <RevisaoEspacada erros={erros} />}
+        </li>
+        <li className={s.bloco}>
+          <p className={s.titulo}>Passar as notas no Cerebro</p>
+        </li>
+      </ul>
+    </Cartao>
   );
 }
 
 function LinhaDoBloco({
   bloco,
+  hoje,
   opcoes,
   ocupado,
   escrever,
 }: {
   bloco: BlocoHoje;
+  hoje: string;
   opcoes: Plano["opcoesDeTroca"];
   ocupado: boolean;
   escrever: (url: string, corpo: unknown) => Promise<void>;
@@ -172,6 +214,10 @@ function LinhaDoBloco({
             </Botao>
           </>
         )}
+        <AnotarErro
+          variante="secundario"
+          padrao={{ data: hoje, tema: bloco.texto.slice(0, 120), origem: "pratica" }}
+        />
       </div>
       {trocando && !bloco.feito && (
         <div role="group" aria-label={`Trocar o conteúdo de ${bloco.rotulo}`} className={s.opcoes}>

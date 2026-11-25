@@ -67,3 +67,10 @@
   border: 1px solid var(--line-soft);
   border-radius: var(--r-md);
 }
+.temas {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}

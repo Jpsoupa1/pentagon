@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { AnotarErro } from "@/components/telas/AnotarErro";
 import { ListaSessoes } from "@/components/telas/ListaSessoes";
 import { RevisaoEspacada } from "@/components/telas/RevisaoEspacada";
@@ -29,6 +30,7 @@ import {
 } from "@/lib/tempo";
 import { tituloDaSessao } from "@/server/estudos/trilha";
 import { segurancaEm } from "@/server/roadmap/compartilhamento";
+import { recebeConteudoPessoal } from "@/server/permissao";
 import { exigirUsuario } from "@/server/sessao";
 import { ocorrencias, semanaDe } from "@/server/servicos/agenda";
 import { obterAjustes } from "@/server/servicos/ajustes";
@@ -50,6 +52,8 @@ export const metadata: Metadata = { title: "Estudos" };
 
 export default async function Estudos() {
   const usuario = await exigirUsuario();
+  // Para o dono o Plano é a única entrada de estudo; o resto desta tela fica para as demais contas.
+  if (recebeConteudoPessoal(usuario.email)) redirect("/plano");
   const ajustes = await obterAjustes(usuario.id);
   const { fuso } = ajustes;
   const agora = new Date();

@@ -274,6 +274,89 @@ test("Hoje: com sábado e domingo ligados, o bloco da Teoria aparece em qualquer
   }
 });
 
+const hojeEmSaoPaulo = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+test("Hoje: Anotar erro num bloco grava no caderno, sem sessão", async ({ page }) => {
+  test.skip([0, 6].includes(diaDaSemanaEmSaoPaulo()), "Sem blocos no fim de semana.");
+  const errei = `Erro do bloco ${Date.now()}`;
+  await page.goto("/");
+  const blocos = page.getByRole("region", { name: "Blocos de hoje" });
+  await blocos.getByRole("button", { name: "Anotar erro" }).first().click();
+  const folha = page.getByRole("dialog", { name: "Caderno de erros" });
+  await folha.getByLabel("Revisar de novo em").fill(hojeEmSaoPaulo());
+  await folha.getByLabel("O que errei").fill(errei);
+  await folha.getByLabel("Como é o certo").fill("O certo");
+  const salvar = folha.getByRole("button", { name: "Anotar erro" });
+  await salvar.click();
+  await expect(folha.getByRole("status")).toContainText("Erro anotado");
+
+  const lista = await (await page.request.get("/api/estudos/erros")).json();
+  const criado = lista.find((e: { errei: string }) => e.errei === errei);
+  expect(criado).toMatchObject({ origem: "pratica", sessionId: null });
+  await page.request.delete(`/api/estudos/erros/${criado.id}`);
+});
+
+test("Hoje: o bloco em Cards e Cerebro mostra os cards do dia, os erros vencidos e o lembrete", async ({
+  page,
+}) => {
+  test.skip([0, 6].includes(diaDaSemanaEmSaoPaulo()), "Sem blocos no fim de semana.");
+  const tema = `Tema vencido ${Date.now()}`;
+  const r = await page.request.post("/api/estudos/erros", {
+    data: { data: hojeEmSaoPaulo(), tema, errei: "a", correto: "b", revisarEm: hojeEmSaoPaulo() },
+  });
+  expect(r.status()).toBe(201);
+  const { id } = await r.json();
+  try {
+    await page.goto("/");
+    await expect(page.getByRole("region", { name: "Cards e Cerebro" })).toHaveCount(0);
+    const blocos = page.getByRole("region", { name: "Blocos de hoje" });
+    await blocos.getByRole("button", { name: /^Trocar o conteúdo de Projeto/ }).click();
+    await blocos.getByRole("button", { name: "Cards e Cerebro", exact: true }).click();
+
+    const cartao = page.getByRole("region", { name: "Cards e Cerebro" });
+    await expect(cartao.getByText("Revisão de cards do dia:")).toBeVisible();
+    await expect(cartao.getByText(/^Erros para revisar \(\d+\)$/)).toBeVisible();
+    await expect(cartao.getByText(tema)).toBeVisible();
+    await expect(cartao.getByText("Passar as notas no Cerebro")).toBeVisible();
+
+    // Voltar ao que o plano manda tira o cartão da tela.
+    await blocos.getByRole("button", { name: /^Trocar o conteúdo de Projeto/ }).click();
+    await blocos.getByRole("button", { name: "Voltar ao que o plano manda" }).click();
+    await expect(page.getByRole("region", { name: "Cards e Cerebro" })).toHaveCount(0);
+  } finally {
+    await page.request.delete(`/api/estudos/erros/${id}`);
+  }
+});
+
+test("Plano: o caderno de erros lista o vencido, e revisar com Acertei o tira da lista", async ({
+  page,
+}) => {
+  const tema = `Tema do caderno ${Date.now()}`;
+  const hoje = hojeEmSaoPaulo();
+  const r = await page.request.post("/api/estudos/erros", {
+    data: { data: hoje, tema, errei: "a", correto: "b", revisarEm: hoje },
+  });
+  expect(r.status()).toBe(201);
+  const { id } = await r.json();
+  try {
+    await page.goto("/plano");
+    const caderno = page.getByRole("region", { name: "Caderno de erros" });
+    await expect(caderno.getByRole("button", { name: "Anotar erro" })).toBeVisible();
+    await expect(caderno.getByText(tema)).toBeVisible();
+    await caderno
+      .getByRole("listitem")
+      .filter({ hasText: tema })
+      .getByRole("button", { name: "Acertei" })
+      .click();
+    await expect(caderno.getByText(tema)).toHaveCount(0);
+    const lista = await (await page.request.get("/api/estudos/erros")).json();
+    expect(lista.some((e: { id: string }) => e.id === id)).toBe(false);
+  } finally {
+    await page.request.delete(`/api/estudos/erros/${id}`);
+  }
+});
+
 test("Ajustes recusa horário 25:00 e minutos 0 ou 500 com 400", async ({ page }) => {
   const patch = (t: object) =>
     page.request.patch("/api/ajustes", { data: { blocosPlano: { dias_uteis: { teoria: t } } } });

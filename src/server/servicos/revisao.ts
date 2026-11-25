@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, isNull, lte, sql } from "drizzle-orm";
 import type { z } from "zod";
 import { dataDeRevisao, errosDaSemana } from "@/lib/estudos";
-import { addDias } from "@/lib/tempo";
+import { addDias, dataCurta } from "@/lib/tempo";
 import type { erroSchema, revisaoSchema } from "@/lib/validacao";
 import { db } from "../db";
 import { studyErrors, studyReviews, studySessions, studyWeeks } from "../db/schema";
@@ -113,6 +113,19 @@ export async function errosParaRevisar(userId: string, hoje: string) {
     )
     .orderBy(asc(studyErrors.createdAt));
   return errosDaSemana(abertos, hoje);
+}
+
+/** Erros com revisão vencida (até hoje), já no formato da `RevisaoEspacada`. */
+export async function errosVencidos(userId: string, hoje: string) {
+  return (await errosParaRevisar(userId, hoje))
+    .filter((e) => e.revisarEm <= hoje)
+    .map((e) => ({
+      id: e.id,
+      rotulo: `${dataCurta(e.data)} · revisar em ${dataCurta(e.revisarEm)}`,
+      tema: e.tema,
+      errei: e.errei,
+      correto: e.correto,
+    }));
 }
 
 /** Resumo do caderno: quantos erros ainda estão nele e quando é a próxima revisão. */

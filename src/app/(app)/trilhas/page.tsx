@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Icone } from "@/components/shell/icones";
 import { Cartao } from "@/components/ui/Cartao";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { CabecalhoPagina, layout } from "@/components/ui/Pagina";
+import { recebeConteudoPessoal } from "@/server/permissao";
 import { exigirUsuario } from "@/server/sessao";
 import { listarRoadmaps } from "@/server/servicos/roadmap";
 
 export const metadata: Metadata = { title: "Trilhas" };
 
 export default async function Trilhas() {
-  await exigirUsuario();
+  const usuario = await exigirUsuario();
+  if (recebeConteudoPessoal(usuario.email)) redirect("/plano");
   const trilhas = await listarRoadmaps();
   return (
     <>

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { ESTADO_AMIGO } from "./sessao";
 import { ROTINA } from "../src/server/estudos/trilha";
 import diaria from "../src/server/roadmap/trilhas/seguranca-diaria.json";
 
@@ -17,7 +18,7 @@ const PAGINAS = [
   "/agenda",
   "/aulas",
   "/provas",
-  "/estudos",
+  "/plano",
   "/estagio",
   "/lembretes",
   "/areas",
@@ -195,46 +196,6 @@ test("cria lembrete online", async ({ page }, info) => {
 });
 
 test.describe("etapa 2: trilha, avisos e calendário", () => {
-  test("Estudos mostra a trilha, a semana e marca sessão como feita", async ({ page }) => {
-    await page.goto("/estudos");
-    if (hojeEmSaoPaulo() < ROTINA.INICIO) {
-      // Antes da semana zero não há sessão nesta semana: a tela diz quando a trilha começa.
-      await expect(page.getByText(/Trilha DevOps · começa /)).toBeVisible();
-      await expect(page.getByText(/A trilha começa /)).toBeVisible();
-      return;
-    }
-    await expect(page.getByText(/Trilha DevOps · semana \d+ de 49/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Progresso por fase" })).toBeVisible();
-    await expect(page.getByText("Fase 1: Kubernetes e fundamentos")).toBeVisible();
-    await expect(page.getByText("Prova CKA (meta)")).toBeVisible();
-    const semana = page.getByRole("region", { name: "Sessões da semana" });
-    const primeira = semana.getByRole("checkbox").first();
-    const marcada = await primeira.isChecked();
-    await Promise.all([
-      page.waitForResponse(
-        (r) => r.url().includes("/api/estudos/sessoes/") && r.request().method() === "PATCH",
-      ),
-      primeira.setChecked(!marcada),
-    ]);
-    await page.reload();
-    await expect(
-      page.getByRole("region", { name: "Sessões da semana" }).getByRole("checkbox").first(),
-    ).toBeChecked({
-      checked: !marcada,
-    });
-  });
-
-  test("Estudos mostra a fase datada da Segurança e leva ao Roadmap", async ({ page }) => {
-    await page.goto("/estudos");
-    const cartao = page.getByRole("region", { name: "Segurança e SecOps" });
-    await expect(cartao.getByText("Fase 1/4")).toBeVisible();
-    await expect(cartao.getByText("Fundamentos de segurança")).toBeVisible();
-    await expect(cartao.getByText(/Portão: Portão de fundamentos/)).toBeVisible();
-    await expect(cartao.getByRole("button", { name: /avançar/ })).toHaveCount(0);
-    await cartao.getByRole("link", { name: "Ver o roadmap da Segurança" }).click();
-    await expect(page).toHaveURL(/\/trilhas\/seguranca\/roadmap$/);
-  });
-
   test("sessões aparecem na Agenda com a cor de Estudos", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/agenda?semana=2026-10-19");
@@ -425,33 +386,6 @@ test.describe("etapa 2: trilha, avisos e calendário", () => {
     await request.patch("/api/ajustes", { data: { horariosEstudo: null } });
   });
 
-  test("compromisso de Estudos criado pelo usuário aparece em Estudos e no feed", async ({
-    page,
-    request,
-  }) => {
-    const titulo = `Leitura extra ${Date.now()}`;
-    const r = await request.post("/api/eventos", {
-      data: {
-        titulo,
-        areaId: "estudos",
-        data: hojeEmSaoPaulo(),
-        hora: "12:30",
-        duracaoMin: 45,
-        lembrarMin: 15,
-      },
-    });
-    expect(r.status(), await r.text()).toBe(201);
-    await page.goto("/estudos");
-    await expect(page.getByText(titulo)).toBeVisible();
-    const { token } = await (await request.post("/api/calendario/token")).json();
-    const ics = await (await request.get(`/api/calendario/${token}.ics`)).text();
-    expect(ics).toContain(`SUMMARY:${titulo}`);
-    expect(ics).toContain(
-      `DTSTART;TZID=America/Sao_Paulo:${hojeEmSaoPaulo().replace(/-/g, "")}T123000`,
-    );
-    expect(ics).toContain("TRIGGER:-PT15M");
-  });
-
   test("disparo de aviso só aceita assinatura do QStash", async ({ request }) => {
     const r = await request.post("/api/push/disparar", {
       data: { id: "00000000-0000-4000-8000-000000000000" },
@@ -635,5 +569,78 @@ test.describe("etapa 3: rotina pessoal", () => {
     expect(c.concluido).toBe(false);
     expect(new Date(c.quando).getTime()).toBeGreaterThan(Date.now());
     await request.delete(`/api/lembretes/${id}`);
+  });
+});
+
+// O dono não abre mais /estudos nem /trilhas (vão para /plano, veja e2e/menu.spec.ts). As telas
+// antigas seguem valendo para quem está fora do OWNER_EMAILS, com o seed da DevOps e da Segurança.
+test.describe("Estudos e Trilhas para quem não é dono", () => {
+  test.use({ storageState: ESTADO_AMIGO });
+
+  test("Estudos mostra a trilha, a semana e marca sessão como feita", async ({ page }) => {
+    await page.goto("/estudos");
+    if (hojeEmSaoPaulo() < ROTINA.INICIO) {
+      // Antes da semana zero não há sessão nesta semana: a tela diz quando a trilha começa.
+      await expect(page.getByText(/Trilha DevOps · começa /)).toBeVisible();
+      await expect(page.getByText(/A trilha começa /)).toBeVisible();
+      return;
+    }
+    await expect(page.getByText(/Trilha DevOps · semana \d+ de 49/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Progresso por fase" })).toBeVisible();
+    await expect(page.getByText("Fase 1: Kubernetes e fundamentos")).toBeVisible();
+    await expect(page.getByText("Prova CKA (meta)")).toBeVisible();
+    const semana = page.getByRole("region", { name: "Sessões da semana" });
+    const primeira = semana.getByRole("checkbox").first();
+    const marcada = await primeira.isChecked();
+    await Promise.all([
+      page.waitForResponse(
+        (r) => r.url().includes("/api/estudos/sessoes/") && r.request().method() === "PATCH",
+      ),
+      primeira.setChecked(!marcada),
+    ]);
+    await page.reload();
+    await expect(
+      page.getByRole("region", { name: "Sessões da semana" }).getByRole("checkbox").first(),
+    ).toBeChecked({
+      checked: !marcada,
+    });
+  });
+
+  test("Estudos mostra a fase datada da Segurança e leva ao Roadmap", async ({ page }) => {
+    await page.goto("/estudos");
+    const cartao = page.getByRole("region", { name: "Segurança e SecOps" });
+    await expect(cartao.getByText("Fase 1/4")).toBeVisible();
+    await expect(cartao.getByText("Fundamentos de segurança")).toBeVisible();
+    await expect(cartao.getByText(/Portão: Portão de fundamentos/)).toBeVisible();
+    await expect(cartao.getByRole("button", { name: /avançar/ })).toHaveCount(0);
+    await cartao.getByRole("link", { name: "Ver o roadmap da Segurança" }).click();
+    await expect(page).toHaveURL(/\/trilhas\/seguranca\/roadmap$/);
+  });
+
+  test("compromisso de Estudos criado pelo usuário aparece em Estudos e no feed", async ({
+    page,
+    request,
+  }) => {
+    const titulo = `Leitura extra ${Date.now()}`;
+    const r = await request.post("/api/eventos", {
+      data: {
+        titulo,
+        areaId: "estudos",
+        data: hojeEmSaoPaulo(),
+        hora: "12:30",
+        duracaoMin: 45,
+        lembrarMin: 15,
+      },
+    });
+    expect(r.status(), await r.text()).toBe(201);
+    await page.goto("/estudos");
+    await expect(page.getByText(titulo)).toBeVisible();
+    const { token } = await (await request.post("/api/calendario/token")).json();
+    const ics = await (await request.get(`/api/calendario/${token}.ics`)).text();
+    expect(ics).toContain(`SUMMARY:${titulo}`);
+    expect(ics).toContain(
+      `DTSTART;TZID=America/Sao_Paulo:${hojeEmSaoPaulo().replace(/-/g, "")}T123000`,
+    );
+    expect(ics).toContain("TRIGGER:-PT15M");
   });
 });
