@@ -10,6 +10,7 @@ import {
   checklistItems,
   eventExceptions,
   events,
+  planoProgresso,
   reminders,
   studySessions,
   type ConflitoDaAcao,
@@ -17,6 +18,7 @@ import {
   type entidadesDoAssistente,
 } from "../db/schema";
 import { Conflito, NaoEncontrado } from "../erros";
+import { desfazerConclusao } from "../servicos/plano";
 
 export type Entidade = (typeof entidadesDoAssistente)[number];
 export type Foto = Record<string, unknown>;
@@ -125,9 +127,14 @@ export async function fotoAtual(
         .where(eq(checklistItems.assessmentId, id));
       return { ...fotografar(a), _checklist: fotografar(itens) };
     }
-    // O assistente ainda não lê nem altera o plano (etapa 7).
-    case "item_plano":
-      return null;
+    // Do conteúdo do plano só importa se está concluído; o resto é do catálogo.
+    case "item_plano": {
+      const [c] = await db()
+        .select({ codigo: planoProgresso.codigo })
+        .from(planoProgresso)
+        .where(and(eq(planoProgresso.userId, userId), eq(planoProgresso.codigo, id)));
+      return { codigo: id, concluido: !!c };
+    }
     case "falta": {
       const [f] = await db()
         .select()
@@ -163,7 +170,11 @@ async function restaurar(userId: string, entidade: Entidade, id: string, foto: F
         .values(paraLinha(foto) as never);
     return;
   }
-  if (entidade === "item_plano") return;
+  if (entidade === "item_plano") {
+    // Só a conclusão é desfeita, e pelo serviço do plano (regra 4: só a mais recente da trilha).
+    if (!foto?.concluido) await desfazerConclusao(userId, id);
+    return;
+  }
   const tabela = {
     evento: events,
     lembrete: reminders,

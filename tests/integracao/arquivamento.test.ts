@@ -393,7 +393,7 @@ describe("o que o arquivamento esconde", () => {
     const consulta = async () =>
       (
         await executarFerramenta(
-          { userId: id, runId: randomUUID(), fuso: FUSO, agora: AGORA },
+          { userId: id, runId: randomUUID(), fuso: FUSO, agora: AGORA, consultasDoPlano: [] },
           "listar_agenda",
           { de: "2026-10-26", ate: "2026-11-01" },
         )

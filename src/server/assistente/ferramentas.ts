@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { areaIds, assessmentKinds, repeticoes, type AreaId } from "@/lib/dominio";
-import { turnos } from "@/lib/estudos";
+import { slugsTrilha } from "@/lib/plano";
 import {
   addDias,
   dataCurta,
@@ -35,8 +35,6 @@ import {
   type DetalheConflito,
 } from "../servicos/compromissos";
 import { obterDisciplina, registrarFalta } from "../servicos/disciplinas";
-import { tituloDaSessao } from "../estudos/trilha";
-import { marcarSessao, sessoesEntre } from "../servicos/estudos";
 import { apagarEvento, listarEventos, obterEvento, salvarExcecao } from "../servicos/eventos";
 import {
   apagarLembrete,
@@ -44,6 +42,7 @@ import {
   criarLembrete,
   listarLembretes,
 } from "../servicos/lembretes";
+import { consultarPlano, proporConclusao } from "./plano";
 import {
   chaveExcecao,
   descricao,
@@ -55,7 +54,14 @@ import {
 } from "./registro";
 
 /** O que cada ferramenta precisa saber da execução em andamento. */
-export type Execucao = { userId: string; runId: string; fuso: string; agora: Date };
+export type Execucao = {
+  userId: string;
+  runId: string;
+  fuso: string;
+  agora: Date;
+  /** Respostas do plano montadas pelo app nesta execução (a tela mostra estas, não o resumo da IA). */
+  consultasDoPlano: string[];
+};
 
 // ---------------------------------------------------------------- Identificadores dos itens
 
@@ -178,14 +184,21 @@ export const esquemas = {
     area: area.optional(),
   }),
   concluir_lembrete: z.object({ item: z.string().describe("Chave `lembrete:<id>`") }),
-  concluir_sessao_estudo: z.object({
-    data: dataSchema.describe("Dia da sessão da trilha de estudos"),
-    turno: z
-      .enum(turnos)
+  consultar_plano: z.object({
+    pergunta: z
+      .enum(["agora", "proximo"])
+      .describe("`agora`: o que estudar agora; `proximo`: o conteúdo seguinte"),
+    trilha: z.enum(slugsTrilha).optional().describe("Só se o usuário citou a trilha"),
+  }),
+  propor_conclusao_conteudo: z.object({
+    trilha: z.enum(slugsTrilha).optional().describe("Só se o usuário citou a trilha"),
+    nota: z
+      .number()
+      .int()
+      .min(0)
+      .max(100)
       .optional()
-      .describe(
-        "Segunda a quinta têm duas sessões: manha (conteúdo) e tarde (prática). Sem turno, vale a única pendente do dia.",
-      ),
+      .describe('Nota dita para a prova, de 0 a 100 ("terminei a prova com 85")'),
   }),
   criar_avaliacao: z.object({
     tipo: z.enum(assessmentKinds),
@@ -224,7 +237,9 @@ export const esquemas = {
         areas: z.array(area).optional(),
       })
       .optional()
-      .describe("Obrigatória quando tipo = consulta: o período que responde à pergunta"),
+      .describe(
+        "Obrigatória quando tipo = consulta sobre a agenda: o período que responde. Não use depois de consultar_plano",
+      ),
   }),
 } as const;
 
@@ -238,14 +253,16 @@ export const DESCRICOES: Record<NomeFerramenta, string> = {
     "Muda horário, data ou duração de um compromisso. Com escopo `ocorrencia`, só naquele dia; com `todas`, em todas as vezes. Conflitos de horário não impedem a mudança: o app avisa o usuário, e você não mexe no outro item.",
   criar_lembrete: "Cria um lembrete com aviso no horário.",
   concluir_lembrete: "Marca um lembrete como concluído.",
-  concluir_sessao_estudo:
-    "Marca como feita uma sessão da trilha de estudos (de segunda a quinta há a da manhã e a da tarde).",
+  consultar_plano:
+    "Responde sobre o plano de estudos: o que estudar agora (`agora`) ou qual o conteúdo seguinte (`proximo`). O app monta a resposta; você só escolhe a pergunta.",
+  propor_conclusao_conteudo:
+    'Propõe concluir o conteúdo atual do plano de estudos ("terminei o conteúdo atual", "terminei a prova com 85"). Nada é concluído: o usuário confirma na tela. Informe `trilha` só se ele a citou e `nota` só se ele disse a nota.',
   criar_avaliacao: "Cadastra prova, entrega, trabalho ou apresentação.",
   marcar_falta: "Registra falta numa disciplina num dia.",
   propor_exclusao:
     "Propõe apagar um compromisso (um dia ou todos), lembrete ou avaliação. Nada é apagado: o usuário confirma na tela.",
   responder:
-    "Termina o pedido. Chame sempre, uma única vez, depois das outras ferramentas. tipo: `acoes` (algo foi feito ou proposto), `consulta` (pergunta sobre a agenda; informe a janela) ou `fora_do_escopo`.",
+    "Termina o pedido. Chame sempre, uma única vez, depois das outras ferramentas. tipo: `acoes` (algo foi feito ou proposto), `consulta` (pergunta sobre a agenda, com a janela, ou sobre o plano, depois de consultar_plano) ou `fora_do_escopo`.",
 };
 
 // ---------------------------------------------------------------- Conflitos
@@ -534,37 +551,11 @@ export async function executarFerramenta(
       return { texto: "Lembrete concluído." };
     }
 
-    case "concluir_sessao_estudo": {
-      const { data, turno } = esquemas.concluir_sessao_estudo.parse(entrada);
-      const doDia = await sessoesEntre(userId, data, data);
-      const candidatas = turno
-        ? doDia.filter((x) => x.turno === turno)
-        : doDia.filter((x) => x.status === "pendente");
-      if (!doDia.length || (turno && !candidatas.length))
-        throw new NaoEncontrado("Sessão de estudo nesse dia");
-      if (!candidatas.length || candidatas[0].status === "feita")
-        return { texto: "Essa sessão já estava feita. Nada mudou." };
-      if (candidatas.length > 1)
-        throw new Conflito(
-          `Há ${candidatas.length} sessões pendentes nesse dia (${candidatas.map((x) => x.turno).join(" e ")}): diga o turno.`,
-        );
-      const [sessao] = candidatas;
-      const antes = await fotoAtual(userId, "sessao", sessao.id);
-      await marcarSessao(userId, sessao.id, true);
-      await gravarAcao({
-        runId,
-        userId,
-        tipo: "concluido",
-        entidade: "sessao",
-        entidadeId: sessao.id,
-        antes,
-        depois: await fotoAtual(userId, "sessao", sessao.id),
-        descricao: descricao("estudos", tituloDaSessao(sessao), [
-          { rotulo: "Sessão", antes: "Pendente", depois: "Feita" },
-        ]),
-      });
-      return { texto: "Sessão marcada como feita." };
-    }
+    case "consultar_plano":
+      return consultarPlano(ex, esquemas.consultar_plano.parse(entrada));
+
+    case "propor_conclusao_conteudo":
+      return proporConclusao(ex, esquemas.propor_conclusao_conteudo.parse(entrada));
 
     case "criar_avaliacao": {
       const a = esquemas.criar_avaliacao.parse(entrada);

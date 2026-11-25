@@ -9,9 +9,10 @@ import {
   assistantActions,
   assistantRuns,
   type FalhaDoAssistente,
+  type ConsultaDoPlano,
   type JanelaConsulta,
 } from "../db/schema";
-import { Conflito, LimiteExcedido, NaoEncontrado, SemCreditos } from "../erros";
+import { Conflito, LimiteExcedido, NaoEncontrado, Proibido, SemCreditos } from "../erros";
 import { obterAjustes } from "../servicos/ajustes";
 import { proximosPrazos } from "../servicos/avaliacoes";
 import { listarDisciplinas } from "../servicos/disciplinas";
@@ -25,6 +26,7 @@ import {
   type NomeFerramenta,
 } from "./ferramentas";
 import { FERRAMENTAS, INSTRUCOES } from "./instrucoes";
+import { confirmarConclusao, type Confirmacao } from "./plano";
 import { desfazerAcaoGravada, fotoAtual, obterAcao } from "./registro";
 
 /** Só o que o laço usa da API: facilita trocar por respostas simuladas nos testes. */
@@ -99,7 +101,8 @@ type Resposta = ReturnType<typeof esquemas.responder.parse>;
 
 function mensagemDeFalha(e: unknown): string {
   if (e instanceof ZodError) return "Dados inválidos para essa ação.";
-  if (e instanceof NaoEncontrado || e instanceof Conflito) return e.message;
+  if (e instanceof NaoEncontrado || e instanceof Conflito || e instanceof Proibido)
+    return e.message;
   console.error("Ferramenta do assistente falhou", e);
   return "Erro interno ao executar essa ação.";
 }
@@ -152,7 +155,13 @@ export async function executarAssistente(
     .returning({ id: assistantRuns.id });
 
   const contexto = await montarContexto(userId, texto, agora);
-  const ex: Execucao = { userId, runId: run.id, fuso: contexto.fuso, agora };
+  const ex: Execucao = {
+    userId,
+    runId: run.id,
+    fuso: contexto.fuso,
+    agora,
+    consultasDoPlano: [],
+  };
   const mensagens: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: contexto.texto }];
   const tokens = { entrada: 0, saida: 0, cacheEscrita: 0, cacheLeitura: 0 };
   const falhas: FalhaDoAssistente[] = [];
@@ -256,18 +265,24 @@ export async function executarAssistente(
     // Fora do escopo nunca deixa mudança: o que tiver sido feito é desfeito e propostas somem.
     await descartarTudo(userId, run.id);
   }
-  let janela: JanelaConsulta | null = null;
-  if (tipo === "consulta") {
-    janela = resposta?.janela
-      ? {
-          de: resposta.janela.de,
-          ate: [resposta.janela.ate, addDias(resposta.janela.de, 31)].sort()[0],
-          horaInicio: resposta.janela.hora_inicio ?? null,
-          horaFim: resposta.janela.hora_fim ?? null,
-          areas: resposta.janela.areas ?? null,
-        }
-      : null;
-    if (!janela) tipo = "erro";
+  let consulta: JanelaConsulta | ConsultaDoPlano | null = null;
+  if (tipo === "consulta" || tipo === "erro" || tipo === "acoes") {
+    // Pergunta sobre o plano: a tela mostra o texto que o app montou, sem janela de agenda.
+    if (ex.consultasDoPlano.length && (tipo === "consulta" || !(await temAcoes(run.id)))) {
+      consulta = { plano: ex.consultasDoPlano };
+      tipo = "consulta";
+    } else if (tipo === "consulta") {
+      consulta = resposta?.janela
+        ? {
+            de: resposta.janela.de,
+            ate: [resposta.janela.ate, addDias(resposta.janela.de, 31)].sort()[0],
+            horaInicio: resposta.janela.hora_inicio ?? null,
+            horaFim: resposta.janela.hora_fim ?? null,
+            areas: resposta.janela.areas ?? null,
+          }
+        : null;
+      if (!consulta) tipo = "erro";
+    }
   }
   if (tipo === "erro" && (await temAcoes(run.id))) tipo = "acoes";
 
@@ -277,7 +292,7 @@ export async function executarAssistente(
     falhas,
     resumo: resposta?.resumo ?? null,
     ignorouParte: tipo === "acoes" && !!resposta?.ignorou_parte,
-    consulta: janela,
+    consulta,
   });
   return { id: run.id, houveMudanca: await temAcoes(run.id, "feita") };
 }
@@ -290,7 +305,7 @@ async function finalizar(
     falhas: FalhaDoAssistente[];
     resumo?: string | null;
     ignorouParte?: boolean;
-    consulta?: JanelaConsulta | null;
+    consulta?: JanelaConsulta | ConsultaDoPlano | null;
   },
 ) {
   await db()
@@ -391,8 +406,13 @@ export async function desfazerExecucao(userId: string, runId: string) {
   return { avisos };
 }
 
-/** O usuário confirmou uma exclusão proposta. */
-export async function confirmarAcao(userId: string, id: string) {
+/**
+ * O usuário confirmou uma proposta: a exclusão pelos serviços das telas, ou a conclusão de um
+ * conteúdo do plano, que ainda passa pelas regras do plano (`escolha` traz o que o cartão pediu).
+ */
+export async function confirmarAcao(userId: string, id: string, escolha: Confirmacao = {}) {
+  const { entidade } = await obterAcao(userId, id);
+  if (entidade === "item_plano") return confirmarConclusao(userId, id, escolha);
   return naTransacao(async () => {
     const a = await obterAcao(userId, id);
     if (a.status !== "proposta") throw new Conflito("Essa proposta não está mais aberta.");
@@ -426,7 +446,10 @@ export async function decidirConflito(
       const c = a.conflitos[indice];
       if (!c) throw new NaoEncontrado("Conflito");
       const { fuso } = await obterAjustes(userId);
-      await aplicarCorrecao({ userId, runId: a.runId, fuso, agora: new Date() }, c);
+      await aplicarCorrecao(
+        { userId, runId: a.runId, fuso, agora: new Date(), consultasDoPlano: [] },
+        c,
+      );
     }
     await db()
       .update(assistantActions)
