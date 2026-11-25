@@ -210,7 +210,7 @@ export async function executarAssistente(
       const resultados: Anthropic.Beta.BetaToolResultBlockParam[] = [];
       for (const c of chamadas) {
         if (c.name === "responder") continue;
-        if (!(c.name in esquemas)) {
+        if (!Object.hasOwn(esquemas, c.name)) {
           resultados.push({
             type: "tool_result",
             tool_use_id: c.id,
@@ -268,9 +268,10 @@ export async function executarAssistente(
   let consulta: JanelaConsulta | ConsultaDoPlano | null = null;
   if (tipo === "consulta" || tipo === "erro" || tipo === "acoes") {
     // Pergunta sobre o plano: a tela mostra o texto que o app montou, sem janela de agenda.
-    if (ex.consultasDoPlano.length && (tipo === "consulta" || !(await temAcoes(run.id)))) {
+    if (ex.consultasDoPlano.length) {
+      // Com ações gravadas, a resposta do plano aparece junto com os cartões.
       consulta = { plano: ex.consultasDoPlano };
-      tipo = "consulta";
+      tipo = (await temAcoes(run.id)) ? "acoes" : "consulta";
     } else if (tipo === "consulta") {
       consulta = resposta?.janela
         ? {

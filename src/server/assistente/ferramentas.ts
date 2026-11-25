@@ -674,6 +674,9 @@ export async function executarFerramenta(
       });
       return { texto: "Proposta registrada. Nada foi apagado: o usuário confirma na tela." };
     }
+
+    default:
+      throw new Conflito("Ferramenta inexistente.");
   }
 }
 

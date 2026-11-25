@@ -24,7 +24,7 @@ import { assistantActions, planoBlocos } from "../db/schema";
 import { Conflito } from "../erros";
 import { catalogoDoBanco } from "../plano/catalogo";
 import { blocosDoPlano } from "../servicos/blocos";
-import { carregar, concluirItem, exigirDono, type Contexto } from "../servicos/plano";
+import { carregar, concluirItem, ehDono, exigirDono, type Contexto } from "../servicos/plano";
 import type { Execucao } from "./ferramentas";
 import { descricao, fotoAtual, gravarAcao, obterAcao } from "./registro";
 
@@ -236,7 +236,7 @@ export async function confirmarConclusao(
 ) {
   const falha: { recusa?: Conflito } = {};
   await naTransacao(async () => {
-    const a = await obterAcao(userId, id);
+    const a = await obterAcao(userId, id, true);
     if (a.status !== "proposta") throw new Conflito("Essa proposta não está mais aberta.");
     const definido = a.entidadeId !== ESCOLHER_CONTEUDO;
     const codigo = definido ? a.entidadeId : escolha.codigo;
@@ -257,6 +257,11 @@ export async function confirmarConclusao(
     } catch (e) {
       if (!(e instanceof Conflito)) throw e;
       falha.recusa = e;
+      // A nota dita já virou tentativa: um novo Confirmar exige nota digitada.
+      await db()
+        .update(assistantActions)
+        .set({ depois: null, atualizadaEm: new Date() })
+        .where(eq(assistantActions.id, id));
       return;
     }
     const item = itemPorCodigo(await catalogoDoBanco(), codigo)!;
@@ -297,6 +302,7 @@ export async function propostaVisivel(
   a: typeof assistantActions.$inferSelect,
 ): Promise<PropostaDoPlano | null> {
   if (a.entidade !== "item_plano" || a.status !== "proposta") return null;
+  if (!(await ehDono(userId))) return null;
   const ctx: Contexto = await carregar(userId, new Date());
   const definido = a.entidadeId !== ESCOLHER_CONTEUDO;
   const itens = definido

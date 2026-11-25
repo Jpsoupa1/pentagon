@@ -261,11 +261,13 @@ export async function gravarAcao(a: {
   return gravada;
 }
 
-export async function obterAcao(userId: string, id: string) {
-  const [a] = await db()
+/** `travar` bloqueia a linha até o fim da transação: dois Confirmar ao mesmo tempo viram fila. */
+export async function obterAcao(userId: string, id: string, travar = false) {
+  const consulta = db()
     .select()
     .from(assistantActions)
     .where(and(eq(assistantActions.id, id), eq(assistantActions.userId, userId)));
+  const [a] = await (travar ? consulta.for("update") : consulta);
   if (!a) throw new NaoEncontrado("Ação");
   return a;
 }

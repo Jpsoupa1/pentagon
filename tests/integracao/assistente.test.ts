@@ -648,6 +648,88 @@ describe("plano de estudos", () => {
     expect(v.acoes).toEqual([]);
   });
 
+  async function propostaDeSimulado() {
+    await iniciarPlano(
+      userId,
+      { marcados: ["A0", "A1", "C1", "B1", "B2", "B3"], incluirRequisitos: true },
+      AGORA,
+    );
+    const run = await propor("terminei o simulado com 85", NA_TEORIA, {
+      trilha: "cursos",
+      nota: 85,
+    });
+    return (await acoesDe(run.id))[0];
+  }
+  const tentativasDeB4 = async () =>
+    (
+      await db()
+        .select()
+        .from(planoTentativas)
+        .where(and(eq(planoTentativas.userId, userId), eq(planoTentativas.codigo, "B4")))
+    ).length;
+
+  it("a nota dita vale uma vez só: o segundo Confirmar sem nota não grava outra tentativa", async () => {
+    const proposta = await propostaDeSimulado();
+    expect(proposta.entidadeId).toBe("B4");
+    await expect(confirmarAcao(userId, proposta.id)).rejects.toThrow("Aprovações: 1 de 2");
+    await expect(confirmarAcao(userId, proposta.id)).rejects.toBeInstanceOf(Conflito);
+    expect(await tentativasDeB4()).toBe(1);
+    expect(await concluidos()).not.toContain("B4");
+  });
+
+  it("dois Confirmar ao mesmo tempo gravam uma tentativa só", async () => {
+    const proposta = await propostaDeSimulado();
+    const r = await Promise.allSettled([
+      confirmarAcao(userId, proposta.id),
+      confirmarAcao(userId, proposta.id),
+    ]);
+    expect(r.map((x) => x.status)).toEqual(["rejected", "rejected"]);
+    expect(await tentativasDeB4()).toBe(1);
+    expect(await concluidos()).not.toContain("B4");
+  });
+
+  it("confirmar duas vezes uma proposta comum: a segunda é recusada e nada muda", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    const [proposta] = await acoesDe(run.id);
+    await confirmarAcao(userId, proposta.id, { nota: 85 });
+    const depois = await concluidos();
+    await expect(confirmarAcao(userId, proposta.id, { nota: 85 })).rejects.toBeInstanceOf(Conflito);
+    expect(await concluidos()).toEqual(depois);
+  });
+
+  it("a resposta do plano aparece junto com as ações da mesma execução", async () => {
+    await comPlano();
+    const { cliente } = roteiro(
+      () =>
+        mensagem([
+          ferramenta("consultar_plano", { pergunta: "agora" }),
+          ferramenta("propor_conclusao_conteudo", {}),
+        ]),
+      () => responder({ tipo: "acoes" }),
+    );
+    const run = await executarAssistente(userId, "o que estudo agora e terminei", {
+      cliente,
+      agora: NA_TEORIA,
+    });
+    const v = await visaoDaExecucao(userId, run.id);
+    expect(v.tipo).toBe("acoes");
+    expect(v.acoes).toHaveLength(1);
+    expect(v.respostaDoPlano).toHaveLength(1);
+  });
+
+  it("quem deixou de ser dono não vê os itens do catálogo na proposta aberta", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    process.env.OWNER_EMAILS = "outro@pentagon.local";
+    try {
+      const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+      expect(cartao.plano).toBeNull();
+    } finally {
+      process.env.OWNER_EMAILS = EMAIL;
+    }
+  });
+
   it("listar_agenda traz os blocos do plano", async () => {
     await comPlano();
     const { texto } = await executarFerramenta(
@@ -687,6 +769,15 @@ describe("ferramentas e instruções", () => {
     expect(JSON.stringify(chamadas[1].messages.at(-1))).toContain("Ferramenta inexistente.");
     expect(await acoesDe(run.id)).toEqual([]);
     expect(await estadoDoBanco()).toEqual(antes);
+  });
+
+  it("nome herdado do objeto, como toString, também é ferramenta inexistente", async () => {
+    const { cliente, chamadas } = roteiro(
+      () => mensagem([ferramenta("toString", {})]),
+      () => responder({ tipo: "acoes" }),
+    );
+    await executarAssistente(userId, "oi", { cliente, agora: AGORA });
+    expect(JSON.stringify(chamadas[1].messages.at(-1))).toContain("Ferramenta inexistente.");
   });
 
   it("me explica gradiente continua fora do escopo, sem ações", async () => {

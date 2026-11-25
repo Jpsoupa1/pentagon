@@ -199,11 +199,12 @@ function ConclusaoDoPlano({
   const [codigo, setCodigo] = useState<string | null>(
     plano.definido ? plano.itens[0]?.codigo : null,
   );
-  const [nota, setNota] = useState("");
+  // A nota dita vem preenchida e pode ser corrigida antes do Confirmar.
+  const [nota, setNota] = useState(plano.notaDita === null ? "" : String(plano.notaDita));
   const [aprovado, setAprovado] = useState(false);
   const item = plano.itens.find((i) => i.codigo === codigo) ?? null;
   const avaliacao = item?.avaliacao ?? null;
-  const pedeNota = avaliacao?.tipo === "nota" && plano.notaDita === null;
+  const pedeNota = avaliacao?.tipo === "nota";
   const pronto =
     !!item && (!pedeNota || nota.trim() !== "") && (avaliacao?.tipo !== "aprovacao" || aprovado);
 
@@ -599,6 +600,11 @@ export function ModoVoz({
               </h1>
               <VocePediu texto={e.texto} />
               {e.ignorouParte && <p className={s.nota}>{MENSAGEM_PARTE_IGNORADA}</p>}
+              {e.respostaDoPlano?.map((r) => (
+                <p key={r} className={s.nota}>
+                  {r}
+                </p>
+              ))}
               {fase.avisos.map((a) => (
                 <p key={a} className={s.nota} role="status">
                   {a}

@@ -99,7 +99,7 @@ export async function visaoDaExecucao(userId: string, runId: string): Promise<Ex
       plano: await propostaVisivel(userId, a),
     })),
   );
-  const consulta = r.tipo === "consulta" ? r.consulta : null;
+  const consulta = r.tipo === "consulta" || r.tipo === "acoes" ? r.consulta : null;
   return {
     id: r.id,
     texto: r.texto,
