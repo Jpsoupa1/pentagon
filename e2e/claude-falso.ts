@@ -32,15 +32,37 @@ function decidir(mensagens: Mensagem[]) {
   const ultima = mensagens.at(-1)!;
   // Já executou as ferramentas: termina.
   if (Array.isArray(ultima.content) && ultima.content.some((b) => b.type === "tool_result")) {
-    return resposta([usar("responder", { tipo: "acoes", resumo: "feito" })]);
+    const penultima = mensagens.at(-2)!.content;
+    const consultouPlano =
+      Array.isArray(penultima) && penultima.some((b) => b.name === "consultar_plano");
+    return resposta([
+      usar("responder", { tipo: consultouPlano ? "consulta" : "acoes", resumo: "feito" }),
+    ]);
   }
   const contexto = mensagens[0].content as string;
   const pedido = /<pedido>\n([\s\S]*?)\n<\/pedido>/.exec(contexto)?.[1].toLowerCase() ?? "";
   const amanha = /Amanhã = (\d{4}-\d{2}-\d{2})/.exec(contexto)?.[1];
   const hoje = /Hoje = (\d{4}-\d{2}-\d{2})/.exec(contexto)?.[1];
 
-  if (/brasil|piada|derivada|email|tempo/.test(pedido) && !/lembra|marca/.test(pedido)) {
+  if (/brasil|piada|derivada|email|tempo|gradiente/.test(pedido) && !/lembra|marca/.test(pedido)) {
     return resposta([usar("responder", { tipo: "fora_do_escopo", resumo: "fora" })]);
+  }
+  // Plano de estudos: o app monta a resposta; o modelo só escolhe a ferramenta.
+  if (pedido.includes("estudo agora")) {
+    return resposta([usar("consultar_plano", { pergunta: "agora" })]);
+  }
+  if (pedido.includes("próximo conteúdo")) {
+    return resposta([usar("consultar_plano", { pergunta: "proximo" })]);
+  }
+  if (pedido.startsWith("terminei")) {
+    const nota = /com (\d+)/.exec(pedido)?.[1];
+    const trilha = /trilha (teoria|cursos|projetos)/.exec(pedido)?.[1];
+    return resposta([
+      usar("propor_conclusao_conteudo", {
+        ...(nota ? { nota: Number(nota) } : {}),
+        ...(trilha ? { trilha } : {}),
+      }),
+    ]);
   }
   if (pedido.startsWith("o que eu tenho")) {
     const dia = pedido.includes("amanhã") ? amanha : hoje;
