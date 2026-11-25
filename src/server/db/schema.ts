@@ -730,6 +730,9 @@ export type JanelaConsulta = {
   areas: AreaIdDominio[] | null;
 };
 
+/** Consulta ao plano de estudos: o texto já montado pelo app, uma resposta por pergunta feita. */
+export type ConsultaDoPlano = { plano: string[] };
+
 /** Ferramenta que falhou (a mensagem é a do próprio app: validação, item não encontrado...). */
 export type FalhaDoAssistente = { ferramenta: string; mensagem: string };
 
@@ -745,7 +748,7 @@ export const assistantRuns = pgTable(
     resumo: text("resumo"),
     /** O pedido tinha uma parte fora do escopo, que foi ignorada. */
     ignorouParte: boolean("ignorou_parte").notNull().default(false),
-    consulta: jsonb("consulta").$type<JanelaConsulta>(),
+    consulta: jsonb("consulta").$type<JanelaConsulta | ConsultaDoPlano>(),
     falhas: jsonb("falhas").$type<FalhaDoAssistente[]>().notNull().default([]),
     modelo: text("modelo").notNull(),
     tokensEntrada: integer("tokens_entrada").notNull().default(0),

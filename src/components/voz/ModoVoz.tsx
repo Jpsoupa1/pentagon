@@ -18,6 +18,7 @@ import {
   SUGESTOES_DE_PEDIDO,
   type AcaoVisivel,
   type ExecucaoVisivel,
+  type PropostaDoPlano,
 } from "@/lib/assistente";
 import { AREA_POR_ID } from "@/lib/areas";
 import { DIAS_CURTOS, MESES, partesLocais } from "@/lib/tempo";
@@ -174,6 +175,119 @@ function ChipArea({ areaId }: { areaId: AcaoVisivel["areaId"] }) {
   );
 }
 
+type Agir = (
+  acao: AcaoVisivel,
+  o: "desfazer" | "confirmar" | "mover" | "manter",
+  corpo?: Record<string, unknown>,
+) => void;
+
+/**
+ * Concluir conteúdo do plano: escolha entre os atuais quando a trilha não ficou definida e, em
+ * prova por nota, o campo da nota (a nota dita já aparece no cartão). Quem decide é o servidor.
+ */
+function ConclusaoDoPlano({
+  acao,
+  plano,
+  ocupado,
+  aoAgir,
+}: {
+  acao: AcaoVisivel;
+  plano: PropostaDoPlano;
+  ocupado: boolean;
+  aoAgir: Agir;
+}) {
+  const [codigo, setCodigo] = useState<string | null>(
+    plano.definido ? plano.itens[0]?.codigo : null,
+  );
+  // A nota dita vem preenchida e pode ser corrigida antes do Confirmar.
+  const [nota, setNota] = useState(plano.notaDita === null ? "" : String(plano.notaDita));
+  const [aprovado, setAprovado] = useState(false);
+  const item = plano.itens.find((i) => i.codigo === codigo) ?? null;
+  const avaliacao = item?.avaliacao ?? null;
+  const pedeNota = avaliacao?.tipo === "nota";
+  const pronto =
+    !!item && (!pedeNota || nota.trim() !== "") && (avaliacao?.tipo !== "aprovacao" || aprovado);
+
+  function confirmar() {
+    if (!item) return;
+    aoAgir(acao, "confirmar", {
+      ...(plano.definido ? {} : { codigo: item.codigo }),
+      ...(pedeNota ? { nota: Number(nota) } : {}),
+      ...(avaliacao?.tipo === "aprovacao" ? { aprovado } : {}),
+    });
+  }
+
+  return (
+    <>
+      {!plano.definido && (
+        <fieldset className={s.escolha}>
+          <legend className={s.rotulo}>Qual conteúdo você terminou?</legend>
+          {plano.itens.map((i) => (
+            <label key={i.codigo} className={s.opcao}>
+              <input
+                type="radio"
+                name={`conteudo-${acao.id}`}
+                checked={codigo === i.codigo}
+                onChange={() => setCodigo(i.codigo)}
+              />
+              <span className={s.itemTexto}>
+                <strong>
+                  {i.codigo}. {i.titulo}
+                </strong>
+                <span className={s.mono}>{i.criterio}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {pedeNota && (
+        <label className={s.opcao}>
+          <span className={s.itemTexto}>
+            <span className={s.mono}>Nota da prova (0 a 100)</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={100}
+              className={s.numero}
+              value={nota}
+              onChange={(ev) => setNota(ev.target.value)}
+            />
+          </span>
+        </label>
+      )}
+      {avaliacao?.tipo === "aprovacao" && (
+        <label className={s.opcao}>
+          <input
+            type="checkbox"
+            checked={aprovado}
+            onChange={(ev) => setAprovado(ev.target.checked)}
+          />
+          <span>Fui aprovado</span>
+        </label>
+      )}
+      <div className={s.linhaBotoes}>
+        <button
+          type="button"
+          className={s.laranja}
+          disabled={ocupado || !pronto}
+          onClick={confirmar}
+        >
+          Confirmar
+        </button>
+        <button
+          type="button"
+          className={s.fantasma}
+          disabled={ocupado}
+          onClick={() => aoAgir(acao, "desfazer")}
+        >
+          Agora não
+        </button>
+      </div>
+    </>
+  );
+}
+
 function CartaoAcao({
   acao,
   ocupado,
@@ -181,7 +295,7 @@ function CartaoAcao({
 }: {
   acao: AcaoVisivel;
   ocupado: boolean;
-  aoAgir: (acao: AcaoVisivel, o: "desfazer" | "confirmar" | "mover" | "manter") => void;
+  aoAgir: Agir;
 }) {
   const inativa = acao.status === "desfeita" || acao.status === "descartada";
   const proposta = acao.status === "proposta";
@@ -190,7 +304,7 @@ function CartaoAcao({
       <article className={s.acao} data-inativa={inativa || undefined} aria-label={acao.titulo}>
         <div className={s.acaoTopo}>
           <span className={s.tipo} data-tipo={acao.tipo}>
-            {proposta ? "APAGAR?" : ROTULO_DA_ACAO[acao.tipo]}
+            {proposta ? (acao.plano ? "CONCLUIR?" : "APAGAR?") : ROTULO_DA_ACAO[acao.tipo]}
           </span>
           <ChipArea areaId={acao.areaId} />
           <span className={s.acaoBotoes}>
@@ -217,7 +331,10 @@ function CartaoAcao({
             {c.depois && <span className={s.depois}>{c.depois}</span>}
           </p>
         ))}
-        {proposta && (
+        {proposta && acao.plano && (
+          <ConclusaoDoPlano acao={acao} plano={acao.plano} ocupado={ocupado} aoAgir={aoAgir} />
+        )}
+        {proposta && !acao.plano && (
           <div className={s.linhaBotoes}>
             <button
               type="button"
@@ -366,14 +483,14 @@ export function ModoVoz({
     }
   }
 
-  async function agir(acao: AcaoVisivel, o: "desfazer" | "confirmar" | "mover" | "manter") {
+  const agir: Agir = async (acao, o, corpo) => {
     if (fase.nome !== "resultado") return;
     setOcupado(true);
     setAviso(null);
     try {
       if (o === "mover" || o === "manter")
         await chamar(`/api/assistente/acoes/${acao.id}/conflito`, { decisao: o });
-      else await chamar(`/api/assistente/acoes/${acao.id}/${o}`, {});
+      else await chamar(`/api/assistente/acoes/${acao.id}/${o}`, corpo ?? {});
       const execucao = await chamar<ExecucaoVisivel>(
         `/api/assistente/execucoes/${fase.execucao.id}`,
       );
@@ -383,7 +500,7 @@ export function ModoVoz({
     } finally {
       setOcupado(false);
     }
-  }
+  };
 
   async function desfazerTudo() {
     if (fase.nome !== "resultado") return;
@@ -436,6 +553,16 @@ export function ModoVoz({
               <h2 className={s.rotulo}>Experimente</h2>
               <Sugestoes aoEscolher={enviar} />
             </>
+          ) : e.tipo === "consulta" && e.respostaDoPlano ? (
+            <>
+              <h1 className={s.titulo}>Plano de estudos</h1>
+              <VocePediu texto={e.texto} />
+              {e.respostaDoPlano.map((r) => (
+                <p key={r} className={s.nota}>
+                  {r}
+                </p>
+              ))}
+            </>
           ) : e.tipo === "consulta" && e.consulta ? (
             <>
               <h1 className={s.titulo}>{e.consulta.titulo}</h1>
@@ -467,12 +594,17 @@ export function ModoVoz({
                     <IconeCheck />
                   </span>
                 )}
-                {e.tipo === "erro" && !e.acoes.length
+                {e.tipo === "erro" && !e.acoes.length && !e.falhas.length
                   ? "Não entendi o pedido."
                   : tituloDoResultado(e)}
               </h1>
               <VocePediu texto={e.texto} />
               {e.ignorouParte && <p className={s.nota}>{MENSAGEM_PARTE_IGNORADA}</p>}
+              {e.respostaDoPlano?.map((r) => (
+                <p key={r} className={s.nota}>
+                  {r}
+                </p>
+              ))}
               {fase.avisos.map((a) => (
                 <p key={a} className={s.nota} role="status">
                   {a}
@@ -490,7 +622,7 @@ export function ModoVoz({
                   ))}
                 </ul>
               )}
-              {e.tipo === "erro" && !e.acoes.length && (
+              {e.tipo === "erro" && !e.acoes.length && !e.falhas.length && (
                 <p className={s.recusa}>Tente dizer de outro jeito, com o dia e o horário.</p>
               )}
             </>

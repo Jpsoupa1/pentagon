@@ -14,7 +14,7 @@ export const MENSAGEM_SEM_CREDITOS = "O assistente volta quando os créditos ren
 export const SUGESTOES_DE_PEDIDO = [
   "O que eu tenho hoje à tarde?",
   "Me lembra de revisar Cálculo amanhã às três",
-  "Marca a sessão de estudo de hoje como feita",
+  "O que eu estudo agora?",
 ] as const;
 
 export const LIMITE_TEXTO_PEDIDO = 500;
@@ -79,6 +79,8 @@ export type AcaoVisivel = {
   campos: { rotulo: string; antes: string | null; depois: string | null }[];
   conflitos: ConflitoVisivel[];
   conflitoDecisao: string | null;
+  /** Só nas propostas de concluir conteúdo do plano. */
+  plano: PropostaDoPlano | null;
 };
 
 export type ItemDeConsulta = {
@@ -89,6 +91,24 @@ export type ItemDeConsulta = {
   feito: boolean;
 };
 
+/** Como o plano avalia a conclusão de um conteúdo (a nota vem do que o app tem, não da IA). */
+export type AvaliacaoVisivel =
+  { tipo: "nota"; minima: number; aprovacoes: number } | { tipo: "aprovacao" };
+
+export type ItemParaConcluir = {
+  codigo: string;
+  titulo: string;
+  criterio: string;
+  avaliacao: AvaliacaoVisivel | null;
+};
+
+/** Proposta de concluir conteúdo do plano: um item definido ou os atuais para escolher. */
+export type PropostaDoPlano = {
+  notaDita: number | null;
+  itens: ItemParaConcluir[];
+  definido: boolean;
+};
+
 export type ExecucaoVisivel = {
   id: string;
   texto: string;
@@ -96,5 +116,7 @@ export type ExecucaoVisivel = {
   ignorouParte: boolean;
   acoes: AcaoVisivel[];
   consulta: { titulo: string; itens: ItemDeConsulta[] } | null;
+  /** Resposta montada pelo app para perguntas sobre o plano de estudos. */
+  respostaDoPlano: string[] | null;
   falhas: string[];
 };

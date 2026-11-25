@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { and, eq } from "drizzle-orm";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { MENSAGEM_FORA_DO_ESCOPO } from "@/lib/assistente";
 import { db } from "@/server/db";
 import {
@@ -8,10 +8,17 @@ import {
   assistantRuns,
   eventExceptions,
   events,
+  planoBlocos,
+  planoProgresso,
+  planoTentativas,
   reminders,
   studySessions,
+  users,
 } from "@/server/db/schema";
-import { LimiteExcedido, SemCreditos } from "@/server/erros";
+import { Conflito, LimiteExcedido, NaoEncontrado, SemCreditos } from "@/server/erros";
+import { executarFerramenta } from "@/server/assistente/ferramentas";
+import { semearCatalogoPlano } from "@/server/plano/seed";
+import { iniciarPlano } from "@/server/servicos/plano";
 import {
   confirmarAcao,
   decidirConflito,
@@ -23,6 +30,7 @@ import { visaoDaExecucao } from "@/server/assistente/visao";
 import {
   AGORA,
   AMANHA,
+  EMAIL,
   HOJE,
   apagarUsuarioDeTeste,
   dadosDoContexto,
@@ -398,4 +406,392 @@ it("o contexto traz hoje, amanhã e as disciplinas", async () => {
   expect(d.hoje_e_amanha.some((i) => i.titulo === "Academia" && i.data === AMANHA)).toBe(true);
   expect(d.disciplinas.map((x) => x.sigla)).toContain("CALC");
   expect(chamadas[0].messages[0].content).toContain("Hoje = 2026-10-21");
+});
+
+// ---------------------------------------------------------------- Plano de estudos
+
+describe("plano de estudos", () => {
+  /** Quarta 21/10/2026, 14:00 em São Paulo: no meio do bloco Teoria (13:30 às 15:00). */
+  const NA_TEORIA = new Date("2026-10-21T17:00:00Z");
+  /** 22:00: os blocos do dia já acabaram. */
+  const A_NOITE = new Date("2026-10-22T01:00:00Z");
+  const AMIGO = "amigo-assistente-plano@pentagon.local";
+  const NAO_DONO = { pergunta: "agora" };
+  const donosAntes = process.env.OWNER_EMAILS;
+
+  beforeAll(async () => {
+    process.env.OWNER_EMAILS = EMAIL;
+    await semearCatalogoPlano(db());
+  });
+  afterAll(async () => {
+    await db().delete(users).where(eq(users.email, AMIGO));
+    if (donosAntes === undefined) delete process.env.OWNER_EMAILS;
+    else process.env.OWNER_EMAILS = donosAntes;
+  });
+
+  /** A2 (Cálculo de uma variável, 15 h, mínima 80) é o atual da Teoria, com 6 h gastas. */
+  async function comPlano() {
+    await iniciarPlano(userId, { marcados: ["A0", "A1", "C1"], incluirRequisitos: false }, AGORA);
+    await db()
+      .insert(planoBlocos)
+      .values({
+        userId,
+        data: "2026-10-20",
+        bloco: "teoria",
+        codigoEstudado: "A2",
+        minutos: 360,
+        feitoEm: new Date("2026-10-20T20:00:00Z"),
+      });
+  }
+
+  /** O modelo chama uma ferramenta e termina com `responder`. */
+  function pedir(
+    id: string,
+    texto: string,
+    agora: Date,
+    nome: string,
+    entrada: Record<string, unknown>,
+    tipo: "acoes" | "consulta",
+  ) {
+    const { cliente } = roteiro(
+      () => mensagem([ferramenta(nome, entrada)]),
+      () => responder({ tipo }),
+    );
+    return executarAssistente(id, texto, { cliente, agora });
+  }
+  const consultar = (texto: string, agora: Date, entrada: Record<string, unknown>) =>
+    pedir(userId, texto, agora, "consultar_plano", entrada, "consulta");
+  const propor = (texto: string, agora: Date, entrada: Record<string, unknown> = {}) =>
+    pedir(userId, texto, agora, "propor_conclusao_conteudo", entrada, "acoes");
+  const respostaDe = async (runId: string) =>
+    (await visaoDaExecucao(userId, runId)).respostaDoPlano;
+
+  const concluidos = async () =>
+    (await db().select().from(planoProgresso).where(eq(planoProgresso.userId, userId)))
+      .map((p) => p.codigo)
+      .sort();
+
+  it("agora: responde com o bloco, o conteúdo e as horas, montado pelo app", async () => {
+    await comPlano();
+    const run = await consultar("o que eu estudo agora?", NA_TEORIA, { pergunta: "agora" });
+    const v = await visaoDaExecucao(userId, run.id);
+    expect(v.tipo).toBe("consulta");
+    expect(v.respostaDoPlano).toEqual([
+      "Agora: bloco Teoria, A2. Cálculo de uma variável. 9 h restantes de 15 h.",
+    ]);
+    expect(v.consulta).toBeNull();
+  });
+
+  it("agora antes do bloco mostra o próximo bloco; sem blocos no resto do dia, o atual de cada trilha", async () => {
+    await comPlano();
+    const antes = await consultar("o que eu estudo agora?", AGORA, { pergunta: "agora" });
+    expect(await respostaDe(antes.id)).toEqual([
+      "Próximo bloco, às 13:30: bloco Teoria, A2. Cálculo de uma variável. 9 h restantes de 15 h.",
+    ]);
+    const noite = await consultar("o que eu estudo agora?", A_NOITE, { pergunta: "agora" });
+    expect(await respostaDe(noite.id)).toEqual([
+      "Sem blocos no resto de hoje. Itens atuais: Teoria: A2. Cálculo de uma variável. Cursos e Certificações: B1. Building with the Claude API. Projetos: C2. Pulse AI: pipeline de dados.",
+    ]);
+  });
+
+  it("próximo: código e título do item seguinte, no bloco atual ou na trilha pedida", async () => {
+    await comPlano();
+    const doBloco = await consultar("qual o próximo conteúdo?", NA_TEORIA, { pergunta: "proximo" });
+    expect(await respostaDe(doBloco.id)).toEqual([
+      "Próximo conteúdo na trilha Teoria, depois de A2. Cálculo de uma variável: A3. Cálculo de várias variáveis.",
+    ]);
+    const pedida = await consultar("e nos projetos?", A_NOITE, {
+      pergunta: "proximo",
+      trilha: "projetos",
+    });
+    expect(await respostaDe(pedida.id)).toEqual([
+      expect.stringMatching(
+        /^Próximo conteúdo na trilha Projetos, depois de C2\. Pulse AI: pipeline de dados: C\d+\. /,
+      ),
+    ]);
+  });
+
+  it("terminei o conteúdo atual: só propõe; Confirmar conclui pelo serviço do plano e Desfazer volta", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    expect(run.houveMudanca).toBe(false);
+    const acoes = await acoesDe(run.id);
+    expect(acoes).toHaveLength(1);
+    expect(acoes[0]).toMatchObject({
+      tipo: "concluido",
+      status: "proposta",
+      entidade: "item_plano",
+      entidadeId: "A2",
+    });
+    expect(await concluidos()).toEqual(["A0", "A1", "C1"]);
+
+    const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+    expect(cartao.titulo).toBe("Concluir A2. Cálculo de uma variável?");
+    expect(cartao.campos[0].rotulo).toBe("Critério");
+    expect(cartao.plano).toMatchObject({ definido: true, notaDita: null });
+    expect(cartao.plano!.itens).toEqual([
+      expect.objectContaining({
+        codigo: "A2",
+        avaliacao: { tipo: "nota", minima: 80, aprovacoes: 1 },
+      }),
+    ]);
+
+    // Sem nota dita, o cartão manda a nota digitada junto com o Confirmar.
+    await confirmarAcao(userId, cartao.id, { nota: 85 });
+    expect(await concluidos()).toEqual(["A0", "A1", "A2", "C1"]);
+    const [feita] = (await visaoDaExecucao(userId, run.id)).acoes;
+    expect(feita).toMatchObject({ status: "feita", titulo: "A2. Cálculo de uma variável" });
+    expect(feita.campos.map((c) => c.depois)).toContain("Concluído");
+
+    await desfazerExecucao(userId, run.id);
+    expect(await concluidos()).toEqual(["A0", "A1", "C1"]);
+    expect((await acoesDe(run.id))[0].status).toBe("desfeita");
+  });
+
+  it("terminei a prova com 85: a nota dita aparece no cartão e vale no Confirmar", async () => {
+    await comPlano();
+    const run = await propor("terminei a prova com 85", NA_TEORIA, { nota: 85 });
+    const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+    expect(cartao.plano!.notaDita).toBe(85);
+    expect(cartao.campos.map((c) => c.depois)).toContain("85%");
+    await confirmarAcao(userId, cartao.id);
+    expect(await concluidos()).toContain("A2");
+  });
+
+  it("terminei a prova com 72 num item de mínima 80: vira tentativa e o item continua atual", async () => {
+    await comPlano();
+    const run = await propor("terminei a prova com 72", NA_TEORIA, { nota: 72 });
+    const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+    await expect(confirmarAcao(userId, cartao.id)).rejects.toThrow(
+      "Tentativa registrada: 72%. Para passar, 80% ou mais.",
+    );
+    expect(await concluidos()).not.toContain("A2");
+    const tentativas = await db()
+      .select()
+      .from(planoTentativas)
+      .where(and(eq(planoTentativas.userId, userId), eq(planoTentativas.codigo, "A2")));
+    expect(tentativas).toMatchObject([{ nota: 72, aprovada: false }]);
+    // A proposta continua aberta para tentar de novo com a nota certa.
+    expect((await acoesDe(run.id))[0].status).toBe("proposta");
+    await confirmarAcao(userId, cartao.id, { nota: 90 });
+    expect(await concluidos()).toContain("A2");
+  });
+
+  it("sem trilha dita e sem bloco no momento, o cartão mostra os três atuais para escolher", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", AGORA);
+    expect((await acoesDe(run.id))[0]).toMatchObject({
+      status: "proposta",
+      entidadeId: "escolher",
+    });
+    const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+    expect(cartao.titulo).toBe("Qual conteúdo você terminou?");
+    expect(cartao.plano!.definido).toBe(false);
+    expect(cartao.plano!.itens.map((i) => i.codigo)).toEqual(["A2", "B1", "C2"]);
+
+    // Sem escolha ou com um item que não é o atual da trilha, o servidor recusa.
+    await expect(confirmarAcao(userId, cartao.id)).rejects.toBeInstanceOf(Conflito);
+    await expect(confirmarAcao(userId, cartao.id, { codigo: "A3" })).rejects.toBeInstanceOf(
+      Conflito,
+    );
+    expect(await concluidos()).toEqual(["A0", "A1", "C1"]);
+
+    await confirmarAcao(userId, cartao.id, { codigo: "B1" });
+    expect(await concluidos()).toEqual(["A0", "A1", "B1", "C1"]);
+    expect((await acoesDe(run.id))[0]).toMatchObject({ status: "feita", entidadeId: "B1" });
+  });
+
+  it("com a trilha dita, vale ela mesmo sem bloco no momento", async () => {
+    await comPlano();
+    const run = await propor("terminei o projeto", A_NOITE, { trilha: "projetos" });
+    expect((await acoesDe(run.id))[0]).toMatchObject({ entidadeId: "C2", status: "proposta" });
+  });
+
+  it("Confirmar a proposta de outro usuário dá 404 e não conclui nada", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    const [proposta] = await acoesDe(run.id);
+    await db().delete(users).where(eq(users.email, AMIGO));
+    const [amigo] = await db().insert(users).values({ name: AMIGO, email: AMIGO }).returning();
+    await expect(confirmarAcao(amigo.id, proposta.id, { nota: 90 })).rejects.toBeInstanceOf(
+      NaoEncontrado,
+    );
+    expect(await concluidos()).toEqual(["A0", "A1", "C1"]);
+  });
+
+  it("quem não é dono recebe que não há plano, e nada é gravado", async () => {
+    await db().delete(users).where(eq(users.email, AMIGO));
+    const [amigo] = await db().insert(users).values({ name: AMIGO, email: AMIGO }).returning();
+    for (const [nome, entrada] of [
+      ["consultar_plano", NAO_DONO],
+      ["propor_conclusao_conteudo", {}],
+    ] as const) {
+      const run = await pedir(
+        amigo.id,
+        "o que eu estudo agora?",
+        NA_TEORIA,
+        nome,
+        entrada,
+        "consulta",
+      );
+      const v = await visaoDaExecucao(amigo.id, run.id);
+      expect(v.falhas).toEqual(["Nenhum plano de estudos nesta conta."]);
+      expect(v.respostaDoPlano).toBeNull();
+      expect(v.acoes).toEqual([]);
+    }
+  });
+
+  it("antes da primeira abertura o dono recebe o aviso do plano, não uma proposta", async () => {
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    const v = await visaoDaExecucao(userId, run.id);
+    expect(v.falhas).toEqual(["Faça a primeira abertura do plano antes."]);
+    expect(v.acoes).toEqual([]);
+  });
+
+  async function propostaDeSimulado() {
+    await iniciarPlano(
+      userId,
+      { marcados: ["A0", "A1", "C1", "B1", "B2", "B3"], incluirRequisitos: true },
+      AGORA,
+    );
+    const run = await propor("terminei o simulado com 85", NA_TEORIA, {
+      trilha: "cursos",
+      nota: 85,
+    });
+    return (await acoesDe(run.id))[0];
+  }
+  const tentativasDeB4 = async () =>
+    (
+      await db()
+        .select()
+        .from(planoTentativas)
+        .where(and(eq(planoTentativas.userId, userId), eq(planoTentativas.codigo, "B4")))
+    ).length;
+
+  it("a nota dita vale uma vez só: o segundo Confirmar sem nota não grava outra tentativa", async () => {
+    const proposta = await propostaDeSimulado();
+    expect(proposta.entidadeId).toBe("B4");
+    await expect(confirmarAcao(userId, proposta.id)).rejects.toThrow("Aprovações: 1 de 2");
+    await expect(confirmarAcao(userId, proposta.id)).rejects.toBeInstanceOf(Conflito);
+    expect(await tentativasDeB4()).toBe(1);
+    expect(await concluidos()).not.toContain("B4");
+  });
+
+  it("dois Confirmar ao mesmo tempo gravam uma tentativa só", async () => {
+    const proposta = await propostaDeSimulado();
+    const r = await Promise.allSettled([
+      confirmarAcao(userId, proposta.id),
+      confirmarAcao(userId, proposta.id),
+    ]);
+    expect(r.map((x) => x.status)).toEqual(["rejected", "rejected"]);
+    expect(await tentativasDeB4()).toBe(1);
+    expect(await concluidos()).not.toContain("B4");
+  });
+
+  it("confirmar duas vezes uma proposta comum: a segunda é recusada e nada muda", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    const [proposta] = await acoesDe(run.id);
+    await confirmarAcao(userId, proposta.id, { nota: 85 });
+    const depois = await concluidos();
+    await expect(confirmarAcao(userId, proposta.id, { nota: 85 })).rejects.toBeInstanceOf(Conflito);
+    expect(await concluidos()).toEqual(depois);
+  });
+
+  it("a resposta do plano aparece junto com as ações da mesma execução", async () => {
+    await comPlano();
+    const { cliente } = roteiro(
+      () =>
+        mensagem([
+          ferramenta("consultar_plano", { pergunta: "agora" }),
+          ferramenta("propor_conclusao_conteudo", {}),
+        ]),
+      () => responder({ tipo: "acoes" }),
+    );
+    const run = await executarAssistente(userId, "o que estudo agora e terminei", {
+      cliente,
+      agora: NA_TEORIA,
+    });
+    const v = await visaoDaExecucao(userId, run.id);
+    expect(v.tipo).toBe("acoes");
+    expect(v.acoes).toHaveLength(1);
+    expect(v.respostaDoPlano).toHaveLength(1);
+  });
+
+  it("quem deixou de ser dono não vê os itens do catálogo na proposta aberta", async () => {
+    await comPlano();
+    const run = await propor("terminei o conteúdo atual", NA_TEORIA);
+    process.env.OWNER_EMAILS = "outro@pentagon.local";
+    try {
+      const [cartao] = (await visaoDaExecucao(userId, run.id)).acoes;
+      expect(cartao.plano).toBeNull();
+    } finally {
+      process.env.OWNER_EMAILS = EMAIL;
+    }
+  });
+
+  it("listar_agenda traz os blocos do plano", async () => {
+    await comPlano();
+    const { texto } = await executarFerramenta(
+      {
+        userId,
+        runId: crypto.randomUUID(),
+        fuso: "America/Sao_Paulo",
+        agora: NA_TEORIA,
+        consultasDoPlano: [],
+      },
+      "listar_agenda",
+      { de: HOJE, ate: HOJE },
+    );
+    expect(texto).toContain("Bloco Teoria: A2. Cálculo de uma variável");
+    expect(texto).toContain('"item":"bloco:');
+  });
+});
+
+describe("ferramentas e instruções", () => {
+  it("concluir_sessao_estudo não existe mais: a chamada é recusada e nada muda", async () => {
+    const nomes = FERRAMENTAS.map((f) => f.name);
+    expect(nomes).not.toContain("concluir_sessao_estudo");
+    expect(nomes).toEqual(
+      expect.arrayContaining(["consultar_plano", "propor_conclusao_conteudo", "listar_agenda"]),
+    );
+    expect(INSTRUCOES).not.toContain("concluir_sessao_estudo");
+
+    const antes = await estadoDoBanco();
+    const { cliente, chamadas } = roteiro(
+      () => mensagem([ferramenta("concluir_sessao_estudo", { data: HOJE })]),
+      () => responder({ tipo: "acoes" }),
+    );
+    const run = await executarAssistente(userId, "marca a sessão de hoje como feita", {
+      cliente,
+      agora: AGORA,
+    });
+    expect(JSON.stringify(chamadas[1].messages.at(-1))).toContain("Ferramenta inexistente.");
+    expect(await acoesDe(run.id)).toEqual([]);
+    expect(await estadoDoBanco()).toEqual(antes);
+  });
+
+  it("nome herdado do objeto, como toString, também é ferramenta inexistente", async () => {
+    const { cliente, chamadas } = roteiro(
+      () => mensagem([ferramenta("toString", {})]),
+      () => responder({ tipo: "acoes" }),
+    );
+    await executarAssistente(userId, "oi", { cliente, agora: AGORA });
+    expect(JSON.stringify(chamadas[1].messages.at(-1))).toContain("Ferramenta inexistente.");
+  });
+
+  it("me explica gradiente continua fora do escopo, sem ações", async () => {
+    const { cliente } = roteiro(() => responder({ tipo: "fora_do_escopo" }));
+    const run = await executarAssistente(userId, "me explica gradiente", { cliente, agora: AGORA });
+    const v = await visaoDaExecucao(userId, run.id);
+    expect(v).toMatchObject({ tipo: "fora_do_escopo", acoes: [], respostaDoPlano: null });
+    expect(INSTRUCOES).toContain("explicar conteúdo");
+  });
+
+  it("as instruções são texto fixo e citam o plano de estudos e as três frases", () => {
+    expect(INSTRUCOES).toMatch(/o que eu estudo agora/i);
+    expect(INSTRUCOES).toMatch(/qual o próximo conteúdo/i);
+    expect(INSTRUCOES).toMatch(/terminei o conteúdo atual/i);
+    expect(INSTRUCOES).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
 });

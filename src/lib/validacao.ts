@@ -283,6 +283,13 @@ export const conclusaoPlanoSchema = z.strictObject({
   aprovado: z.boolean().optional(),
 });
 
+/** O que o cartão de conclusão do assistente manda ao confirmar: o conteúdo escolhido e a nota digitada. */
+export const confirmacaoAssistenteSchema = z.strictObject({
+  codigo: codigoPlanoSchema.optional(),
+  nota: notaPlano.optional(),
+  aprovado: z.boolean().optional(),
+});
+
 export const tentativaPlanoSchema = z.strictObject({ nota: notaPlano });
 
 export const checkPlanoSchema = z.discriminatedUnion("grupo", [

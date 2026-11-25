@@ -6,6 +6,7 @@ import { obterAjustes } from "../servicos/ajustes";
 import { agenda } from "../servicos/agenda";
 import { listarLembretes } from "../servicos/lembretes";
 import { obterExecucao } from "./executar";
+import { propostaVisivel } from "./plano";
 import { quandoTexto } from "./registro";
 
 /** Resposta de consulta montada com os dados do app (a IA só escolheu o período). */
@@ -79,29 +80,34 @@ async function montarConsulta(userId: string, j: JanelaConsulta) {
 /** O que a tela mostra de uma execução: tudo tirado de `assistant_actions` e do banco. */
 export async function visaoDaExecucao(userId: string, runId: string): Promise<ExecucaoVisivel> {
   const r = await obterExecucao(userId, runId);
-  const acoes: AcaoVisivel[] = r.acoes.map((a) => ({
-    id: a.id,
-    tipo: a.tipo,
-    status: a.status,
-    areaId: a.descricao.areaId,
-    titulo: a.descricao.titulo,
-    campos: a.descricao.campos,
-    conflitos: a.conflitos.map((c) => ({
-      titulo: c.titulo,
-      horario: c.horario,
-      correcao: c.sugestao
-        ? `Mover ${c.origem === "sessao" ? "sessão" : c.titulo} para ${c.sugestao}`
-        : null,
+  const acoes: AcaoVisivel[] = await Promise.all(
+    r.acoes.map(async (a) => ({
+      id: a.id,
+      tipo: a.tipo,
+      status: a.status,
+      areaId: a.descricao.areaId,
+      titulo: a.descricao.titulo,
+      campos: a.descricao.campos,
+      conflitos: a.conflitos.map((c) => ({
+        titulo: c.titulo,
+        horario: c.horario,
+        correcao: c.sugestao
+          ? `Mover ${c.origem === "sessao" ? "sessão" : c.titulo} para ${c.sugestao}`
+          : null,
+      })),
+      conflitoDecisao: a.conflitoDecisao,
+      plano: await propostaVisivel(userId, a),
     })),
-    conflitoDecisao: a.conflitoDecisao,
-  }));
+  );
+  const consulta = r.tipo === "consulta" || r.tipo === "acoes" ? r.consulta : null;
   return {
     id: r.id,
     texto: r.texto,
     tipo: r.tipo,
     ignorouParte: r.ignorouParte,
     acoes: r.tipo === "fora_do_escopo" ? [] : acoes,
-    consulta: r.tipo === "consulta" && r.consulta ? await montarConsulta(userId, r.consulta) : null,
+    consulta: consulta && !("plano" in consulta) ? await montarConsulta(userId, consulta) : null,
+    respostaDoPlano: consulta && "plano" in consulta ? consulta.plano : null,
     falhas: r.falhas.map((f) => f.mensagem),
   };
 }
